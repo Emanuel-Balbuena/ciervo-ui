@@ -1,0 +1,24 @@
+{
+  "name": "ciervo-ui",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/ciervo-ui.umd.js",
+  "module": "./dist/ciervo-ui.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/ciervo-ui.es.js",
+      "require": "./dist/ciervo-ui.umd.js"
+    },
+    "./style.css": "./dist/style.css"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0",
+    "cuelume": "^1.0.0"
+  }
+}
