@@ -301,7 +301,7 @@ const selectedMatrixColor = ref<string>('all');
         </div>
 
         <div class="code-card">
-          <button class="copy-btn snippet-copy" @click="copyCode('<!-- Hazlo siempre así: -->\n<Button :loading=&quot;isSubmitting&quot; @click=&quot;handleAction&quot;>\n  Confirmar compra\n</Button>', 'morph')">
+          <button class="copy-btn snippet-copy" @click="copyCode('<Button :loading=&quot;isSubmitting&quot; @click=&quot;handleAction&quot;>\n  Confirmar compra\n</Button>', 'morph')">
             <span v-if="copiedSnippet === 'morph'" class="copied-badge">Copiado</span>
             <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
