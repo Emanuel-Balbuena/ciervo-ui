@@ -312,9 +312,11 @@
     --btn-text: var(--framed-text);
 }
 
-.btn-variant-framed:hover:not(:disabled):not(.is-loading) {
-    --btn-bg: var(--framed-hover-bg);
-    --btn-border: var(--framed-hover-border);
+@media (hover: hover) {
+    .btn-variant-framed:hover:not(:disabled):not(.is-loading) {
+        --btn-bg: var(--framed-hover-bg);
+        --btn-border: var(--framed-hover-border);
+    }
 }
 
 .btn-variant-framed:active:not(:disabled):not(.is-loading) {
