@@ -87,8 +87,9 @@ function handleClick(event) {
     // Reproducción acústica directa e infalible con tus sonidos elegidos
     if (interactionSound.value) {
         if (typeof window !== 'undefined') {
-            const isMobileOrTouch = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
-            if (!isMobileOrTouch) {
+            // Detección real de dispositivo táctil puro (no se apaga con el zoom de escritorio)
+            const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+            if (!isTouchOnly) {
                 try {
                     play(interactionSound.value);
                 } catch (e) {
