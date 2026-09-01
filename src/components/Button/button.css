@@ -8,6 +8,7 @@
     --btn-shadow: none;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
 
     /* LA FÍSICA CAPTURADA DE VERCEL/RAUNO */
     --btn-spring-duration: 390ms;
@@ -329,9 +330,11 @@
     --btn-text: var(--solid-text);
 }
 
-.btn-variant-solid:hover:not(:disabled):not(.is-loading) {
-    --btn-bg: var(--solid-hover);
-    --btn-border: transparent;
+@media (hover: hover) {
+    .btn-variant-solid:hover:not(:disabled):not(.is-loading) {
+        --btn-bg: var(--solid-hover);
+        --btn-border: transparent;
+    }
 }
 
 .btn-variant-solid:active:not(:disabled):not(.is-loading) {
@@ -346,9 +349,11 @@
     --btn-text: var(--soft-text);
 }
 
-.btn-variant-soft:hover:not(:disabled):not(.is-loading) {
-    --btn-bg: var(--soft-hover);
-    --btn-border: transparent;
+@media (hover: hover) {
+    .btn-variant-soft:hover:not(:disabled):not(.is-loading) {
+        --btn-bg: var(--soft-hover);
+        --btn-border: transparent;
+    }
 }
 
 .btn-variant-soft:active:not(:disabled):not(.is-loading) {
@@ -363,9 +368,11 @@
     --btn-text: var(--ghost-text);
 }
 
-.btn-variant-ghost:hover:not(:disabled):not(.is-loading) {
-    --btn-bg: var(--ghost-hover);
-    --btn-border: transparent;
+@media (hover: hover) {
+    .btn-variant-ghost:hover:not(:disabled):not(.is-loading) {
+        --btn-bg: var(--ghost-hover);
+        --btn-border: transparent;
+    }
 }
 
 .btn-variant-ghost:active:not(:disabled):not(.is-loading) {
@@ -380,9 +387,11 @@
     --btn-text: var(--outline-text);
 }
 
-.btn-variant-outline:hover:not(:disabled):not(.is-loading) {
-    --btn-bg: var(--outline-hover);
-    --btn-border: var(--outline-border);
+@media (hover: hover) {
+    .btn-variant-outline:hover:not(:disabled):not(.is-loading) {
+        --btn-bg: var(--outline-hover);
+        --btn-border: var(--outline-border);
+    }
 }
 
 .btn-variant-outline:active:not(:disabled):not(.is-loading) {

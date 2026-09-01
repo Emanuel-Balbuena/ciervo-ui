@@ -299,16 +299,6 @@ const selectedMatrixColor = ref<string>('all');
           <Button variant="outline" color="green" shape="square" :loading="true">Publicar proyecto</Button>
           <Button variant="framed" color="pink" shape="round" :loading="true">Enviar mensaje</Button>
         </div>
-
-        <div class="code-card">
-          <button class="copy-btn snippet-copy" @click="copyCode('<Button :loading=&quot;isSubmitting&quot; @click=&quot;handleAction&quot;>\n  Confirmar compra\n</Button>', 'morph')">
-            <span v-if="copiedSnippet === 'morph'" class="copied-badge">Copiado</span>
-            <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-          </button>
-        </div>
       </section>
 
       <!-- =========================================
@@ -1279,23 +1269,69 @@ const selectedMatrixColor = ref<string>('all');
   }
 
   .demo-container {
-    gap: 40px;
+    gap: 42px;
   }
 
+  /* Top Navigation */
+  .top-nav {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+  }
+
+  .meta-tag {
+    font-size: 11.5px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  /* Hero */
   .hero-title {
-    font-size: 34px;
+    font-size: 38px;
+    letter-spacing: -0.04em;
   }
 
   .hero-subtitle {
     font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .install-card {
+    width: 100%;
+    justify-content: space-between;
+    box-sizing: border-box;
   }
 
   .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
     gap: 10px;
+    width: 100%;
   }
 
+  /* Story Showcase Rows */
+  .showcase-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+  }
+
+  /* Playground Canvas */
   .stage-canvas-card {
     height: 220px;
+    border-radius: 14px;
+  }
+
+  .stage-canvas-inner {
+    gap: 16px;
+  }
+
+  /* Inspector Rows */
+  .props-inspector-list {
+    gap: 18px;
   }
 
   .prop-control-row {
@@ -1305,40 +1341,82 @@ const selectedMatrixColor = ref<string>('all');
     min-height: auto;
   }
 
+  .prop-info-col {
+    width: 100%;
+  }
+
   .prop-input-col {
     width: 100%;
   }
 
   .segmented-pill-group {
+    display: inline-flex;
     flex-wrap: wrap;
     width: 100%;
+    gap: 3px;
+    padding: 3px;
   }
 
   .segment-pill-btn {
-    padding: 6px 10px;
+    padding: 6px 12px;
     font-size: 12px;
+    flex: 1 1 auto;
+    text-align: center;
   }
 
   .color-dots-pill-group {
-    gap: 8px;
-    padding: 6px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 8px 12px;
+    justify-content: flex-start;
   }
 
+  .sleek-text-input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Code Cards */
+  .code-card {
+    padding: 12px 14px;
+    border-radius: 10px;
+  }
+
+  .code-card pre {
+    font-size: 12px;
+  }
+
+  /* Matrix Section */
   .matrix-filter-bar {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
 
+  .color-system-card {
+    padding: 16px;
+    border-radius: 14px;
+    gap: 14px;
+  }
+
   .color-variants-grid {
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 12px;
   }
 
-  .color-system-card {
-    padding: 16px;
+  .variant-duo {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    flex-wrap: wrap;
   }
 
+  .variant-duo .btn {
+    flex: 1 1 auto;
+  }
+
+  /* Footer */
   .footer-content {
     flex-direction: column;
     align-items: flex-start;
@@ -1348,16 +1426,19 @@ const selectedMatrixColor = ref<string>('all');
 
 @media (max-width: 480px) {
   .hero-title {
-    font-size: 28px;
+    font-size: 32px;
   }
 
-  .install-card {
-    width: 100%;
-    justify-content: space-between;
+  .meta-tag {
+    display: none;
+  }
+
+  .top-nav {
+    justify-content: flex-end;
   }
 
   .color-variants-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
   }
 }
 </style>
