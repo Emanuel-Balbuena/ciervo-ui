@@ -1,6 +1,7 @@
 <script setup>
 
 import { computed } from 'vue';
+import { play } from 'cuelume';
 
 const props = defineProps({
     // Polimorfismo (puede ser un 'button', un 'a', un 'RouterLink', etc.)
@@ -55,17 +56,11 @@ const props = defineProps({
 const emit = defineEmits(['click'])
 
 const interactionSound = computed(() => {
-    // Desactivar automáticamente en dispositivos móviles / táctiles para no pausar música o contenido multimedia
-    if (typeof window !== 'undefined') {
-        const isMobileOrTouch = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
-        if (isMobileOrTouch) return undefined;
-    }
-
     // Si el prop sound es false, retornamos undefined.
     // En Vue, esto hace que el atributo data-* desaparezca por completo del HTML.
     if (!props.sound || props.disabled || props.loading) return undefined;
 
-    // Asignamos sonidos del catálogo de Cuelume según el peso de la variante
+    // Asignamos sonidos del catálogo de Cuelume según el peso de la variante (perfil acústico exacto)
     switch (props.variant) {
         case 'solid':
         case 'framed':
@@ -88,6 +83,21 @@ function handleClick(event) {
         event.stopPropagation()
         return
     }
+
+    // Reproducción acústica directa e infalible con tus sonidos elegidos
+    if (interactionSound.value) {
+        if (typeof window !== 'undefined') {
+            const isMobileOrTouch = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+            if (!isMobileOrTouch) {
+                try {
+                    play(interactionSound.value);
+                } catch (e) {
+                    // Audio context protegido
+                }
+            }
+        }
+    }
+
     emit('click', event)
 }
 </script>

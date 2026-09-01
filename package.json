@@ -1,6 +1,6 @@
 {
   "name": "ciervo-ui",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -8,17 +8,23 @@
     "build:demo": "vite build --config vite.config.demo.ts",
     "deploy": "npm run build:demo && gh-pages -d dist"
   },
+  "main": "./dist/ciervo-ui.umd.js",
+  "module": "./dist/ciervo-ui.es.js",
+  "types": "./dist/index.d.ts",
+  "style": "./dist/ciervo-ui.css",
   "files": [
     "dist"
   ],
-  "main": "./dist/ciervo-ui.umd.js",
-  "module": "./dist/ciervo-ui.es.js",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/ciervo-ui.es.js",
       "require": "./dist/ciervo-ui.umd.js"
     },
-    "./style.css": "./dist/style.css"
+    "./style.css": "./dist/ciervo-ui.css",
+    "./dist/style.css": "./dist/ciervo-ui.css",
+    "./dist/ciervo-ui.css": "./dist/ciervo-ui.css",
+    "./dist/*": "./dist/*"
   },
   "peerDependencies": {
     "cuelume": ">=0.2.0",

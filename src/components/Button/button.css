@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&display=swap');
+
 /* =========================================
    1. EL CHASIS BASE (Purificado)
    ========================================= */
@@ -9,6 +11,17 @@
     user-select: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
+
+    /* Tipografía con prioridad y fallback refinado para Windows */
+    font-family: 'Instrument Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.015em;
+
+    /* Suavizado obligatorio */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
 
     /* LA FÍSICA CAPTURADA DE VERCEL/RAUNO */
     --btn-spring-duration: 390ms;
@@ -38,8 +51,6 @@
     padding-right: var(--btn-pad-x-right, 20px);
     padding-left: var(--btn-pad-x-left, 16px);
 
-    font-family: inherit;
-    font-weight: 500;
     cursor: pointer;
     text-decoration: none;
 
