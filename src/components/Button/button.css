@@ -12,18 +12,15 @@
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
 
-    /* Tipografía con prioridad y fallback refinado para Windows */
     font-family: 'Instrument Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
     font-weight: 500;
     line-height: 1;
     letter-spacing: -0.015em;
 
-    /* Suavizado obligatorio */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
 
-    /* LA FÍSICA CAPTURADA DE VERCEL/RAUNO */
     --btn-spring-duration: 390ms;
     /* Casi 0.4 segundos para que el resorte respire */
     --btn-spring-easing: linear(0 0%, 0.0134 1%, 0.0494 2%, 0.1023 3%, 0.1671 4%, 0.2398 5%,
@@ -60,10 +57,6 @@
     border-radius: var(--btn-radius, 12px);
     box-shadow: var(--btn-shadow);
 
-    /* 
-       AQUÍ SEPARA LAS ANIMACIONES: 
-       Color rápido (125ms), Escala lenta con resorte (390ms) 
-    */
     transition: background-color 125ms ease-out,
         color 125ms ease-out,
         border-color 125ms ease-out,
@@ -414,7 +407,7 @@
 
 
 /* =========================================
-   3. DICCIONARIO: TEMA CLARO ☀️ (Con Transparencias RGBA) En la rama theme-ligth el framed es una copia de solid debido a que la gama de colores es imcompatible con esta variante.
+   3. DICCIONARIO: TEMA CLARO (Con Transparencias RGBA) En la rama theme-ligth el framed es una copia de solid debido a que la gama de colores es imcompatible con esta variante.
    ========================================= */
 
 /* --- NEUTRAL (BLACK) LIGHT MODE --- */
@@ -871,10 +864,7 @@
     --outline-active-text: rgba(255, 20, 147, .80);
 }
 
-/* Para el TEMA OSCURO 🌙, en el diccionario harías exactamente lo mismo, 
-   pero usando rgba(255, 255, 255, 0.XX) para el color negro (que se vuelve blanco), 
-   y ajustando los porcentajes de tu RGBA naranja para que resalten sobre fondos oscuros. */
-
+/* THEME DARK */
 /* --- NEUTRAL (BLACK) DARK MODE --- */
 .theme-dark .btn-color-black {
     /* Framed (COPIA DE SOLID) */

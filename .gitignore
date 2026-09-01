@@ -12,6 +12,7 @@ node_modules
 dist
 dist-ssr
 *.local
+ciervo-ui-0.1.0.tgz
 
 # Carpetas de investigación y referencias locales
 study/

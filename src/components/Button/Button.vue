@@ -56,8 +56,6 @@ const props = defineProps({
 const emit = defineEmits(['click'])
 
 const interactionSound = computed(() => {
-    // Si el prop sound es false, retornamos undefined.
-    // En Vue, esto hace que el atributo data-* desaparezca por completo del HTML.
     if (!props.sound || props.disabled || props.loading) return undefined;
 
     // Asignamos sonidos del catálogo de Cuelume según el peso de la variante (perfil acústico exacto)
@@ -77,17 +75,15 @@ const interactionSound = computed(() => {
 })
 
 function handleClick(event) {
-    // El cortacircuitos para proteger tu base de datos de clics dobles
     if (props.disabled || props.loading) {
         event.preventDefault()
         event.stopPropagation()
         return
     }
 
-    // Reproducción acústica directa e infalible con tus sonidos elegidos
+    // Reproducción acústica directa
     if (interactionSound.value) {
         if (typeof window !== 'undefined') {
-            // Detección real de dispositivo táctil puro (no se apaga con el zoom de escritorio)
             const isTouchOnly = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
             if (!isTouchOnly) {
                 try {
@@ -122,17 +118,13 @@ function handleClick(event) {
 
         :data-cuelume-toggle="interactionSound"
     >
-        <!-- Ícono de Carga (Spinner animado por CSS) -->
-        <!-- Ícono de Carga Dinámico -->
             <svg 
     class="btn-spinner" 
     viewBox="0 0 50 50" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
 >
-    <!-- Fondo suave -->
     <circle cx="25" cy="25" r="20" stroke="currentColor" stroke-width="5" opacity="0.15"></circle>
-    <!-- Línea dinámica -->
     <circle 
         class="spinner-path" 
         cx="25" 
@@ -144,7 +136,6 @@ function handleClick(event) {
     ></circle>
 </svg>
 
-        <!-- El texto de tu botón -->
         <span class="btn-text">
             <slot></slot>
         </span>
