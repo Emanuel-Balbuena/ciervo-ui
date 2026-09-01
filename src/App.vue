@@ -1220,28 +1220,41 @@ const selectedMatrixColor = ref<string>('all');
 
 .color-variants-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
 }
 
 .variant-column {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--card-border-subtle);
+  border-radius: 12px;
+  padding: 12px 10px;
 }
 
 .variant-name {
   font-size: 11px;
-  font-weight: 600;
-  text-transform: capitalize;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-tertiary);
 }
 
 .variant-duo {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
+  width: 100%;
+}
+
+.variant-duo .btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 13px;
 }
 
 /* =========================================
@@ -1265,11 +1278,11 @@ const selectedMatrixColor = ref<string>('all');
    ========================================= */
 @media (max-width: 768px) {
   .demo-wrapper {
-    padding: 24px 16px 60px 16px;
+    padding: 20px 14px 70px 14px;
   }
 
   .demo-container {
-    gap: 42px;
+    gap: 36px;
   }
 
   /* Top Navigation */
@@ -1277,24 +1290,28 @@ const selectedMatrixColor = ref<string>('all');
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: 16px;
+    padding-bottom: 14px;
   }
 
   .meta-tag {
-    font-size: 11.5px;
-    flex-wrap: wrap;
+    font-size: 11px;
     gap: 6px;
   }
 
   /* Hero */
+  .hero-section {
+    gap: 14px;
+  }
+
   .hero-title {
-    font-size: 38px;
+    font-size: clamp(32px, 8.5vw, 42px);
     letter-spacing: -0.04em;
+    line-height: 1.08;
   }
 
   .hero-subtitle {
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 14.5px;
+    line-height: 1.62;
   }
 
   .install-card {
@@ -1306,22 +1323,36 @@ const selectedMatrixColor = ref<string>('all');
   .hero-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
   }
 
   /* Story Showcase Rows */
+  .story-section {
+    gap: 14px;
+    padding-top: 10px;
+  }
+
+  .section-title {
+    font-size: 21px;
+  }
+
+  .section-text {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
   .showcase-row {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    padding: 8px 0;
+    padding: 4px 0;
   }
 
   /* Playground Canvas */
   .stage-canvas-card {
-    height: 220px;
+    height: 200px;
     border-radius: 14px;
   }
 
@@ -1331,7 +1362,7 @@ const selectedMatrixColor = ref<string>('all');
 
   /* Inspector Rows */
   .props-inspector-list {
-    gap: 18px;
+    gap: 16px;
   }
 
   .prop-control-row {
@@ -1353,15 +1384,17 @@ const selectedMatrixColor = ref<string>('all');
     display: inline-flex;
     flex-wrap: wrap;
     width: 100%;
-    gap: 3px;
-    padding: 3px;
+    gap: 4px;
+    padding: 4px;
+    box-sizing: border-box;
   }
 
   .segment-pill-btn {
-    padding: 6px 12px;
+    padding: 6px 10px;
     font-size: 12px;
     flex: 1 1 auto;
     text-align: center;
+    min-height: 34px;
   }
 
   .color-dots-pill-group {
@@ -1387,33 +1420,66 @@ const selectedMatrixColor = ref<string>('all');
     font-size: 12px;
   }
 
-  /* Matrix Section */
+  /* Matrix Section (Formato en cuadrícula espaciosa de 2 columnas) */
   .matrix-filter-bar {
+    display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .matrix-filter-bar .color-dots-pill-group {
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .color-system-card {
     padding: 16px;
     border-radius: 14px;
-    gap: 14px;
+    gap: 16px;
   }
 
   .color-variants-grid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    width: 100%;
+  }
+
+  .variant-column {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border-subtle);
+  }
+
+  .variant-column:last-child:nth-child(odd) {
+    grid-column: span 2;
+  }
+
+  .variant-name {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
   }
 
   .variant-duo {
-    display: flex;
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 6px;
-    flex-wrap: wrap;
+    width: 100%;
   }
 
   .variant-duo .btn {
-    flex: 1 1 auto;
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   /* Footer */
@@ -1425,10 +1491,6 @@ const selectedMatrixColor = ref<string>('all');
 }
 
 @media (max-width: 480px) {
-  .hero-title {
-    font-size: 32px;
-  }
-
   .meta-tag {
     display: none;
   }
@@ -1437,8 +1499,9 @@ const selectedMatrixColor = ref<string>('all');
     justify-content: flex-end;
   }
 
-  .color-variants-grid {
-    grid-template-columns: 1fr 1fr;
+  .variant-duo {
+    grid-template-columns: 1fr;
+    gap: 6px;
   }
 }
 </style>

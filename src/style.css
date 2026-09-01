@@ -88,6 +88,8 @@ html, body {
   color: var(--text-primary);
   font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 code, pre, .font-mono {

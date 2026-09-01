@@ -1311,3 +1311,13 @@
     --outline-active-bg: rgba(255, 20, 147, .30);
     --outline-active-text: rgba(255, 20, 147, .80);
 }
+
+/* =========================================
+   FÍSICA INDEPENDIENTE PARA DISPOSITIVOS MÓVILES
+   ========================================= */
+@media (max-width: 768px),
+(pointer: coarse) {
+    .btn {
+        --btn-spring-duration: 230ms;
+    }
+}
