@@ -1,6 +1,139 @@
-/* Empty style.css */
-body {
+:root {
+  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Animation timing functions (de theme-toggle-effect) */
+  --expo-in: linear(
+    0 0%, 0.0085 31.26%, 0.0167 40.94%,
+    0.0289 48.86%, 0.0471 55.92%,
+    0.0717 61.99%, 0.1038 67.32%,
+    0.1443 72.07%, 0.1989 76.7%,
+    0.2659 80.89%, 0.3465 84.71%,
+    0.4419 88.22%, 0.554 91.48%,
+    0.6835 94.51%, 0.8316 97.34%, 1 100%
+  );
+  --expo-out: linear(
+    0 0%, 0.1684 2.66%, 0.3165 5.49%,
+    0.446 8.52%, 0.5581 11.78%,
+    0.6535 15.29%, 0.7341 19.11%,
+    0.8011 23.3%, 0.8557 27.93%,
+    0.8962 32.68%, 0.9283 38.01%,
+    0.9529 44.08%, 0.9711 51.14%,
+    0.9833 59.06%, 0.9915 68.74%, 1 100%
+  );
+
+  /* Light Theme Palette */
+  --page-bg: #fcfcfc;
+  --text-primary: #09090b;
+  --text-secondary: #64748b;
+  --text-tertiary: #94a3b8;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-border-subtle: #f1f5f9;
+  --canvas-bg: #f4f4f5;
+  --canvas-border: #e4e4e7;
+  --code-bg: #f8fafc;
+  --code-border: #e2e8f0;
+  --pill-bg: #eaeaea;
+  --pill-border: #d4d4d8;
+  --pill-text: #71717a;
+  --pill-hover-text: #18181b;
+  --pill-active-bg: #ffffff;
+  --pill-active-text: #09090b;
+  --checkbox-border: #d4d4d8;
+  --checkbox-checked: #ea580c;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-focus: #ea580c;
+}
+
+html.dark {
+  /* Dark Theme Palette (Refined Zinc Gray) */
+  --page-bg: #121214;
+  --text-primary: #f9fafb;
+  --text-secondary: #9a9ca3;
+  --text-tertiary: #60626b;
+  --card-bg: #18191c;
+  --card-border: #26272c;
+  --card-border-subtle: #202126;
+  --canvas-bg: #18191c;
+  --canvas-border: #26272c;
+  --code-bg: #18191c;
+  --code-border: #28292f;
+  --pill-bg: #1f2025;
+  --pill-border: #2c2d34;
+  --pill-text: #8e9099;
+  --pill-hover-text: #e1e2e6;
+  --pill-active-bg: #32333b;
+  --pill-active-text: #ffffff;
+  --checkbox-border: #35363e;
+  --checkbox-checked: #f97316;
+  --input-bg: #18191c;
+  --input-border: #2c2d34;
+  --input-focus: #f97316;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
+  background-color: var(--page-bg);
+  color: var(--text-primary);
+  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* =========================================
+   THEME TOGGLE EFFECT: POLYGON (CLIP-PATH)
+   (Implementación directa oficial de la demo)
+   ========================================= */
+::view-transition-group(root) {
+  animation-duration: 0.7s;
+  animation-timing-function: var(--expo-out);
+}
+
+::view-transition-new(root) {
+  animation-name: reveal-light;
+  animation-fill-mode: both;
+}
+
+::view-transition-old(root),
+.dark::view-transition-old(root) {
+  animation: none;
+  animation-fill-mode: both;
+  z-index: -1;
+}
+
+.dark::view-transition-new(root) {
+  animation-name: reveal-dark;
+  animation-fill-mode: both;
+}
+
+@keyframes reveal-dark {
+  from {
+    clip-path: polygon(50% -71%, -50% 71%, -50% 71%, 50% -71%);
+  }
+  to {
+    clip-path: polygon(50% -71%, -50% 71%, 50% 171%, 171% 50%);
+  }
+}
+
+@keyframes reveal-light {
+  from {
+    clip-path: polygon(171% 50%, 50% 171%, 50% 171%, 171% 50%);
+  }
+  to {
+    clip-path: polygon(171% 50%, 50% 171%, -50% 71%, 50% -71%);
+  }
 }

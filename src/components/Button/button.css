@@ -6,6 +6,8 @@
     --btn-text: currentColor;
     --btn-border: transparent;
     --btn-shadow: none;
+    user-select: none;
+    -webkit-user-select: none;
 
     /* LA FÍSICA CAPTURADA DE VERCEL/RAUNO */
     --btn-spring-duration: 390ms;
@@ -71,12 +73,49 @@
     opacity: 0.5;
 }
 
-.btn-shape-square {
+.btn-shape-square.btn-size-micro {
+    --btn-radius: 8px;
+}
+
+.btn-shape-square.btn-size-tiny {
+    --btn-radius: 9.3px;
+}
+
+.btn-shape-square.btn-size-small {
+    --btn-radius: 10.6px;
+}
+
+.btn-shape-square.btn-size-medium {
     --btn-radius: 12px;
 }
 
+.btn-shape-square.btn-size-large {
+    --btn-radius: 14.6px;
+}
+
 .btn-shape-round {
-    --btn-radius: 18px;
+    --btn-radius: 9999px;
+}
+
+.btn-size-micro {
+    font-size: 11px;
+    height: 24px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.btn-size-tiny {
+    font-size: 12px;
+    height: 28px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.btn-size-small {
+    font-size: 14px;
+    height: 32px;
+    padding-left: 12px;
+    padding-right: 12px;
 }
 
 .btn-size-medium {
@@ -84,6 +123,13 @@
     height: 36px;
     padding-left: 16px;
     padding-right: 16px;
+}
+
+.btn-size-large {
+    font-size: 17px;
+    height: 44px;
+    padding-left: 22px;
+    padding-right: 22px;
 }
 
 .btn-spinner {
@@ -95,7 +141,13 @@
 
     /* Resorte de transición */
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: spin 1s linear infinite;
+
+    /* El contenedor gira de forma constante y suave */
+    animation: rotate-container 2s linear infinite;
+}
+
+.btn.is-loading {
+    cursor: not-allowed;
 }
 
 .btn.is-loading .btn-spinner {
@@ -105,13 +157,146 @@
     opacity: 1;
 }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
+/* El motor orgánico del borde */
+.spinner-path {
+    /* 62.8 es la circunferencia exacta de nuestro círculo (r=10) */
+    animation: stretch-spin 1.5s ease-in-out infinite;
+}
+
+/* --- ICON-ONLY BUTTON & ZERO-SHIFT CSS GRID STACK --- */
+.btn.btn-icon-only {
+    display: inline-grid !important;
+    grid-template-areas: "icon-center" !important;
+    place-items: center !important;
+    place-content: center !important;
+    padding: 0 !important;
+    aspect-ratio: 1 / 1 !important;
+    box-sizing: border-box !important;
+}
+
+.btn.btn-icon-only.btn-size-micro {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+}
+
+.btn.btn-icon-only.btn-size-tiny {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+}
+
+.btn.btn-icon-only.btn-size-small {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+}
+
+.btn.btn-icon-only.btn-size-medium {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+}
+
+.btn.btn-icon-only.btn-size-large {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+}
+
+.btn.btn-icon-only .btn-text {
+    grid-area: icon-center !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform-origin: center center !important;
+
+    /* Estado visible inicial con física de resorte */
+    scale: 1;
+    rotate: 0deg;
+    opacity: 1;
+    filter: blur(0px);
+    transition: scale var(--btn-spring-duration) var(--btn-spring-easing),
+        rotate 340ms cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 180ms ease,
+        filter 200ms ease !important;
+}
+
+.btn.btn-icon-only .btn-text svg {
+    width: 1.2em;
+    height: 1.2em;
+    display: block;
+    margin: auto;
+}
+
+.btn.btn-icon-only .btn-spinner {
+    grid-area: icon-center !important;
+    width: 1.2em !important;
+    height: 1.2em !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform-origin: center center !important;
+
+    /* Estado colapsado inicial con blur y escala reducida */
+    scale: 0.1;
+    opacity: 0;
+    filter: blur(2px);
+    transition: scale var(--btn-spring-duration) var(--btn-spring-easing),
+        opacity 220ms ease-out,
+        filter 240ms ease !important;
+    pointer-events: none;
+    animation: rotate-container 2s linear infinite;
+}
+
+.btn.btn-icon-only.is-loading .btn-spinner {
+    scale: 1 !important;
+    opacity: 1 !important;
+    filter: blur(0px) !important;
+    margin: 0 !important;
+    width: 1.2em !important;
+    height: 1.2em !important;
+    pointer-events: auto !important;
+}
+
+.btn.btn-icon-only.is-loading .btn-text {
+    scale: 0.1 !important;
+    rotate: -75deg !important;
+    opacity: 0 !important;
+    filter: blur(2px) !important;
+    pointer-events: none !important;
+}
+
+/* Animación 1: Rotación global */
+@keyframes rotate-container {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes stretch-spin {
+    0% {
+        /* Empieza como un punto mínimo */
+        stroke-dasharray: 1, 200;
+        stroke-dashoffset: 0;
     }
 
-    to {
-        transform: rotate(360deg);
+    50% {
+        /* La cabeza avanza rápido: se estira hasta ocupar 90 unidades */
+        stroke-dasharray: 90, 200;
+        stroke-dashoffset: -35px;
+    }
+
+    100% {
+        /* La cola alcanza a la cabeza: vuelve a medir 1 unidad */
+        stroke-dasharray: 1, 200;
+        /* El offset empuja ese punto 125 unidades negativas (una vuelta completa exacta). 
+           Esto hace que quede exactamente en la misma posición visual que el 0% */
+        stroke-dashoffset: -125px;
     }
 }
 
@@ -126,12 +311,12 @@
     --btn-text: var(--framed-text);
 }
 
-.btn-variant-framed:hover:not(:disabled) {
+.btn-variant-framed:hover:not(:disabled):not(.is-loading) {
     --btn-bg: var(--framed-hover-bg);
     --btn-border: var(--framed-hover-border);
 }
 
-.btn-variant-framed:active:not(:disabled) {
+.btn-variant-framed:active:not(:disabled):not(.is-loading) {
     --btn-bg: var(--framed-active-bg);
     --btn-border: var(--framed-active-border);
     --btn-text: var(--framed-active-text);
@@ -144,12 +329,12 @@
     --btn-text: var(--solid-text);
 }
 
-.btn-variant-solid:hover:not(:disabled) {
+.btn-variant-solid:hover:not(:disabled):not(.is-loading) {
     --btn-bg: var(--solid-hover);
     --btn-border: transparent;
 }
 
-.btn-variant-solid:active:not(:disabled) {
+.btn-variant-solid:active:not(:disabled):not(.is-loading) {
     --btn-bg: var(--solid-active-bg);
     --btn-text: var(--solid-active-text);
 }
@@ -161,12 +346,12 @@
     --btn-text: var(--soft-text);
 }
 
-.btn-variant-soft:hover:not(:disabled) {
+.btn-variant-soft:hover:not(:disabled):not(.is-loading) {
     --btn-bg: var(--soft-hover);
     --btn-border: transparent;
 }
 
-.btn-variant-soft:active:not(:disabled) {
+.btn-variant-soft:active:not(:disabled):not(.is-loading) {
     --btn-bg: var(--soft-active-bg);
     --btn-text: var(--soft-active-text);
 }
@@ -178,12 +363,12 @@
     --btn-text: var(--ghost-text);
 }
 
-.btn-variant-ghost:hover:not(:disabled) {
+.btn-variant-ghost:hover:not(:disabled):not(.is-loading) {
     --btn-bg: var(--ghost-hover);
     --btn-border: transparent;
 }
 
-.btn-variant-ghost:active:not(:disabled) {
+.btn-variant-ghost:active:not(:disabled):not(.is-loading) {
     --btn-bg: var(--ghost-active-bg);
     --btn-text: var(--ghost-active-text);
 }
@@ -195,12 +380,12 @@
     --btn-text: var(--outline-text);
 }
 
-.btn-variant-outline:hover:not(:disabled) {
+.btn-variant-outline:hover:not(:disabled):not(.is-loading) {
     --btn-bg: var(--outline-hover);
     --btn-border: var(--outline-border);
 }
 
-.btn-variant-outline:active:not(:disabled) {
+.btn-variant-outline:active:not(:disabled):not(.is-loading) {
     --btn-bg: var(--outline-active-bg);
     --btn-text: var(--outline-active-text);
 }
@@ -432,7 +617,7 @@
 
     /* Outline */
     --outline-bg: rgba(163, 230, 53, .07);
-    --outline-border: rgba(163, 230, 53, 0.20);
+    --outline-border: rgba(163, 230, 53, 0.35);
     --outline-text: rgba(96, 145, 18, 1);
     --outline-hover: rgba(163, 230, 53, .15);
     --outline-active-bg: rgba(163, 230, 53, .22);
