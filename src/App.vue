@@ -159,7 +159,7 @@ const generatedPlaygroundCode = computed(() => {
   const textButtonCode = `${tagHeader}>\n  ${playground.value.label || 'Button'}\n</Button>`;
   const iconButtonCode = `${tagHeader} :icon-only="true" aria-label="${selectedIconName.value}">\n  <svg viewBox="0 0 24 24" fill="currentColor">\n    <path d="..." />\n  </svg>\n</Button>`;
 
-  return `<!-- 1. Botón de texto (el spinner expande y empuja el texto) -->\n${textButtonCode}\n\n<!-- 2. Botón de icono (el icono se transforma en el spinner sin duplicarse) -->\n${iconButtonCode}`;
+  return `${textButtonCode}\n\n${iconButtonCode}`;
 });
 
 // Filtro para matriz visual completa
@@ -175,13 +175,11 @@ const selectedMatrixColor = ref<string>('all');
            ========================================= -->
       <header class="top-nav">
         <div class="meta-tag">
-          <span>v1.0.0</span>
+          <span>v0.1.0</span>
           <span class="meta-divider">·</span>
           <span>MIT</span>
           <span class="meta-divider">·</span>
           <span>Cuelume Sound Engine</span>
-          <span class="meta-divider">·</span>
-          <span>Zero Layout Shift</span>
         </div>
         
         <div class="theme-toggle">
@@ -201,7 +199,7 @@ const selectedMatrixColor = ref<string>('all');
            2. HERO PRINCIPAL (PROPÓSITO CENTRAL)
            ========================================= -->
       <section class="hero-section">
-        <h1 class="hero-title">ciervo-button</h1>
+        <h1 class="hero-title">ciervo-ui-button</h1>
         <p class="hero-subtitle">
           Un componente nacido de la exploración artística y la necesidad de tener 10 temas dinámicos con sonido integrado desde el primer día. No es una librería genérica diseñada para complacer a todo el mundo; tiene un estilo muy personal. No pretendo que le sirva a todos, pero si te gusta mi trabajo, el código es tuyo.
         </p>
@@ -316,20 +314,6 @@ const selectedMatrixColor = ref<string>('all');
           <Button variant="soft" color="black" shape="round">Soft</Button>
           <Button variant="outline" color="black" shape="round">Outline</Button>
           <Button variant="ghost" color="black" shape="round">Ghost</Button>
-        </div>
-
-        <div class="code-card">
-          <pre v-pre><code>&lt;!-- Jerarquía de acciones --&gt;
-&lt;Button variant="solid" color="blue"&gt;Guardar Proyecto&lt;/Button&gt;
-&lt;Button variant="soft" color="black"&gt;Cancelar&lt;/Button&gt;
-&lt;Button variant="ghost" color="red"&gt;Eliminar&lt;/Button&gt;</code></pre>
-          <button class="copy-btn snippet-copy" @click="copyCode('<Button variant=&quot;solid&quot; color=&quot;blue&quot;>Guardar Proyecto</Button>\n<Button variant=&quot;soft&quot; color=&quot;black&quot;>Cancelar</Button>\n<Button variant=&quot;ghost&quot; color=&quot;red&quot;>Eliminar</Button>', 'variants')">
-            <span v-if="copiedSnippet === 'variants'" class="copied-badge">Copiado</span>
-            <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-          </button>
         </div>
       </section>
 
