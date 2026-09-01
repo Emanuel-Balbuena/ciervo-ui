@@ -18,7 +18,11 @@ const applyTheme = (dark: boolean) => {
 
 onMounted(() => {
   try {
-    bind();
+    // Desactivar motor de audio en móvil / pantallas táctiles para no pausar música o contenido de fondo
+    const isMobileOrTouch = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+    if (!isMobileOrTouch) {
+      bind();
+    }
   } catch (e) {
     console.warn('Cuelume bind:', e);
   }
@@ -297,10 +301,6 @@ const selectedMatrixColor = ref<string>('all');
         </div>
 
         <div class="code-card">
-          <pre v-pre><code>&lt;!-- Hazlo siempre así: texto estático sin ternarios --&gt;
-&lt;Button :loading="isSubmitting" @click="handleAction"&gt;
-  Confirmar compra
-&lt;/Button&gt;</code></pre>
           <button class="copy-btn snippet-copy" @click="copyCode('<!-- Hazlo siempre así: -->\n<Button :loading=&quot;isSubmitting&quot; @click=&quot;handleAction&quot;>\n  Confirmar compra\n</Button>', 'morph')">
             <span v-if="copiedSnippet === 'morph'" class="copied-badge">Copiado</span>
             <svg v-else width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -368,7 +368,7 @@ const selectedMatrixColor = ref<string>('all');
         <div class="section-header-wrap">
           <h2 class="section-title">Laboratorio interactivo de props</h2>
           <p class="section-text">
-            Inspecciona tanto el botón de texto como el botón de icono. Al entrar en estado de carga, el botón de icono <strong>transforma el icono directamente en el spinner</strong> sin mostrar dos elementos ni desfasar el diseño.
+            Prueba todas las combinaciones de props que ofrece button. 
           </p>
         </div>
 
@@ -957,7 +957,8 @@ const selectedMatrixColor = ref<string>('all');
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: 20px;
+  transform: scale(1.05);
 }
 
 /* Filas del Inspector de Props */
@@ -1267,5 +1268,96 @@ const selectedMatrixColor = ref<string>('all');
   align-items: center;
   font-size: 13px;
   color: var(--text-secondary);
+}
+
+/* =========================================
+   8. RESPONSIVE MOBILE & TABLET (MEDIA QUERIES)
+   ========================================= */
+@media (max-width: 768px) {
+  .demo-wrapper {
+    padding: 24px 16px 60px 16px;
+  }
+
+  .demo-container {
+    gap: 40px;
+  }
+
+  .hero-title {
+    font-size: 34px;
+  }
+
+  .hero-subtitle {
+    font-size: 15px;
+  }
+
+  .hero-actions {
+    gap: 10px;
+  }
+
+  .stage-canvas-card {
+    height: 220px;
+  }
+
+  .prop-control-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    min-height: auto;
+  }
+
+  .prop-input-col {
+    width: 100%;
+  }
+
+  .segmented-pill-group {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .segment-pill-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .color-dots-pill-group {
+    gap: 8px;
+    padding: 6px 10px;
+  }
+
+  .matrix-filter-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .color-variants-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 12px;
+  }
+
+  .color-system-card {
+    padding: 16px;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .install-card {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .color-variants-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 </style>

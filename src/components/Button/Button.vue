@@ -55,6 +55,12 @@ const props = defineProps({
 const emit = defineEmits(['click'])
 
 const interactionSound = computed(() => {
+    // Desactivar automáticamente en dispositivos móviles / táctiles para no pausar música o contenido multimedia
+    if (typeof window !== 'undefined') {
+        const isMobileOrTouch = window.matchMedia('(max-width: 768px), (pointer: coarse)').matches;
+        if (isMobileOrTouch) return undefined;
+    }
+
     // Si el prop sound es false, retornamos undefined.
     // En Vue, esto hace que el atributo data-* desaparezca por completo del HTML.
     if (!props.sound || props.disabled || props.loading) return undefined;

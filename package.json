@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "vite build"
+    "dev": "vite",
+    "build": "vite build",
+    "build:demo": "vite build --config vite.config.demo.ts",
+    "deploy": "npm run build:demo && gh-pages -d dist"
   },
   "files": [
     "dist"
@@ -18,7 +21,18 @@
     "./style.css": "./dist/style.css"
   },
   "peerDependencies": {
-    "vue": "^3.0.0",
-    "cuelume": "^1.0.0"
+    "cuelume": ">=0.2.0",
+    "vue": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.5",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/tsconfig": "^0.7.0",
+    "cuelume": "^0.2.2",
+    "gh-pages": "^6.3.0",
+    "typescript": "~5.7.2",
+    "vite": "^6.1.1",
+    "vue": "^3.5.13",
+    "vue-tsc": "^2.2.4"
   }
 }
