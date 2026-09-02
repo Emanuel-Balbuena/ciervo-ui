@@ -1,0 +1,129 @@
+/* =========================================
+   TOGGLE GROUP (CIERVO UI)
+   ========================================= */
+
+@import "../Button/button.css";
+@import "../ButtonGroup/button-group.css";
+@import "../Toggle/toggle.css";
+
+.toggle-group {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    box-sizing: border-box;
+    transform: translateZ(0);
+}
+
+.toggle-group.toggle-group-horizontal {
+    flex-direction: row;
+    align-items: center;
+}
+
+.toggle-group.toggle-group-vertical {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* =========================================
+   FUSIÓN GEOMÉTRICA (ATTACHED)
+   ========================================= */
+
+.toggle-group.toggle-group-attached.toggle-group-horizontal > .btn-toggle {
+    position: relative;
+    box-sizing: border-box;
+}
+
+.toggle-group.toggle-group-attached.toggle-group-horizontal > .btn-toggle:not(:first-child) {
+    margin-left: -1px;
+}
+
+.toggle-group.toggle-group-attached.toggle-group-vertical > .btn-toggle {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.toggle-group.toggle-group-attached.toggle-group-vertical > .btn-toggle:not(:first-child) {
+    margin-top: -1px;
+}
+
+/* =========================================
+   SINCRONIZACIÓN DE VARIANTES EN TOGGLE GROUP
+   ========================================= */
+
+/* --- 1. OUTLINE --- */
+.toggle-group.toggle-group-attached > .btn-toggle.btn-variant-outline:not(.is-pressed) {
+    border-color: var(--input-border, rgba(125, 125, 125, 0.28)) !important;
+}
+
+/* Outline Activo: Sobrescribe el border-left:none de button-group.css y proyecta los 4 bordes en naranja sólido */
+.toggle-group.toggle-group-attached.toggle-group-horizontal > .btn-toggle.btn-variant-outline.is-pressed {
+    border: 1px solid var(--solid-bg) !important;
+    border-left: 1px solid var(--solid-bg) !important;
+    z-index: 2;
+}
+
+.toggle-group.toggle-group-attached.toggle-group-vertical > .btn-toggle.btn-variant-outline.is-pressed {
+    border: 1px solid var(--solid-bg) !important;
+    border-top: 1px solid var(--solid-bg) !important;
+    z-index: 2;
+}
+
+/* Prevalencia contigua en Outline: Si ambos contiguos están activos, el segundo no duplica el divisor */
+.toggle-group.toggle-group-attached.toggle-group-horizontal > .btn-toggle.btn-variant-outline.is-pressed + .btn-toggle.btn-variant-outline.is-pressed {
+    border-left-color: transparent !important;
+}
+
+.toggle-group.toggle-group-attached.toggle-group-vertical > .btn-toggle.btn-variant-outline.is-pressed + .btn-toggle.btn-variant-outline.is-pressed {
+    border-top-color: transparent !important;
+}
+
+/* --- 2. FRAMED --- */
+.toggle-group.toggle-group-attached > .btn-toggle.btn-variant-framed:not(.is-pressed) {
+    border-color: transparent !important;
+}
+
+.toggle-group.toggle-group-attached.toggle-group-horizontal > .btn-toggle.btn-variant-framed.is-pressed {
+    border: 1px solid var(--framed-border) !important;
+    border-left: 1px solid var(--framed-border) !important;
+    z-index: 2;
+}
+
+.toggle-group.toggle-group-attached.toggle-group-vertical > .btn-toggle.btn-variant-framed.is-pressed {
+    border: 1px solid var(--framed-border) !important;
+    border-top: 1px solid var(--framed-border) !important;
+    z-index: 2;
+}
+
+/* --- 3. SOLID --- */
+.toggle-group.toggle-group-attached > .btn-toggle.btn-variant-solid:not(.is-pressed) {
+    border-color: transparent !important;
+}
+
+.toggle-group.toggle-group-attached.toggle-group-horizontal > .btn-toggle.btn-variant-solid.is-pressed {
+    border: 1px solid var(--solid-bg) !important;
+    border-left: 1px solid var(--solid-bg) !important;
+    z-index: 2;
+}
+
+.toggle-group.toggle-group-attached.toggle-group-vertical > .btn-toggle.btn-variant-solid.is-pressed {
+    border: 1px solid var(--solid-bg) !important;
+    border-top: 1px solid var(--solid-bg) !important;
+    z-index: 2;
+}
+
+/* --- 4. SOFT & GHOST --- */
+.toggle-group.toggle-group-attached > .btn-toggle.btn-variant-soft,
+.toggle-group.toggle-group-attached > .btn-toggle.btn-variant-ghost {
+    border-color: transparent !important;
+}
+
+.toggle-group.toggle-group-attached > .btn-toggle.btn-variant-soft.is-pressed,
+.toggle-group.toggle-group-attached > .btn-toggle.btn-variant-ghost.is-pressed {
+    z-index: 2;
+}
+
+/* Elevación de foco */
+.toggle-group.toggle-group-attached > .btn-toggle:focus-visible {
+    z-index: 3;
+}

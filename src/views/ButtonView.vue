@@ -152,7 +152,7 @@ const selectedMatrixColor = ref<string>('all');
           <span class="meta-divider">·</span>
           <span>v0.1.0</span>
           <span class="meta-divider">·</span>
-          <span>MIT</span>
+          <span>Button</span>
         </div>
         
         <div class="theme-toggle">

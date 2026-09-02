@@ -80,6 +80,40 @@ function navigateTo(path: string) {
             </template>
             ButtonGroup
           </Button>
+
+          <Button
+            variant="solid"
+            color="blue"
+            size="large"
+            shape="round"
+            class="home-component-btn"
+            @click="navigateTo('/toggle')"
+          >
+            <template #icon>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="6" width="20" height="12" rx="6"></rect>
+                <circle cx="8" cy="12" r="3" fill="currentColor"></circle>
+              </svg>
+            </template>
+            Toggle
+          </Button>
+
+          <Button
+            variant="solid"
+            color="violet"
+            size="large"
+            shape="round"
+            class="home-component-btn"
+            @click="navigateTo('/toggle-group')"
+          >
+            <template #icon>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 6h16M4 12h10M4 18h14"></path>
+                <circle cx="18" cy="12" r="2" fill="currentColor"></circle>
+              </svg>
+            </template>
+            ToggleGroup
+          </Button>
         </div>
       </section>
 

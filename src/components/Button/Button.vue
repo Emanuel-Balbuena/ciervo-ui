@@ -6,6 +6,7 @@ import { play } from 'cuelume';
 defineSlots<{
     default?: (props: Record<string, never>) => any;
     icon?: (props: Record<string, never>) => any;
+    trailingIcon?: (props: Record<string, never>) => any;
 }>();
 
 interface ButtonGroupContext {
@@ -59,6 +60,13 @@ const props = defineProps({
     iconOnly: {
         type: Boolean,
         default: false
+    },
+
+    // Posición del icono ('start' o 'end')
+    iconPosition: {
+        type: String as () => 'start' | 'end',
+        default: 'start',
+        validator: (v: any) => ['start', 'end'].includes(v)
     },
 
     // Cuelume
@@ -135,15 +143,16 @@ function handleClick(event: MouseEvent) {
             { 
                 'is-loading': loading,
                 'btn-icon-only': iconOnly,
-                'btn-with-icon': $slots.icon
+                'btn-with-icon': $slots.icon || $slots.trailingIcon,
+                'btn-icon-end': iconPosition === 'end' || $slots.trailingIcon
             }
         ]"
         :disabled="as === 'button' ? resolvedDisabled : undefined"
         @click="handleClick"
         :data-cuelume-toggle="interactionSound"
     >
-        <!-- CASO 1: BOTÓN CON ICONO (#icon + Texto) -->
-        <span v-if="$slots.icon" class="btn-icon-box">
+        <!-- CASO 1: ICONO AL INICIO (#icon + iconPosition='start') -->
+        <span v-if="$slots.icon && iconPosition === 'start'" class="btn-icon-box">
             <span class="btn-icon-item">
                 <slot name="icon"></slot>
             </span>
@@ -166,9 +175,9 @@ function handleClick(event: MouseEvent) {
             </svg>
         </span>
 
-        <!-- CASO 2: BOTÓN ESTÁNDAR (Solo Texto o Solo Icono) -->
+        <!-- CASO 2: SPINNER CUANDO NO HAY ICONO AL INICIO -->
         <svg 
-            v-else
+            v-else-if="!($slots.trailingIcon || ($slots.icon && iconPosition === 'end'))"
             class="btn-spinner" 
             viewBox="0 0 50 50" 
             fill="none" 
@@ -186,8 +195,34 @@ function handleClick(event: MouseEvent) {
             ></circle>
         </svg>
 
-        <span class="btn-text">
+        <!-- TEXTO -->
+        <span v-if="$slots.default" class="btn-text">
             <slot></slot>
+        </span>
+
+        <!-- CASO 3: ICONO AL FINAL (iconPosition='end' o #trailingIcon) -->
+        <span v-if="($slots.icon && iconPosition === 'end') || $slots.trailingIcon" class="btn-icon-box">
+            <span class="btn-icon-item">
+                <slot v-if="$slots.trailingIcon" name="trailingIcon"></slot>
+                <slot v-else name="icon"></slot>
+            </span>
+            <svg 
+                class="btn-spinner" 
+                viewBox="0 0 50 50" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <circle cx="25" cy="25" r="20" stroke="currentColor" stroke-width="5" opacity="0.15"></circle>
+                <circle 
+                    class="spinner-path" 
+                    cx="25" 
+                    cy="25" 
+                    r="20" 
+                    stroke="currentColor" 
+                    stroke-width="5" 
+                    stroke-linecap="round"
+                ></circle>
+            </svg>
         </span>
     </component>
 </template>

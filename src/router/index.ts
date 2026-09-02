@@ -2,6 +2,8 @@ import { createRouter, createWebHashHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 import ButtonView from '../views/ButtonView.vue';
 import ButtonGroupView from '../views/ButtonGroupView.vue';
+import ToggleView from '../views/ToggleView.vue';
+import ToggleGroupView from '../views/ToggleGroupView.vue';
 
 const routes = [
   {
@@ -18,6 +20,16 @@ const routes = [
     path: '/button-group',
     name: 'button-group',
     component: ButtonGroupView
+  },
+  {
+    path: '/toggle',
+    name: 'toggle',
+    component: ToggleView
+  },
+  {
+    path: '/toggle-group',
+    name: 'toggle-group',
+    component: ToggleGroupView
   }
 ];
 

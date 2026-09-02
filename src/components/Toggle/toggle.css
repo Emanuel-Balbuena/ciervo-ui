@@ -1,0 +1,215 @@
+/* =========================================
+   TOGGLE & TOGGLE GROUP (CIERVO UI)
+   ========================================= */
+
+@import "../Button/button.css";
+@import "../ButtonGroup/button-group.css";
+
+/* --- BOTÓN TOGGLE ATÓMICO --- */
+.btn.btn-toggle {
+    transition: background-color 150ms ease-out,
+        color 150ms ease-out,
+        border-color 150ms ease-out,
+        box-shadow 150ms ease-out,
+        transform var(--btn-spring-duration) var(--btn-spring-easing);
+}
+
+/* =========================================
+   GESTIÓN INHERENTE DE ICONOS EN TOGGLE
+   El componente se encarga de colorear y rellenar
+   automáticamente cualquier SVG en estado activo (.is-pressed)
+   sin requerir lógica externa en los slots ni demos.
+   ========================================= */
+.btn-toggle .btn-icon-box svg,
+.btn-toggle.btn-icon-only svg {
+    transition: fill 150ms ease-out, color 150ms ease-out;
+}
+
+/* Cuando el toggle está presionado y tiene autofill activo (por defecto) */
+.btn-toggle.is-pressed.btn-icon-autofill .btn-icon-box svg path,
+.btn-toggle.is-pressed.btn-icon-autofill .btn-icon-box svg rect,
+.btn-toggle.is-pressed.btn-icon-autofill .btn-icon-box svg circle,
+.btn-toggle.is-pressed.btn-icon-autofill .btn-icon-box svg polygon,
+.btn-toggle.is-pressed.btn-icon-autofill.btn-icon-only svg path,
+.btn-toggle.is-pressed.btn-icon-autofill.btn-icon-only svg rect,
+.btn-toggle.is-pressed.btn-icon-autofill.btn-icon-only svg circle,
+.btn-toggle.is-pressed.btn-icon-autofill.btn-icon-only svg polygon {
+    fill: currentColor;
+}
+
+/* =========================================
+   ESTADOS ACTIVOS (.is-pressed) POR VARIANTE
+   (Respetando 100% los tokens de accesibilidad)
+   ========================================= */
+
+/* --- 1. VARIANTE SOLID --- */
+.btn-toggle.btn-variant-solid:not(.is-pressed) {
+    --btn-bg: transparent;
+    --btn-border: transparent;
+    --btn-text: var(--text-secondary);
+}
+
+@media (hover: hover) {
+    .btn-toggle.btn-variant-solid:not(.is-pressed):hover:not(:disabled) {
+        --btn-bg: var(--soft-bg);
+        --btn-text: var(--soft-text);
+    }
+}
+
+.btn-toggle.btn-variant-solid.is-pressed {
+    --btn-bg: var(--solid-bg);
+    --btn-border: var(--solid-bg);
+    --btn-text: var(--solid-text);
+}
+
+@media (hover: hover) {
+    .btn-toggle.btn-variant-solid.is-pressed:hover:not(:disabled) {
+        --btn-bg: var(--solid-hover);
+        --btn-border: var(--solid-hover);
+        --btn-text: var(--solid-text);
+    }
+}
+
+.btn-toggle.btn-variant-solid.is-pressed:active:not(:disabled) {
+    --btn-bg: var(--solid-active-bg);
+    --btn-text: var(--solid-active-text);
+}
+
+/* --- 2. VARIANTE FRAMED --- */
+.btn-toggle.btn-variant-framed:not(.is-pressed) {
+    --btn-bg: transparent;
+    --btn-border: transparent;
+    --btn-text: var(--text-secondary);
+}
+
+@media (hover: hover) {
+    .btn-toggle.btn-variant-framed:not(.is-pressed):hover:not(:disabled) {
+        --btn-bg: var(--soft-bg);
+        --btn-border: transparent;
+        --btn-text: var(--soft-text);
+    }
+}
+
+/* Framed Activo: Fondo y texto Solid oficial, luciendo su marco físico clásico */
+.btn-toggle.btn-variant-framed.is-pressed {
+    --btn-bg: var(--solid-bg);
+    --btn-border: var(--framed-border);
+    --btn-text: var(--solid-text);
+}
+
+@media (hover: hover) {
+    .btn-toggle.btn-variant-framed.is-pressed:hover:not(:disabled) {
+        --btn-bg: var(--solid-hover);
+        --btn-border: var(--framed-border);
+        --btn-text: var(--solid-text);
+    }
+}
+
+.btn-toggle.btn-variant-framed.is-pressed:active:not(:disabled) {
+    --btn-bg: var(--solid-active-bg);
+    --btn-border: var(--framed-border);
+    --btn-text: var(--solid-active-text);
+}
+
+/* --- 3. VARIANTE SOFT --- */
+.btn-toggle.btn-variant-soft:not(.is-pressed) {
+    --btn-bg: transparent;
+    --btn-border: transparent;
+    --btn-text: var(--text-secondary);
+}
+
+@media (hover: hover) {
+    .btn-toggle.btn-variant-soft:not(.is-pressed):hover:not(:disabled) {
+        --btn-bg: var(--soft-bg);
+        --btn-text: var(--soft-text);
+    }
+}
+
+.btn-toggle.btn-variant-soft.is-pressed {
+    --btn-bg: var(--soft-bg);
+    --btn-border: transparent;
+    --btn-text: var(--soft-text);
+    font-weight: 600;
+}
+
+@media (hover: hover) {
+    .btn-toggle.btn-variant-soft.is-pressed:hover:not(:disabled) {
+        --btn-bg: var(--soft-hover);
+        --btn-border: transparent;
+        --btn-text: var(--soft-text);
+    }
+}
+
+.btn-toggle.btn-variant-soft.is-pressed:active:not(:disabled) {
+    --btn-bg: var(--soft-active-bg);
+    --btn-text: var(--soft-active-text);
+}
+
+/* --- 4. VARIANTE OUTLINE --- */
+/* Inactivo: Borde neutro definido y 100% visible para alta accesibilidad */
+.btn-toggle.btn-variant-outline:not(.is-pressed) {
+    --btn-bg: transparent;
+    --btn-border: var(--input-border, rgba(125, 125, 125, 0.28));
+    --btn-text: var(--text-secondary);
+}
+
+@media (hover: hover) {
+    .btn-toggle.btn-variant-outline:not(.is-pressed):hover:not(:disabled) {
+        --btn-bg: var(--soft-bg);
+        --btn-border: var(--input-border, rgba(125, 125, 125, 0.40));
+        --btn-text: var(--outline-text);
+    }
+}
+
+.btn-toggle.btn-variant-outline.is-pressed {
+    --btn-bg: var(--outline-bg, var(--soft-bg));
+    --btn-border: var(--solid-bg);
+    --btn-text: var(--outline-text);
+}
+
+@media (hover: hover) {
+    .btn-toggle.btn-variant-outline.is-pressed:hover:not(:disabled) {
+        --btn-bg: var(--outline-hover, var(--soft-hover));
+        --btn-border: var(--solid-hover, var(--solid-bg));
+        --btn-text: var(--outline-text);
+    }
+}
+
+.btn-toggle.btn-variant-outline.is-pressed:active:not(:disabled) {
+    --btn-bg: var(--outline-active-bg);
+    --btn-text: var(--outline-active-text);
+}
+
+/* --- 5. VARIANTE GHOST --- */
+.btn-toggle.btn-variant-ghost:not(.is-pressed) {
+    --btn-bg: transparent;
+    --btn-border: transparent;
+    --btn-text: var(--text-secondary);
+}
+
+@media (hover: hover) {
+    .btn-toggle.btn-variant-ghost:not(.is-pressed):hover:not(:disabled) {
+        --btn-bg: var(--ghost-hover, var(--soft-bg));
+        --btn-text: var(--ghost-text);
+    }
+}
+
+/* Ghost Activo: Cero fondo, texto coloreado con su token oficial accesible (--ghost-text) */
+.btn-toggle.btn-variant-ghost.is-pressed {
+    --btn-bg: transparent;
+    --btn-border: transparent;
+    --btn-text: var(--ghost-text);
+    font-weight: 600;
+}
+
+@media (hover: hover) {
+    .btn-toggle.btn-variant-ghost.is-pressed:hover:not(:disabled) {
+        --btn-bg: var(--ghost-hover, var(--soft-bg));
+        --btn-text: var(--ghost-text);
+    }
+}
+
+.btn-toggle.btn-variant-ghost.is-pressed:active:not(:disabled) {
+    --btn-bg: var(--ghost-active-bg);
+    --btn-text: var(--ghost-active-text);
+}
