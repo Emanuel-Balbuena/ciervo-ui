@@ -95,6 +95,19 @@ const resolvedShape = computed(() => props.shape ?? toggleGroup?.shape.value ?? 
 const resolvedDisabled = computed(() => props.disabled ?? toggleGroup?.disabled.value ?? false);
 const resolvedIconFill = computed(() => props.iconFill ?? toggleGroup?.iconFill?.value ?? true);
 
+// Soporte robusto de resorte para iOS WebKit en touch
+const isTouching = ref(false);
+
+function handleTouchStart() {
+    if (!resolvedDisabled.value) {
+        isTouching.value = true;
+    }
+}
+
+function handleTouchEnd() {
+    isTouching.value = false;
+}
+
 // Cálculo del estado presionado (Activo / Inactivo)
 const isPressed = computed(() => {
     if (toggleGroup && props.value !== undefined) {
@@ -152,11 +165,15 @@ function handleClick(event: MouseEvent) {
                 'btn-icon-only': iconOnly,
                 'btn-with-icon': $slots.icon || $slots.trailingIcon,
                 'btn-icon-end': iconPosition === 'end' || $slots.trailingIcon,
-                'btn-icon-autofill': resolvedIconFill
+                'btn-icon-autofill': resolvedIconFill,
+                'is-touching': isTouching
             }
         ]"
         :aria-pressed="isPressed"
         :disabled="as === 'button' ? resolvedDisabled : undefined"
+        @touchstart.passive="handleTouchStart"
+        @touchend.passive="handleTouchEnd"
+        @touchcancel.passive="handleTouchEnd"
         @click="handleClick"
     >
         <!-- ICONO AL INICIO -->

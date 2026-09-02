@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue';
+import { ref, computed, inject } from 'vue';
 import type { ComputedRef } from 'vue';
 import { play } from 'cuelume';
 
@@ -83,6 +83,19 @@ const resolvedSize = computed(() => props.size ?? groupContext?.size.value ?? 'm
 const resolvedShape = computed(() => props.shape ?? groupContext?.shape.value ?? 'square');
 const resolvedDisabled = computed(() => props.disabled ?? groupContext?.disabled.value ?? false);
 
+// Soporte robusto de resorte para iOS WebKit en touch
+const isTouching = ref(false);
+
+function handleTouchStart() {
+    if (!resolvedDisabled.value && !props.loading) {
+        isTouching.value = true;
+    }
+}
+
+function handleTouchEnd() {
+    isTouching.value = false;
+}
+
 const emit = defineEmits<{
     (e: 'click', event: MouseEvent): void;
 }>();
@@ -144,10 +157,14 @@ function handleClick(event: MouseEvent) {
                 'is-loading': loading,
                 'btn-icon-only': iconOnly,
                 'btn-with-icon': $slots.icon || $slots.trailingIcon,
-                'btn-icon-end': iconPosition === 'end' || $slots.trailingIcon
+                'btn-icon-end': iconPosition === 'end' || $slots.trailingIcon,
+                'is-touching': isTouching
             }
         ]"
         :disabled="as === 'button' ? resolvedDisabled : undefined"
+        @touchstart.passive="handleTouchStart"
+        @touchend.passive="handleTouchEnd"
+        @touchcancel.passive="handleTouchEnd"
         @click="handleClick"
         :data-cuelume-toggle="interactionSound"
     >
