@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue';
+import { ref, computed, inject } from 'vue';
 import type { ComputedRef } from 'vue';
 import { play } from 'cuelume';
 
