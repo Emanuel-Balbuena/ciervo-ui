@@ -11,6 +11,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-demo
 *.local
 ciervo-ui-0.1.0.tgz
 

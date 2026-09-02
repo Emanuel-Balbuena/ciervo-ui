@@ -449,14 +449,20 @@ code, pre, .font-mono {
 
 /* Selector de Dots de Color */
 .color-dots-pill-group {
-  padding: 5px 12px;
-  gap: 12px;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  background-color: var(--pill-bg);
+  border: 1px solid var(--pill-border);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  gap: 10px;
 }
 
 .color-dot-item {
   background: transparent;
   border: none;
-  padding: 2px;
+  padding: 3px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -470,8 +476,8 @@ code, pre, .font-mono {
 }
 
 .dot-circle {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   display: block;
   box-shadow: 0 0 1px rgba(0, 0, 0, 0.5);
@@ -480,7 +486,7 @@ code, pre, .font-mono {
 
 .color-dot-item.active .dot-circle {
   outline: 2px solid var(--text-primary);
-  outline-offset: 2px;
+  outline-offset: 2.5px;
   transform: scale(1.15);
 }
 

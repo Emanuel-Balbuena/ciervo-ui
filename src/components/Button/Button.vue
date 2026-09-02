@@ -1,7 +1,22 @@
-<script setup>
-
-import { computed } from 'vue';
+<script setup lang="ts">
+import { computed, inject } from 'vue';
+import type { ComputedRef } from 'vue';
 import { play } from 'cuelume';
+
+defineSlots<{
+    default?: (props: Record<string, never>) => any;
+    icon?: (props: Record<string, never>) => any;
+}>();
+
+interface ButtonGroupContext {
+    variant: ComputedRef<string | undefined>;
+    color: ComputedRef<string | undefined>;
+    size: ComputedRef<string | undefined>;
+    shape: ComputedRef<string | undefined>;
+    disabled: ComputedRef<boolean | undefined>;
+}
+
+const groupContext = inject<ButtonGroupContext | null>('btnGroupContext', null);
 
 const props = defineProps({
     // Polimorfismo (puede ser un 'button', un 'a', un 'RouterLink', etc.)
@@ -12,23 +27,23 @@ const props = defineProps({
     // Matriz de API
     variant: {
         type: String,
-        default: 'solid',
-        validator: (v) => ['framed', 'solid', 'soft', 'ghost', 'outline'].includes(v)
+        default: undefined,
+        validator: (v: any) => v === undefined || ['framed', 'solid', 'soft', 'ghost', 'outline'].includes(v)
     },
     size: {
         type: String,
-        default: 'medium',
-        validator: (v) => ['micro', 'tiny', 'small', 'medium', 'large'].includes(v)
+        default: undefined,
+        validator: (v: any) => v === undefined || ['micro', 'tiny', 'small', 'medium', 'large'].includes(v)
     },
     color: {
         type: String,
-        default: 'black',
-        validator: (v) => ['black', 'red', 'orange', 'yellow', 'lime', 'green', 'cyan', 'blue', 'violet', 'pink'].includes(v)
+        default: undefined,
+        validator: (v: any) => v === undefined || ['black', 'red', 'orange', 'yellow', 'lime', 'green', 'cyan', 'blue', 'violet', 'pink'].includes(v)
     },
     shape: {
         type: String,
-        default: 'square',
-        validator: (v) => ['square', 'round'].includes(v)
+        default: undefined,
+        validator: (v: any) => v === undefined || ['square', 'round'].includes(v)
     },
     // Estados
     loading: {
@@ -37,7 +52,7 @@ const props = defineProps({
     },
     disabled: {
         type: Boolean,
-        default: false
+        default: undefined
     },
 
     // Icon-only
@@ -51,34 +66,43 @@ const props = defineProps({
         type: Boolean,
         default: true
     }
-})
+});
 
-const emit = defineEmits(['click'])
+// Resolución en cascada inteligente de props (Prop > Contexto > Default)
+const resolvedVariant = computed(() => props.variant ?? groupContext?.variant.value ?? 'solid');
+const resolvedColor = computed(() => props.color ?? groupContext?.color.value ?? 'black');
+const resolvedSize = computed(() => props.size ?? groupContext?.size.value ?? 'medium');
+const resolvedShape = computed(() => props.shape ?? groupContext?.shape.value ?? 'square');
+const resolvedDisabled = computed(() => props.disabled ?? groupContext?.disabled.value ?? false);
+
+const emit = defineEmits<{
+    (e: 'click', event: MouseEvent): void;
+}>();
 
 const interactionSound = computed(() => {
-    if (!props.sound || props.disabled || props.loading) return undefined;
+    if (!props.sound || resolvedDisabled.value || props.loading) return undefined;
 
-    // Asignamos sonidos del catálogo de Cuelume según el peso de la variante (perfil acústico exacto)
-    switch (props.variant) {
+    // Asignamos sonidos del catálogo de Cuelume según el peso de la variante
+    switch (resolvedVariant.value) {
         case 'solid':
         case 'framed':
-            return 'press';   // "Compact synthetic chirp" - Firme y directo para botones principales
+            return 'press';
         case 'soft':
-            return 'tick';    // "Fast three-step locator" - Tecnológico y secundario
+            return 'tick';
         case 'outline':
-            return 'release';  // "Mechanical click-clack" - Físico y nítido para bordes
+            return 'release';
         case 'ghost':
-            return 'whisper'; // "Soft hush with a falling tone" - Sutil, ideal para fondos transparentes
+            return 'whisper';
         default:
             return 'release';
     }
-})
+});
 
-function handleClick(event) {
-    if (props.disabled || props.loading) {
-        event.preventDefault()
-        event.stopPropagation()
-        return
+function handleClick(event: MouseEvent) {
+    if (resolvedDisabled.value || props.loading) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
     }
 
     // Reproducción acústica directa
@@ -95,7 +119,7 @@ function handleClick(event) {
         }
     }
 
-    emit('click', event)
+    emit('click', event);
 }
 </script>
 
@@ -104,37 +128,63 @@ function handleClick(event) {
         :is="as"
         :class="[
             'btn',
-            `btn-variant-${variant}`,
-            `btn-color-${color}`,
-            `btn-size-${size}`,
-            `btn-shape-${shape}`,
+            `btn-variant-${resolvedVariant}`,
+            `btn-color-${resolvedColor}`,
+            `btn-size-${resolvedSize}`,
+            `btn-shape-${resolvedShape}`,
             { 
                 'is-loading': loading,
-                'btn-icon-only': iconOnly
+                'btn-icon-only': iconOnly,
+                'btn-with-icon': $slots.icon
             }
         ]"
-        :disabled="as === 'button' ? disabled : undefined"
+        :disabled="as === 'button' ? resolvedDisabled : undefined"
         @click="handleClick"
-
         :data-cuelume-toggle="interactionSound"
     >
+        <!-- CASO 1: BOTÓN CON ICONO (#icon + Texto) -->
+        <span v-if="$slots.icon" class="btn-icon-box">
+            <span class="btn-icon-item">
+                <slot name="icon"></slot>
+            </span>
             <svg 
-    class="btn-spinner" 
-    viewBox="0 0 50 50" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
->
-    <circle cx="25" cy="25" r="20" stroke="currentColor" stroke-width="5" opacity="0.15"></circle>
-    <circle 
-        class="spinner-path" 
-        cx="25" 
-        cy="25" 
-        r="20" 
-        stroke="currentColor" 
-        stroke-width="5" 
-        stroke-linecap="round"
-    ></circle>
-</svg>
+                class="btn-spinner" 
+                viewBox="0 0 50 50" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <circle cx="25" cy="25" r="20" stroke="currentColor" stroke-width="5" opacity="0.15"></circle>
+                <circle 
+                    class="spinner-path" 
+                    cx="25" 
+                    cy="25" 
+                    r="20" 
+                    stroke="currentColor" 
+                    stroke-width="5" 
+                    stroke-linecap="round"
+                ></circle>
+            </svg>
+        </span>
+
+        <!-- CASO 2: BOTÓN ESTÁNDAR (Solo Texto o Solo Icono) -->
+        <svg 
+            v-else
+            class="btn-spinner" 
+            viewBox="0 0 50 50" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <circle cx="25" cy="25" r="20" stroke="currentColor" stroke-width="5" opacity="0.15"></circle>
+            <circle 
+                class="spinner-path" 
+                cx="25" 
+                cy="25" 
+                r="20" 
+                stroke="currentColor" 
+                stroke-width="5" 
+                stroke-linecap="round"
+            ></circle>
+        </svg>
 
         <span class="btn-text">
             <slot></slot>

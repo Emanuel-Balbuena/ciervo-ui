@@ -1,0 +1,382 @@
+/* =========================================
+   BUTTON GROUP (CIERVO UI)
+   ========================================= */
+
+.btn-group {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    box-sizing: border-box;
+    transform: translateZ(0);
+}
+
+/* Orientación Horizontal */
+.btn-group.btn-group-horizontal {
+    flex-direction: row;
+    align-items: center;
+}
+
+/* Orientación Vertical */
+.btn-group.btn-group-vertical {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* =========================================
+   FUSIÓN GEOMÉTRICA (ATTACHED)
+   ========================================= */
+
+/* --- HORIZONTAL ATTACHED --- */
+.btn-group.btn-group-attached.btn-group-horizontal>.btn {
+    position: relative;
+    box-sizing: border-box;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal>.btn:not(:first-child) {
+    margin-left: -1px;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal>.btn:first-child:not(:last-child) {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+/* Curvatura tangencial matemáticamente exacta para Round en Horizontal */
+.btn-group.btn-group-attached.btn-group-horizontal > .btn.btn-shape-round.btn-size-micro:first-child:not(:last-child) {
+    border-top-left-radius: 12px !important;
+    border-bottom-left-radius: 12px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal > .btn.btn-shape-round.btn-size-tiny:first-child:not(:last-child) {
+    border-top-left-radius: 14px !important;
+    border-bottom-left-radius: 14px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal > .btn.btn-shape-round.btn-size-small:first-child:not(:last-child) {
+    border-top-left-radius: 16px !important;
+    border-bottom-left-radius: 16px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal > .btn.btn-shape-round.btn-size-medium:first-child:not(:last-child) {
+    border-top-left-radius: 18px !important;
+    border-bottom-left-radius: 18px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal > .btn.btn-shape-round.btn-size-large:first-child:not(:last-child) {
+    border-top-left-radius: 22px !important;
+    border-bottom-left-radius: 22px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal>.btn:last-child:not(:first-child) {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal > .btn.btn-shape-round.btn-size-micro:last-child:not(:first-child) {
+    border-top-right-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal > .btn.btn-shape-round.btn-size-tiny:last-child:not(:first-child) {
+    border-top-right-radius: 14px !important;
+    border-bottom-right-radius: 14px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal > .btn.btn-shape-round.btn-size-small:last-child:not(:first-child) {
+    border-top-right-radius: 16px !important;
+    border-bottom-right-radius: 16px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal > .btn.btn-shape-round.btn-size-medium:last-child:not(:first-child) {
+    border-top-right-radius: 18px !important;
+    border-bottom-right-radius: 18px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal > .btn.btn-shape-round.btn-size-large:last-child:not(:first-child) {
+    border-top-right-radius: 22px !important;
+    border-bottom-right-radius: 22px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal>.btn:not(:first-child):not(:last-child) {
+    border-radius: 0 !important;
+}
+
+/* --- VERTICAL ATTACHED --- */
+.btn-group.btn-group-attached.btn-group-vertical>.btn {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical>.btn:not(:first-child) {
+    margin-top: -1px;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical>.btn:first-child:not(:last-child) {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+/* Curvatura tangencial matemáticamente exacta para Round en Vertical */
+.btn-group.btn-group-attached.btn-group-vertical > .btn.btn-shape-round.btn-size-micro:first-child:not(:last-child) {
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical > .btn.btn-shape-round.btn-size-tiny:first-child:not(:last-child) {
+    border-top-left-radius: 14px !important;
+    border-top-right-radius: 14px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical > .btn.btn-shape-round.btn-size-small:first-child:not(:last-child) {
+    border-top-left-radius: 16px !important;
+    border-top-right-radius: 16px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical > .btn.btn-shape-round.btn-size-medium:first-child:not(:last-child) {
+    border-top-left-radius: 18px !important;
+    border-top-right-radius: 18px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical > .btn.btn-shape-round.btn-size-large:first-child:not(:last-child) {
+    border-top-left-radius: 22px !important;
+    border-top-right-radius: 22px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical>.btn:last-child:not(:first-child) {
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical > .btn.btn-shape-round.btn-size-micro:last-child:not(:first-child) {
+    border-bottom-left-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical > .btn.btn-shape-round.btn-size-tiny:last-child:not(:first-child) {
+    border-bottom-left-radius: 14px !important;
+    border-bottom-right-radius: 14px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical > .btn.btn-shape-round.btn-size-small:last-child:not(:first-child) {
+    border-bottom-left-radius: 16px !important;
+    border-bottom-right-radius: 16px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical > .btn.btn-shape-round.btn-size-medium:last-child:not(:first-child) {
+    border-bottom-left-radius: 18px !important;
+    border-bottom-right-radius: 18px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical > .btn.btn-shape-round.btn-size-large:last-child:not(:first-child) {
+    border-bottom-left-radius: 22px !important;
+    border-bottom-right-radius: 22px !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical>.btn:not(:first-child):not(:last-child) {
+    border-radius: 0 !important;
+}
+
+/* =========================================
+   GESTIÓN DE CAPAS (HOVER / FOCUS / ACTIVE)
+   ========================================= */
+.btn-group.btn-group-attached>.btn:hover {
+    z-index: 1;
+}
+
+.btn-group.btn-group-attached>.btn:focus-visible,
+.btn-group.btn-group-attached>.btn:active {
+    z-index: 2;
+}
+
+/* =========================================
+   VARIANTE SOLID (BORDE IDÉNTICO AL FONDO)
+   ========================================= */
+
+.btn-group.btn-group-attached>.btn.btn-variant-solid {
+    border-color: var(--btn-bg);
+}
+
+/* =============================================================
+   VARIANTE OUTLINE & SOFT (DIVISOR EXACTO 1PX)
+   ============================================================= */
+
+.btn-group.btn-group-attached>.btn.btn-variant-outline,
+.btn-group.btn-group-attached>.btn.btn-variant-soft {
+    border-color: var(--outline-border);
+}
+
+/* Horizontal: outline y soft suprimen el borde izquierdo para no duplicar alfas */
+.btn-group.btn-group-attached.btn-group-horizontal>.btn-variant-outline:not(:first-child),
+.btn-group.btn-group-attached.btn-group-horizontal>.btn-variant-soft:not(:first-child) {
+    border-left: none !important;
+    margin-left: 0 !important;
+}
+
+/* Vertical: outline y soft suprimen el borde superior para no duplicar alfas */
+.btn-group.btn-group-attached.btn-group-vertical>.btn-variant-outline:not(:first-child),
+.btn-group.btn-group-attached.btn-group-vertical>.btn-variant-soft:not(:first-child) {
+    border-top: none !important;
+    margin-top: 0 !important;
+}
+
+/* =============================================================
+   VARIANTE SOFT (BORDES EXTERIORES = TRANSPARENTES)
+   ============================================================= */
+
+/* Horizontal: bordes superior, inferior y extremos exteriores transparentes */
+.btn-group.btn-group-attached.btn-group-horizontal>.btn.btn-variant-soft {
+    border-top-color: transparent !important;
+    border-bottom-color: transparent !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal>.btn.btn-variant-soft:first-child {
+    border-left-color: transparent !important;
+}
+
+.btn-group.btn-group-attached.btn-group-horizontal>.btn.btn-variant-soft:last-child {
+    border-right-color: transparent !important;
+}
+
+/* Vertical: bordes laterales y extremos superior/inferior transparentes */
+.btn-group.btn-group-attached.btn-group-vertical>.btn.btn-variant-soft {
+    border-left-color: transparent !important;
+    border-right-color: transparent !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical>.btn.btn-variant-soft:first-child {
+    border-top-color: transparent !important;
+}
+
+.btn-group.btn-group-attached.btn-group-vertical>.btn.btn-variant-soft:last-child {
+    border-bottom-color: transparent !important;
+}
+
+/* =========================================
+   TEXT & INPUT FUSION (COMPOSITION)
+   ========================================= */
+
+/* --- 1. BUTTON GROUP TEXT (PREFIX / SUFFIX LABELS) --- */
+.btn-group > .btn-group-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    font-size: 13.5px;
+    font-weight: 500;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    color: var(--text-secondary);
+    background-color: var(--pill-bg);
+    border: 1px solid var(--pill-border);
+    box-sizing: border-box;
+    white-space: nowrap;
+    user-select: none;
+    line-height: 1;
+    transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+/* Tamaños sincronizados para Text */
+.btn-group > .btn-group-text.btn-size-micro { height: 24px; font-size: 11px; padding: 0 8px; }
+.btn-group > .btn-group-text.btn-size-tiny { height: 28px; font-size: 12px; padding: 0 10px; }
+.btn-group > .btn-group-text.btn-size-small { height: 32px; font-size: 13px; padding: 0 12px; }
+.btn-group > .btn-group-text.btn-size-medium { height: 36px; font-size: 13.5px; padding: 0 14px; }
+.btn-group > .btn-group-text.btn-size-large { height: 44px; font-size: 15px; padding: 0 18px; }
+
+/* --- 2. BUTTON GROUP INPUT (INTEGRATED TEXT FIELDS) --- */
+.btn-group > .btn-group-input {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 14px;
+    font-size: 13.5px;
+    font-weight: 400;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    box-sizing: border-box;
+    outline: none;
+    min-width: 150px;
+    line-height: 1;
+    transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease, color 150ms ease;
+}
+
+.btn-group > .btn-group-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.btn-group > .btn-group-input:focus {
+    z-index: 3;
+    border-color: var(--input-focus) !important;
+}
+
+/* Tamaños sincronizados para Input */
+.btn-group > .btn-group-input.btn-size-micro { height: 24px; font-size: 11px; padding: 0 8px; }
+.btn-group > .btn-group-input.btn-size-tiny { height: 28px; font-size: 12px; padding: 0 10px; }
+.btn-group > .btn-group-input.btn-size-small { height: 32px; font-size: 13px; padding: 0 12px; }
+.btn-group > .btn-group-input.btn-size-medium { height: 36px; font-size: 13.5px; padding: 0 14px; }
+.btn-group > .btn-group-input.btn-size-large { height: 44px; font-size: 15px; padding: 0 18px; }
+
+/* --- 3. FUSIÓN GEOMÉTRICA UNIVERSAL PARA TEXT & INPUT --- */
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-text:not(:first-child),
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-input:not(:first-child) {
+    border-left: none !important;
+    margin-left: 0 !important;
+}
+
+/* Primer elemento horizontal (Square) */
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-text.btn-shape-square:first-child:not(:last-child),
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-input.btn-shape-square:first-child:not(:last-child) {
+    border-top-left-radius: var(--btn-radius, 12px) !important;
+    border-bottom-left-radius: var(--btn-radius, 12px) !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+/* Primer elemento horizontal (Round tangencial) */
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-text.btn-shape-round.btn-size-micro:first-child:not(:last-child),
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-input.btn-shape-round.btn-size-micro:first-child:not(:last-child) {
+    border-top-left-radius: 12px !important; border-bottom-left-radius: 12px !important;
+    border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;
+}
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-text.btn-shape-round.btn-size-tiny:first-child:not(:last-child),
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-input.btn-shape-round.btn-size-tiny:first-child:not(:last-child) {
+    border-top-left-radius: 14px !important; border-bottom-left-radius: 14px !important;
+    border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;
+}
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-text.btn-shape-round.btn-size-small:first-child:not(:last-child),
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-input.btn-shape-round.btn-size-small:first-child:not(:last-child) {
+    border-top-left-radius: 16px !important; border-bottom-left-radius: 16px !important;
+    border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;
+}
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-text.btn-shape-round.btn-size-medium:first-child:not(:last-child),
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-input.btn-shape-round.btn-size-medium:first-child:not(:last-child) {
+    border-top-left-radius: 18px !important; border-bottom-left-radius: 18px !important;
+    border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;
+}
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-text.btn-shape-round.btn-size-large:first-child:not(:last-child),
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-input.btn-shape-round.btn-size-large:first-child:not(:last-child) {
+    border-top-left-radius: 22px !important; border-bottom-left-radius: 22px !important;
+    border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important;
+}
+
+/* Elementos intermedios */
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-text:not(:first-child):not(:last-child),
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-input:not(:first-child):not(:last-child) {
+    border-radius: 0 !important;
+}
+
+/* Último elemento horizontal */
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-text.btn-shape-square:last-child:not(:first-child),
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-input.btn-shape-square:last-child:not(:first-child) {
+    border-top-right-radius: var(--btn-radius, 12px) !important;
+    border-bottom-right-radius: var(--btn-radius, 12px) !important;
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-text.btn-shape-round.btn-size-medium:last-child:not(:first-child),
+.btn-group.btn-group-attached.btn-group-horizontal > .btn-group-input.btn-shape-round.btn-size-medium:last-child:not(:first-child) {
+    border-top-right-radius: 18px !important; border-bottom-right-radius: 18px !important;
+    border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important;
+}
