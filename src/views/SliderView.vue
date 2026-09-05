@@ -442,7 +442,7 @@ const selectedMatrixColor = ref<string>('all');
       
       <!-- Estiramiento Cinético -->
       <section class="story-section">
-        <h2 class="section-title">Estiramiento Cinético (Kinetic Stretch)</h2>
+        <h2 class="section-title">Estiramiento Cinético</h2>
         <p class="section-text">
           El círculo principal (thumb) se deforma dinámicamente en un óvalo basándose en su velocidad real. A medida que arrastras más rápido, se estira a lo largo del eje de movimiento y se aplasta perpendicularmente para conservar su volumen visual, emulando perfectamente una gota de líquido cortando el aire.
         </p>
@@ -457,14 +457,14 @@ const selectedMatrixColor = ref<string>('all');
             ref="kineticContainerRef"
             style="width: 100%; padding: 20px 0;"
           >
-            <Slider v-model="kineticValue" color="blue" style="width: 100%; pointer-events: none;" />
+            <Slider v-model="kineticValue" color="blue" style="width: 100%;" />
           </div>
         </div>
       </section>
 
       <!-- Colisiones Elásticas -->
       <section class="story-section">
-        <h2 class="section-title">Colisiones Elásticas (Wall Collisions)</h2>
+        <h2 class="section-title">Colisiones Elásticas</h2>
         <p class="section-text">
           Al lanzarlo contra los límites del 0% o 100%, el slider no solo se detiene. Convierte la inercia física restante en un coeficiente de aplastamiento, aplanando agresivamente el pulgar contra la pared mientras mantiene el borde exterior perfectamente alineado con el límite de la pista.
         </p>
@@ -482,7 +482,7 @@ const selectedMatrixColor = ref<string>('all');
             <!-- Las paredes -->
             <div class="wall-line wall-left"></div>
             <div class="wall-line wall-right"></div>
-            <Slider v-model="wallValue" color="pink" sound style="width: 100%; pointer-events: none;" />
+            <Slider v-model="wallValue" color="pink" sound style="width: 100%;" />
           </div>
         </div>
       </section>
@@ -592,6 +592,16 @@ const selectedMatrixColor = ref<string>('all');
 }
 .demo-no-track :deep(.slider-fill) {
   display: none !important;
+}
+/* Disable pointer events on desktop to allow smooth hover tracking */
+.demo-no-track :deep(.ciervo-slider) {
+  pointer-events: none;
+}
+/* Re-enable standard touch dragging on mobile */
+@media (hover: none) and (pointer: coarse) {
+  .demo-no-track :deep(.ciervo-slider) {
+    pointer-events: auto;
+  }
 }
 
 /* =========================================================

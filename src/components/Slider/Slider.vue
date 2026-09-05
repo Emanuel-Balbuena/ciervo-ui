@@ -143,7 +143,7 @@ function setTarget(values: number | number[], instant = false) {
 // --- SOUND PHYSICS ENGINE ---
 const isSquished = ref<Record<number, boolean>>({});
 let lastSoundTime = 0;
-const SOUND_COOLDOWN = 300;
+const SOUND_COOLDOWN = 150;
 
 // Visual Orchestrator: Executed every frame by the engine
 function renderVisuals(state: Record<string, number>) {
@@ -180,9 +180,10 @@ function renderVisuals(state: Record<string, number>) {
           if (now - lastSoundTime > SOUND_COOLDOWN) {
             lastSoundTime = now;
             const minSpeed = 10;
-            const t = Math.min(1, Math.max(0, (speed - minSpeed) / (50 - minSpeed)));
-            const k = 5;
-            const calculatedVolume = Math.max(0.05, (Math.exp(t * k) - 1) / (Math.exp(k) - 1));   
+            const maxSpeed = 800;
+            const t = Math.min(1, Math.max(0, (speed - minSpeed) / (maxSpeed - minSpeed)));
+            // Usamos una curva cúbica (t^3) para que en velocidades bajas/medias el volumen sea minúsculo
+            const calculatedVolume = Math.max(0.01, Math.pow(t, 2));   
             try {
               if (typeof window !== 'undefined') {
                 play('scan', { volume: calculatedVolume });
