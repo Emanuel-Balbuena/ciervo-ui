@@ -2,6 +2,17 @@
    TOGGLE GROUP (CIERVO UI)
    ========================================= */
 
+@import "../../styles/themes/colors/black.css";
+@import "../../styles/themes/colors/red.css";
+@import "../../styles/themes/colors/orange.css";
+@import "../../styles/themes/colors/yellow.css";
+@import "../../styles/themes/colors/lime.css";
+@import "../../styles/themes/colors/green.css";
+@import "../../styles/themes/colors/cyan.css";
+@import "../../styles/themes/colors/blue.css";
+@import "../../styles/themes/colors/violet.css";
+@import "../../styles/themes/colors/pink.css";
+
 @import "../Button/button.css";
 @import "../ButtonGroup/button-group.css";
 @import "../Toggle/toggle.css";

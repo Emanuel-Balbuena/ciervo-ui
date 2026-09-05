@@ -1,0 +1,32 @@
+.theme-light {
+    /* Framed (COPIA DE SOLID) */
+    --yellow-solid-base: rgba(255, 184, 48, 1);
+    --yellow-border-base: rgba(255, 184, 48, 1);
+    --yellow-text-base: rgba(0, 0, 0, 1);
+    --yellow-solid-hover: rgba(255, 184, 48, 0.80);
+    --yellow-border-hover: rgba(255, 184, 48, 0.80);
+    --yellow-solid-active-bg: rgba(255, 184, 48, 0.75);
+    --yellow-border-active: rgba(255, 184, 48, 0.75);
+    --yellow-solid-active-text: rgba(0, 0, 0, .80);
+    /* Solid */
+    /* Soft */
+    --yellow-surface-base: rgba(255, 184, 48, 0.15);
+    --yellow-surface-border: transparent;
+    --yellow-surface-text-base: rgba(163, 106, 0, 1);
+    --yellow-surface-hover: rgba(255, 184, 48, 0.22);
+    --yellow-surface-active-bg: rgba(255, 184, 48, 0.28);
+    --yellow-surface-active-text: rgba(163, 106, 0, .80);
+    /* Ghost */
+    --yellow-transparent-base: transparent;
+    --yellow-transparent-border: transparent;
+    --yellow-transparent-text-base: rgba(163, 106, 0, 1);
+    --yellow-transparent-hover: rgba(255, 184, 48, .15);
+    --yellow-transparent-active-bg: rgba(255, 184, 48, .22);
+    --yellow-transparent-active-text: rgba(163, 106, 0, .80);
+    /* Outline */
+    --yellow-outline-bg-base: rgba(255, 184, 48, .07);
+    --yellow-outline-text-base: rgba(163, 106, 0, 1);
+    --yellow-outline-hover: rgba(255, 184, 48, .15);
+    --yellow-outline-active-bg: rgba(255, 184, 48, .22);
+    --yellow-outline-active-text: rgba(163, 106, 0, .80);
+}

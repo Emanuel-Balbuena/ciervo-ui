@@ -1,0 +1,32 @@
+.theme-dark {
+    /* Framed */
+    --violet-solid-base: rgba(147, 51, 234, 1);
+    --violet-border-base: rgba(169, 92, 238, 1);
+    --violet-text-base: rgba(255, 255, 255, 1);
+    --violet-solid-hover: rgba(163, 80, 237, 1);
+    --violet-border-hover: rgba(179, 112, 240, 1);
+    --violet-solid-active-bg: rgba(174, 102, 239, 1);
+    --violet-border-active: rgba(185, 122, 241, 1);
+    --violet-solid-active-text: rgba(255, 255, 255, .80);
+    /* Solid */
+    /* Soft */
+    --violet-surface-base: rgba(147, 51, 234, .25);
+    --violet-surface-border: transparent;
+    --violet-surface-text-base: rgba(176, 107, 239, 1);
+    --violet-surface-hover: rgba(147, 51, 234, .30);
+    --violet-surface-active-bg: rgba(147, 51, 234, 0.35);
+    --violet-surface-active-text: rgba(176, 107, 239, .80);
+    /* Ghost */
+    --violet-transparent-base: transparent;
+    --violet-transparent-border: transparent;
+    --violet-transparent-text-base: rgba(176, 107, 239, 1);
+    --violet-transparent-hover: rgba(147, 51, 234, .25);
+    --violet-transparent-active-bg: rgba(147, 51, 234, .30);
+    --violet-transparent-active-text: rgba(176, 107, 239, .80);
+    /* Outline */
+    --violet-outline-bg-base: rgba(147, 51, 234, .13);
+    --violet-outline-text-base: rgba(176, 107, 239, 1);
+    --violet-outline-hover: rgba(147, 51, 234, .25);
+    --violet-outline-active-bg: rgba(147, 51, 234, .30);
+    --violet-outline-active-text: rgba(176, 107, 239, .80);
+}

@@ -4,6 +4,9 @@ import ButtonView from '../views/ButtonView.vue';
 import ButtonGroupView from '../views/ButtonGroupView.vue';
 import ToggleView from '../views/ToggleView.vue';
 import ToggleGroupView from '../views/ToggleGroupView.vue';
+import GlimmLabView from '../views/GlimmLabView.vue';
+
+import SliderView from '../views/SliderView.vue';
 
 const routes = [
   {
@@ -30,6 +33,16 @@ const routes = [
     path: '/toggle-group',
     name: 'toggle-group',
     component: ToggleGroupView
+  },
+  {
+    path: '/slider',
+    name: 'slider',
+    component: SliderView
+  },
+  {
+    path: '/glimm-lab',
+    name: 'glimm-lab',
+    component: GlimmLabView
   }
 ];
 

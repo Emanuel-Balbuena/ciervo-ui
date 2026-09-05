@@ -1,0 +1,32 @@
+.theme-light {
+    /* Framed (COPIA DE SOLID) */
+    --orange-solid-base: rgba(255, 77, 0, 1);
+    --orange-border-base: rgba(255, 77, 0, 1);
+    --orange-text-base: rgba(255, 255, 255, 1);
+    --orange-solid-hover: rgba(255, 77, 0, 0.80);
+    --orange-border-hover: rgba(255, 77, 0, 0.80);
+    --orange-solid-active-bg: rgba(255, 77, 0, 0.75);
+    --orange-border-active: rgba(255, 77, 0, 0.75);
+    --orange-solid-active-text: rgba(255, 255, 255, .80);
+    /* Solid: HEX puros (Opacidad 100%) */
+    /* Soft: Uso de Transparencias (RGBA) ej. 17% */
+    --orange-surface-base: rgba(255, 77, 0, 0.10);
+    --orange-surface-border: transparent;
+    --orange-surface-text-base: rgba(255, 77, 0, 1);
+    --orange-surface-hover: rgba(255, 77, 0, 0.17);
+    --orange-surface-active-bg: rgba(255, 77, 0, 0.23);
+    --orange-surface-active-text: rgba(255, 77, 0, .80);
+    /* Ghost: Transparencias al hacer hover */
+    --orange-transparent-base: transparent;
+    --orange-transparent-border: transparent;
+    --orange-transparent-text-base: rgba(255, 77, 0, 1);
+    --orange-transparent-hover: rgba(255, 77, 0, .10);
+    --orange-transparent-active-bg: rgba(255, 77, 0, .17);
+    --orange-transparent-active-text: rgba(255, 77, 0, .80);
+    /* Outline: Borde sólido/semi-transparente, fondo transparente */
+    --orange-outline-bg-base: rgba(255, 77, 0, .05);
+    --orange-outline-text-base: rgba(255, 77, 0, 1);
+    --orange-outline-hover: rgba(255, 77, 0, .10);
+    --orange-outline-active-bg: rgba(255, 77, 0, .17);
+    --orange-outline-active-text: rgba(255, 77, 0, .80);
+}

@@ -1,0 +1,32 @@
+.theme-light {
+    /* Framed (COPIA DE SOLID) */
+    --pink-solid-base: rgba(255, 20, 147, 1);
+    --pink-border-base: rgba(255, 20, 147, 1);
+    --pink-text-base: rgba(255, 255, 255, 1);
+    --pink-solid-hover: rgba(255, 20, 147, 0.80);
+    --pink-border-hover: rgba(255, 20, 147, 0.80);
+    --pink-solid-active-bg: rgba(255, 20, 147, 0.75);
+    --pink-border-active: rgba(255, 20, 147, 0.75);
+    --pink-solid-active-text: rgba(255, 255, 255, .80);
+    /* Solid */
+    /* Soft */
+    --pink-surface-base: rgba(255, 20, 147, 0.10);
+    --pink-surface-border: transparent;
+    --pink-surface-text-base: rgba(255, 20, 147, 1);
+    --pink-surface-hover: rgba(255, 20, 147, 0.17);
+    --pink-surface-active-bg: rgba(255, 20, 147, 0.23);
+    --pink-surface-active-text: rgba(255, 20, 147, .80);
+    /* Ghost */
+    --pink-transparent-base: transparent;
+    --pink-transparent-border: transparent;
+    --pink-transparent-text-base: rgba(255, 20, 147, 1);
+    --pink-transparent-hover: rgba(255, 20, 147, .10);
+    --pink-transparent-active-bg: rgba(255, 20, 147, .17);
+    --pink-transparent-active-text: rgba(255, 20, 147, .80);
+    /* Outline */
+    --pink-outline-bg-base: rgba(255, 20, 147, .05);
+    --pink-outline-text-base: rgba(255, 20, 147, 1);
+    --pink-outline-hover: rgba(255, 20, 147, .10);
+    --pink-outline-active-bg: rgba(255, 20, 147, .17);
+    --pink-outline-active-text: rgba(255, 20, 147, .80);
+}

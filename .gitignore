@@ -28,3 +28,5 @@ study/
 *.njsproj
 *.sln
 *.sw?
+# Backup folders
+src/backup_perfect_button/

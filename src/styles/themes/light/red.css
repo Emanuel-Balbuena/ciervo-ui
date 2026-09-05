@@ -1,0 +1,32 @@
+.theme-light {
+    /* Framed (COPIA DE SOLID) */
+    --red-solid-base: rgba(255, 11, 10, 1);
+    --red-border-base: rgba(255, 11, 10, 1);
+    --red-text-base: rgba(255, 255, 255, 1);
+    --red-solid-hover: rgba(255, 11, 10, 0.80);
+    --red-border-hover: rgba(255, 11, 10, 0.80);
+    --red-solid-active-bg: rgba(255, 11, 10, 0.75);
+    --red-border-active: rgba(255, 11, 10, 0.75);
+    --red-solid-active-text: rgba(255, 255, 255, .80);
+    /* Solid */
+    /* Soft: Transparencia de Rojo puro (ej. 8% y 15%) */
+    --red-surface-base: rgba(255, 11, 10, 0.10);
+    --red-surface-border: transparent;
+    --red-surface-text-base: rgba(255, 11, 10, 1);
+    --red-surface-hover: rgba(255, 11, 10, 0.17);
+    --red-surface-active-bg: rgba(255, 11, 10, 0.23);
+    --red-surface-active-text: rgba(255, 11, 10, 0.80);
+    /* Ghost */
+    --red-transparent-base: transparent;
+    --red-transparent-border: transparent;
+    --red-transparent-text-base: rgba(255, 11, 10, 1);
+    --red-transparent-hover: rgba(255, 11, 10, 0.10);
+    --red-transparent-active-bg: rgba(255, 11, 10, 0.17);
+    --red-transparent-active-text: rgba(255, 11, 10, 0.80);
+    /* Outline */
+    --red-outline-bg-base: rgba(255, 11, 10, 0.05);
+    --red-outline-text-base: rgba(255, 11, 10, 1);
+    --red-outline-hover: rgba(255, 11, 10, 0.10);
+    --red-outline-active-bg: rgba(255, 11, 10, 0.17);
+    --red-outline-active-text: rgba(255, 11, 10, 0.80);
+}

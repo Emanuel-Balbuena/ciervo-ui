@@ -1,0 +1,32 @@
+.theme-light {
+    /* Framed (COPIA DE SOLID) */
+    --lime-solid-base: rgba(163, 230, 53, 1);
+    --lime-border-base: rgba(163, 230, 53, 1);
+    --lime-text-base: rgba(0, 0, 0, 1);
+    --lime-solid-hover: rgba(163, 230, 53, 0.80);
+    --lime-border-hover: rgba(163, 230, 53, 0.80);
+    --lime-solid-active-bg: rgba(163, 230, 53, 0.60);
+    --lime-border-active: rgba(163, 230, 53, 0.60);
+    --lime-solid-active-text: rgba(0, 0, 0, .80);
+    /* Solid */
+    /* Soft */
+    --lime-surface-base: rgba(163, 230, 53, 0.15);
+    --lime-surface-border: transparent;
+    --lime-surface-text-base: rgba(96, 145, 18, 1);
+    --lime-surface-hover: rgba(163, 230, 53, 0.22);
+    --lime-surface-active-bg: rgba(163, 230, 53, 0.28);
+    --lime-surface-active-text: rgba(96, 145, 18, .80);
+    /* Ghost */
+    --lime-transparent-base: transparent;
+    --lime-transparent-border: transparent;
+    --lime-transparent-text-base: rgba(96, 145, 18, 1);
+    --lime-transparent-hover: rgba(163, 230, 53, .15);
+    --lime-transparent-active-bg: rgba(163, 230, 53, .22);
+    --lime-transparent-active-text: rgba(96, 145, 18, .80);
+    /* Outline */
+    --lime-outline-bg-base: rgba(163, 230, 53, .07);
+    --lime-outline-text-base: rgba(96, 145, 18, 1);
+    --lime-outline-hover: rgba(163, 230, 53, .15);
+    --lime-outline-active-bg: rgba(163, 230, 53, .22);
+    --lime-outline-active-text: rgba(96, 145, 18, .80);
+}

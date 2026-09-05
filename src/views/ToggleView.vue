@@ -22,6 +22,14 @@ const copyCode = async (code: string, id: string) => {
   }
 };
 
+const heroLoading = ref(false);
+const triggerHeroLoading = () => {
+  heroLoading.value = true;
+  setTimeout(() => heroLoading.value = false, 2000);
+};
+
+const playgroundMode = ref<'normal' | 'stateful'>('normal');
+
 // 2. Interactive Props Laboratory for Toggle
 type VariantType = 'solid' | 'framed' | 'soft' | 'ghost' | 'outline';
 type SizeType = 'micro' | 'tiny' | 'small' | 'medium' | 'large';
@@ -51,6 +59,10 @@ const mute1 = ref(false);
 const bell1 = ref(true);
 const bookmark1 = ref(false);
 
+const demoToggle1 = ref(true);
+const demoToggle2 = ref(true);
+const demoToggle3 = ref(false);
+
 const variantsList: VariantType[] = ['solid', 'framed', 'soft', 'ghost', 'outline'];
 const sizesList: SizeType[] = ['micro', 'tiny', 'small', 'medium', 'large'];
 const shapesList: ShapeType[] = ['square', 'round'];
@@ -75,19 +87,19 @@ const generatedToggleCode = computed(() => {
   const fillProp = !playground.value.iconFill ? ` :icon-fill="false"` : '';
   const disProp = playground.value.disabled ? ` :disabled="true"` : '';
   const sndProp = !playground.value.sound ? ` :sound="false"` : '';
+  const stateProp = playgroundMode.value === 'stateful' ? ` :state="isPressed ? 'Activado' : 'Desactivado'"` : '';
 
   return `<Toggle
   v-model="isPressed"
   variant="${playground.value.variant}"
   color="${playground.value.color}"
   size="${playground.value.size}"
-  shape="${playground.value.shape}"${posProp}${fillProp}${disProp}${sndProp}
+  shape="${playground.value.shape}"${posProp}${fillProp}${disProp}${sndProp}${stateProp}
 >
   <template #icon>
     <StarIcon />
   </template>
-  {{ isPressed ? 'Favorito' : 'Marcar Favorito' }}
-</Toggle>`;
+${playgroundMode.value === 'stateful' ? '' : `  {{ isPressed ? 'Activado' : 'Desactivado' }}\n`}</Toggle>`;
 });
 
 const selectedMatrixColor = ref<string>('all');
@@ -110,9 +122,9 @@ const selectedMatrixColor = ref<string>('all');
             ← Volver a componentes
           </Button>
           <span class="meta-divider">·</span>
-          <span>Toggle</span>
-          <span class="meta-divider">·</span>
           <span>v0.1.0</span>
+          <span class="meta-divider">·</span>
+          <span>Toggle</span>
         </div>
         
         <div class="theme-toggle">
@@ -131,10 +143,11 @@ const selectedMatrixColor = ref<string>('all');
       <!-- COMPONENT HERO -->
       <section class="hero-section">
         <h1 class="hero-title">toggle</h1>
-        <p class="hero-desc">
+        <p class="hero-subtitle">
           Botón conmutable de dos estados (Activo / Inactivo) con sincronización acústica mecánica mediante Cuelume,
           gestión inherente de relleno de iconos, acoplamiento geométrico sin desalineación y compatibilidad con los 10 colores del sistema.
         </p>
+
       </section>
 
       <!-- CONTROLES DE ESTADO EN LA INTERFAZ -->
@@ -146,24 +159,22 @@ const selectedMatrixColor = ref<string>('all');
         
         <div class="showcase-row" style="flex-wrap: wrap; gap: 16px; align-items: center;">
           <!-- Star / Favorite -->
-          <Toggle v-model="fav1" variant="solid" color="yellow" shape="round">
+          <Toggle v-model="fav1" variant="solid" color="yellow" shape="round" :state="fav1 ? 'Favorito' : 'Guardar'">
             <template #icon>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
               </svg>
             </template>
-            {{ fav1 ? 'Favorito' : 'Guardar' }}
           </Toggle>
 
           <!-- Pin -->
-          <Toggle v-model="pin1" variant="framed" color="orange" shape="square">
+          <Toggle v-model="pin1" variant="framed" color="orange" shape="square" :state="pin1 ? 'Fijado' : 'Fijar'">
             <template #icon>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="17" x2="12" y2="22"></line>
                 <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path>
               </svg>
             </template>
-            {{ pin1 ? 'Fijado' : 'Fijar' }}
           </Toggle>
 
           <!-- Mute -->
@@ -205,6 +216,24 @@ const selectedMatrixColor = ref<string>('all');
           </p>
         </div>
 
+        <!-- PESTAÑAS DE MODO (TABS) -->
+        <div class="playground-mode-tabs" style="display: flex; justify-content: flex-start; margin-bottom: 2rem;">
+          <div class="segmented-pill-group" style="display: inline-flex;">
+            <button
+              :class="['segment-pill-btn', { active: playgroundMode === 'normal' }]"
+              @click="playgroundMode = 'normal'"
+            >
+              Normal
+            </button>
+            <button
+              :class="['segment-pill-btn', { active: playgroundMode === 'stateful' }]"
+              @click="playgroundMode = 'stateful'"
+            >
+              Stateful
+            </button>
+          </div>
+        </div>
+
         <div class="stage-canvas-card" style="min-height: 260px; padding: 40px 24px;">
           <div class="stage-canvas-inner" style="gap: 28px; flex-wrap: wrap;">
             
@@ -217,8 +246,9 @@ const selectedMatrixColor = ref<string>('all');
               :shape="playground.shape"
               :disabled="playground.disabled"
               :sound="playground.sound"
+              :state="playgroundMode === 'stateful' ? (labToggleText ? 'Activado' : 'Desactivado') : undefined"
             >
-              {{ labToggleText ? 'Activado' : 'Desactivado' }}
+              <template v-if="playgroundMode !== 'stateful'">{{ labToggleText ? 'Activado' : 'Desactivado' }}</template>
             </Toggle>
 
             <!-- 2. ICON ONLY TOGGLE -->
@@ -246,17 +276,18 @@ const selectedMatrixColor = ref<string>('all');
               :color="playground.color"
               :size="playground.size"
               :shape="playground.shape"
-              :icon-position="playground.iconPosition"
-              :icon-fill="playground.iconFill"
               :disabled="playground.disabled"
               :sound="playground.sound"
+              :icon-position="playground.iconPosition"
+              :icon-fill="playground.iconFill"
+              :state="playgroundMode === 'stateful' ? (labToggleCombo ? 'Favorito' : 'Marcar Favorito') : undefined"
             >
               <template #icon>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                 </svg>
               </template>
-              {{ labToggleCombo ? 'Favorito' : 'Marcar Favorito' }}
+              <template v-if="playgroundMode !== 'stateful'">{{ labToggleCombo ? 'Favorito' : 'Marcar Favorito' }}</template>
             </Toggle>
 
           </div>
@@ -379,6 +410,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle icon fill state"
                 :class="{ checked: playground.iconFill }"
                 @click="playground.iconFill = !playground.iconFill"
                 role="checkbox"
@@ -400,6 +432,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle disabled state"
                 :class="{ checked: playground.disabled }"
                 @click="playground.disabled = !playground.disabled"
                 role="checkbox"
@@ -421,6 +454,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle sound state"
                 :class="{ checked: playground.sound }"
                 @click="playground.sound = !playground.sound"
                 role="checkbox"
@@ -445,6 +479,63 @@ const selectedMatrixColor = ref<string>('all');
             </button>
           </div>
           <pre class="pre-block"><code>{{ generatedToggleCode }}</code></pre>
+        </div>
+      </section>
+
+      <!-- =========================================
+           5. ESTADOS Y ZERO LAYOUT SHIFT (STATEFUL)
+           ========================================= -->
+      <section class="demo-section">
+        <h2 class="section-title">Zero Layout Shift Morphing (Stateful)</h2>
+        <div class="demo-card">
+          <p class="demo-description">
+            Al pasarle la propiedad <code>state</code>, el toggle integra un motor de físicas en su interior. Renderiza los estados entrante y saliente en contenedores superpuestos y anima su anchura utilizando <strong>físicas de resortes (Spring)</strong>, garantizando cero desplazamiento abrupto del DOM y permitiendo un morphing orgánico.
+          </p>
+          <div class="showcase-row" style="margin-top: 1.5rem;">
+            
+            <Toggle 
+              v-model="demoToggle1"
+              variant="solid" 
+              color="orange" 
+              shape="round" 
+              size="medium"
+              :state="demoToggle1 ? 'Modo Desarrollador' : 'Usuario Normal'"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                </svg>
+              </template>
+            </Toggle>
+
+            <Toggle 
+              v-model="demoToggle2"
+              variant="framed" 
+              color="blue" 
+              shape="round" 
+              size="medium"
+              :state="demoToggle2 ? 'Conectado (Online)' : 'Desconectado'"
+            />
+
+            <Toggle 
+              v-model="demoToggle3"
+              variant="soft" 
+              color="pink" 
+              shape="square" 
+              size="medium"
+              :state="demoToggle3 ? 'Silenciado' : 'Sonido Activado'"
+            >
+               <template #icon>
+                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                   <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+                   <path v-if="!demoToggle3" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                   <line v-if="demoToggle3" x1="23" y1="9" x2="17" y2="15"/>
+                   <line v-if="demoToggle3" x1="17" y1="9" x2="23" y2="15"/>
+                 </svg>
+               </template>
+            </Toggle>
+            
+          </div>
         </div>
       </section>
 

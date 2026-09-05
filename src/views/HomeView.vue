@@ -114,6 +114,40 @@ function navigateTo(path: string) {
             </template>
             ToggleGroup
           </Button>
+
+          <Button
+            variant="solid"
+            color="pink"
+            size="large"
+            shape="round"
+            class="home-component-btn"
+            @click="navigateTo('/slider')"
+          >
+            <template #icon>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12h18"></path>
+                <circle cx="15" cy="12" r="4" fill="currentColor"></circle>
+              </svg>
+            </template>
+            Slider
+          </Button>
+        </div>
+
+        <!-- EXPERIMENTAL LABS -->
+        <div style="margin-top: 40px; border-top: 1px solid var(--card-border, rgba(255, 255, 255, 0.08)); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <h3 style="font-size: 14px; font-weight: 600; margin: 0; color: var(--text-primary);">Laboratorio Experimental WebGL</h3>
+            <p style="font-size: 12px; color: var(--text-secondary); margin: 3px 0 0 0;">Transiciones cinemáticas shader (Glimm)</p>
+          </div>
+          <Button
+            variant="soft"
+            color="orange"
+            size="small"
+            shape="round"
+            @click="navigateTo('/glimm-lab')"
+          >
+            Abrir Glimm Lab →
+          </Button>
         </div>
       </section>
 

@@ -1,0 +1,32 @@
+.theme-dark {
+    /* Framed */
+    --blue-solid-base: rgba(66, 89, 246, 1);
+    --blue-border-base: rgba(104, 122, 248, 1);
+    --blue-text-base: rgba(255, 255, 255, 1);
+    --blue-solid-hover: rgba(94, 114, 247, 1);
+    --blue-border-hover: rgba(123, 139, 249, 1);
+    --blue-solid-active-bg: rgba(113, 130, 248, 1);
+    --blue-border-active: rgba(132, 147, 249, 1);
+    --blue-solid-active-text: rgba(255, 255, 255, .80);
+    /* Solid */
+    /* Soft */
+    --blue-surface-base: rgba(66, 89, 246, .25);
+    --blue-surface-border: transparent;
+    --blue-surface-text-base: rgba(113, 130, 248, 1);
+    --blue-surface-hover: rgba(66, 89, 246, .30);
+    --blue-surface-active-bg: rgba(66, 89, 246, 0.35);
+    --blue-surface-active-text: rgba(113, 130, 248, .80);
+    /* Ghost */
+    --blue-transparent-base: transparent;
+    --blue-transparent-border: transparent;
+    --blue-transparent-text-base: rgba(113, 130, 248, 1);
+    --blue-transparent-hover: rgba(66, 89, 246, .25);
+    --blue-transparent-active-bg: rgba(66, 89, 246, .30);
+    --blue-transparent-active-text: rgba(113, 130, 248, .80);
+    /* Outline */
+    --blue-outline-bg-base: rgba(66, 89, 246, .13);
+    --blue-outline-text-base: rgba(113, 130, 248, 1);
+    --blue-outline-hover: rgba(66, 89, 246, .25);
+    --blue-outline-active-bg: rgba(66, 89, 246, .30);
+    --blue-outline-active-text: rgba(113, 130, 248, .80);
+}

@@ -396,6 +396,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle attached state"
                 :class="{ checked: playground.attached }"
                 @click="playground.attached = !playground.attached"
                 role="checkbox"

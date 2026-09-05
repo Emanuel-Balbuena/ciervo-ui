@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
+import { ref, computed, inject, onMounted, watch, nextTick } from 'vue';
 import type { ComputedRef } from 'vue';
 import { play } from 'cuelume';
+import { createMotion } from '../../core/motion/engine.js';
+import { splitChars } from '../../core/motion/split.js';
+import { motionOf } from '../../core/motion/element.js';
+import { Easing } from '../../core/motion/easing.js';
 
 defineSlots<{
     default?: (props: { pressed: boolean }) => any;
     icon?: (props: { pressed: boolean }) => any;
     trailingIcon?: (props: { pressed: boolean }) => any;
+    [key: string]: ((props: { state: string; pressed: boolean }) => any) | undefined;
 }>();
 
 interface ToggleGroupContext {
@@ -76,6 +81,16 @@ const props = defineProps({
         default: undefined
     },
     sound: {
+        type: Boolean,
+        default: true
+    },
+    // Stateful (Animación de texto)
+    state: {
+        type: String,
+        default: undefined
+    },
+    // Desactiva la animación de stateful si se desea
+    animateText: {
         type: Boolean,
         default: true
     }
@@ -148,6 +163,144 @@ function handleClick(event: MouseEvent) {
 
     emit('click', event);
 }
+
+// ---------------------------------------------------------
+// LÓGICA DE STATEFUL (Módulo de texto animado de alta fidelidad)
+// ---------------------------------------------------------
+const prefersReducedMotion = () => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+};
+
+const measurerRef = ref<HTMLElement | null>(null);
+const wrapperRef = ref<HTMLElement | null>(null);
+let widthMotion: any = null;
+
+function initMotionEngine() {
+  if (!measurerRef.value || !wrapperRef.value) return;
+  
+  const initialWidth = measurerRef.value.getBoundingClientRect().width;
+  wrapperRef.value.style.width = `${initialWidth}px`;
+
+  widthMotion = createMotion(
+    { width: initialWidth },
+    {
+      onChange: (key: string, value: number) => {
+        if (key === 'width' && wrapperRef.value) {
+          wrapperRef.value.style.width = `${value}px`;
+        }
+      },
+    }
+  );
+}
+
+onMounted(() => {
+  if (props.state !== undefined) {
+    initMotionEngine();
+  }
+});
+
+watch(() => props.state, async (newState) => {
+  if (newState === undefined) {
+    if (wrapperRef.value) wrapperRef.value.style.width = '';
+    if (widthMotion) {
+      widthMotion.stop();
+      widthMotion = null;
+    }
+    return;
+  }
+
+  await nextTick();
+
+  if (!widthMotion) {
+    initMotionEngine();
+    return;
+  }
+
+  if (measurerRef.value && widthMotion) {
+    splitChars(measurerRef.value);
+    const targetWidth = measurerRef.value.getBoundingClientRect().width;
+    
+    if (!props.animateText) {
+      wrapperRef.value!.style.width = `${targetWidth}px`;
+      widthMotion.set({ width: targetWidth });
+    } else {
+      widthMotion.animate(
+        { width: targetWidth },
+        { width: { type: 'spring', stiffness: 320, damping: 28, mass: 1 } }
+      );
+    }
+  }
+});
+
+function onEnter(el: Element, done: () => void) {
+  if (!props.animateText || prefersReducedMotion()) {
+    const motion = motionOf(el);
+    motion.set({ opacity: 0 });
+    motion.to({ opacity: 1 }, { duration: 0.1, onComplete: done });
+    return;
+  }
+
+  const split = splitChars(el as HTMLElement);
+  let pending = split.chars.length;
+  if (pending === 0) {
+    done();
+    return;
+  }
+
+  split.chars.forEach((char, index) => {
+    const motion = motionOf(char);
+    motion.set({ opacity: 0, yPercent: 40, blur: 4 });
+    motion.to(
+      { opacity: 1, yPercent: 0, blur: 0 },
+      {
+        duration: 0.35,
+        ease: Easing.easeOutCubic,
+        delay: 0.05 + index * 0.015,
+        onComplete: () => {
+          pending -= 1;
+          if (pending <= 0) {
+            done();
+          }
+        }
+      }
+    );
+  });
+}
+
+function onLeave(el: Element, done: () => void) {
+  if (!props.animateText || prefersReducedMotion()) {
+    const motion = motionOf(el);
+    motion.to({ opacity: 0 }, { duration: 0.1, onComplete: done });
+    return;
+  }
+
+  const split = splitChars(el as HTMLElement);
+  let pending = split.chars.length;
+  if (pending === 0) {
+    done();
+    return;
+  }
+
+  const length = split.chars.length;
+  split.chars.forEach((char, index) => {
+    const motion = motionOf(char);
+    motion.to(
+      { opacity: 0, yPercent: -100, blur: 4 },
+      {
+        duration: 0.15,
+        ease: Easing.easeInCubic,
+        delay: (length - 1 - index) * 0.01,
+        onComplete: () => {
+          pending -= 1;
+          if (pending <= 0) {
+            done();
+          }
+        }
+      }
+    );
+  });
+}
 </script>
 
 <template>
@@ -162,6 +315,7 @@ function handleClick(event: MouseEvent) {
             `btn-shape-${resolvedShape}`,
             {
                 'is-pressed': isPressed,
+                'btn-js-motion': state !== undefined,
                 'btn-icon-only': iconOnly,
                 'btn-with-icon': $slots.icon || $slots.trailingIcon,
                 'btn-icon-end': iconPosition === 'end' || $slots.trailingIcon,
@@ -184,8 +338,33 @@ function handleClick(event: MouseEvent) {
         </span>
 
         <!-- TEXTO -->
-        <span v-if="$slots.default" class="btn-text">
-            <slot :pressed="isPressed"></slot>
+        <span v-if="$slots.default || state !== undefined" class="btn-text" :class="{ 'is-stateful': state !== undefined }">
+            <template v-if="state !== undefined">
+                <span class="stateful-motion-wrapper" ref="wrapperRef">
+                    <!-- 1. El Medidor Fantasma -->
+                    <span class="stateful-ghost-measurer" aria-hidden="true">
+                        <span ref="measurerRef" :key="state" style="display: inline-flex; align-items: center;">
+                            <slot :name="String(state)" :state="state" :pressed="isPressed">
+                                {{ state }}
+                            </slot>
+                        </span>
+                    </span>
+
+                    <!-- 2. El Escenario Visual -->
+                    <span class="stateful-visual-stage">
+                        <Transition :css="false" @enter="onEnter" @leave="onLeave">
+                            <span :key="state" class="stateful-visual-node">
+                                <slot :name="String(state)" :state="state" :pressed="isPressed">
+                                    {{ state }}
+                                </slot>
+                            </span>
+                        </Transition>
+                    </span>
+                </span>
+            </template>
+            <template v-else>
+                <slot :pressed="isPressed"></slot>
+            </template>
         </span>
 
         <!-- ICONO AL FINAL (iconPosition='end' o #trailingIcon) -->

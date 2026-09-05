@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, inject } from 'vue';
+import { ref, computed, inject, onMounted, watch, nextTick } from 'vue';
 import type { ComputedRef } from 'vue';
 import { play } from 'cuelume';
+import { createMotion } from '../../core/motion/engine.js';
+import { splitChars } from '../../core/motion/split.js';
+import { motionOf } from '../../core/motion/element.js';
+import { Easing } from '../../core/motion/easing.js';
 
 defineSlots<{
     default?: (props: Record<string, never>) => any;
     icon?: (props: Record<string, never>) => any;
     trailingIcon?: (props: Record<string, never>) => any;
+    [key: string]: ((props: any) => any) | undefined;
 }>();
 
 interface ButtonGroupContext {
@@ -73,6 +78,12 @@ const props = defineProps({
     sound: {
         type: Boolean,
         default: true
+    },
+    
+    // Stateful (Animación de texto)
+    state: {
+        type: String,
+        default: undefined
     }
 });
 
@@ -113,7 +124,7 @@ const interactionSound = computed(() => {
         case 'outline':
             return 'release';
         case 'ghost':
-            return 'whisper';
+            return 'pulse';
         default:
             return 'release';
     }
@@ -141,6 +152,151 @@ function handleClick(event: MouseEvent) {
     }
 
     emit('click', event);
+}
+
+// ---------------------------------------------------------
+// LÓGICA DE STATEFUL (Módulo de texto animado de alta fidelidad)
+// ---------------------------------------------------------
+const prefersReducedMotion = () => {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+};
+
+// Variables del motor
+const measurerRef = ref<HTMLElement | null>(null);
+const wrapperRef = ref<HTMLElement | null>(null);
+let widthMotion: any = null;
+
+// Función dedicada para arrancar el motor cuando sea necesario
+function initMotionEngine() {
+  if (!measurerRef.value || !wrapperRef.value) return;
+  
+  // Congelamos el ancho base actual
+  const initialWidth = measurerRef.value.getBoundingClientRect().width;
+  wrapperRef.value.style.width = `${initialWidth}px`;
+
+  // Encendemos el motor de físicas
+  widthMotion = createMotion(
+    { width: initialWidth },
+    {
+      onChange: (key: string, value: number) => {
+        if (key === 'width' && wrapperRef.value) {
+          wrapperRef.value.style.width = `${value}px`;
+        }
+      },
+    }
+  );
+}
+
+// 1. Arranque en frío (Si el botón nace con estado)
+onMounted(() => {
+  if (props.state !== undefined) {
+    // Si necesitas aplicar splitChars inicial, descomenta la siguiente línea
+    // splitChars(measurerRef.value); 
+    initMotionEngine();
+  }
+});
+
+// 2. Reactividad y Morphing
+watch(() => props.state, async (newState) => {
+  // Caso A: Se desactivó el modo Stateful
+  if (newState === undefined) {
+    if (wrapperRef.value) wrapperRef.value.style.width = '';
+    if (widthMotion) {
+      widthMotion.stop();
+      widthMotion = null; // Matamos el motor
+    }
+    return;
+  }
+
+  // Caso B: El estado cambió, esperamos al DOM invisible
+  await nextTick();
+
+  // Si el botón pasó de Normal a Stateful en este instante (Arranque en caliente)
+  if (!widthMotion) {
+    initMotionEngine();
+    return; // Ya tomó su ancho inicial, la animación ocurrirá en el siguiente cambio
+  }
+
+  // Si el motor ya estaba activo, calculamos la física hacia el nuevo ancho
+  if (measurerRef.value && widthMotion) {
+    splitChars(measurerRef.value);
+    const targetWidth = measurerRef.value.getBoundingClientRect().width;
+    
+    widthMotion.animate(
+      { width: targetWidth },
+      { width: { type: 'spring', stiffness: 320, damping: 28, mass: 1 } }
+    );
+  }
+});
+
+function onEnter(el: Element, done: () => void) {
+  if (prefersReducedMotion()) {
+    const motion = motionOf(el);
+    motion.set({ opacity: 0 });
+    motion.to({ opacity: 1 }, { duration: 0.3, onComplete: done });
+    return;
+  }
+
+  const split = splitChars(el as HTMLElement);
+  let pending = split.chars.length;
+  if (pending === 0) {
+    done();
+    return;
+  }
+
+  split.chars.forEach((char, index) => {
+    const motion = motionOf(char);
+    motion.set({ opacity: 0, yPercent: 40, blur: 4 });
+    motion.to(
+      { opacity: 1, yPercent: 0, blur: 0 },
+      {
+        duration: 0.35,
+        ease: Easing.easeOutCubic,
+        delay: 0.05 + index * 0.015,
+        onComplete: () => {
+          pending -= 1;
+          if (pending <= 0) {
+            done();
+          }
+        }
+      }
+    );
+  });
+}
+
+function onLeave(el: Element, done: () => void) {
+  if (prefersReducedMotion()) {
+    const motion = motionOf(el);
+    motion.to({ opacity: 0 }, { duration: 0.2, onComplete: done });
+    return;
+  }
+
+  const split = splitChars(el as HTMLElement);
+  let pending = split.chars.length;
+  if (pending === 0) {
+    done();
+    return;
+  }
+
+  const length = split.chars.length;
+  split.chars.forEach((char, index) => {
+    const motion = motionOf(char);
+    motion.to(
+      { opacity: 0, yPercent: -100, blur: 4 },
+      {
+        duration: 0.15,
+        ease: Easing.easeInCubic,
+        delay: (length - 1 - index) * 0.01,
+        onComplete: () => {
+          pending -= 1;
+          if (pending <= 0) {
+            done();
+          }
+        }
+      }
+    );
+  });
 }
 </script>
 
@@ -213,8 +369,33 @@ function handleClick(event: MouseEvent) {
         </svg>
 
         <!-- TEXTO -->
-        <span v-if="$slots.default" class="btn-text">
-            <slot></slot>
+        <span v-if="$slots.default || state !== undefined" class="btn-text" :class="{ 'is-stateful': state !== undefined }">
+            <template v-if="state !== undefined">
+                <span class="stateful-motion-wrapper" ref="wrapperRef">
+                    <!-- 1. El Medidor Fantasma (En el flujo normal para establecer altura) -->
+                    <span class="stateful-ghost-measurer" aria-hidden="true">
+                        <span ref="measurerRef" :key="state" style="display: inline-flex; align-items: center;">
+                            <slot :name="String(state)" :state="state">
+                                {{ state }}
+                            </slot>
+                        </span>
+                    </span>
+
+                    <!-- 2. El Escenario Visual -->
+                    <span class="stateful-visual-stage">
+                        <Transition :css="false" @enter="onEnter" @leave="onLeave">
+                            <span :key="state" class="stateful-visual-node">
+                                <slot :name="String(state)" :state="state">
+                                    {{ state }}
+                                </slot>
+                            </span>
+                        </Transition>
+                    </span>
+                </span>
+            </template>
+            <template v-else>
+                <slot></slot>
+            </template>
         </span>
 
         <!-- CASO 3: ICONO AL FINAL (iconPosition='end' o #trailingIcon) -->

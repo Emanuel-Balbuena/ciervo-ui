@@ -5,3 +5,4 @@ export { default as ButtonGroupText } from './components/ButtonGroup/ButtonGroup
 export { default as ButtonGroupInput } from './components/ButtonGroup/ButtonGroupInput.vue';
 export { default as Toggle } from './components/Toggle/Toggle.vue';
 export { default as ToggleGroup } from './components/ToggleGroup/ToggleGroup.vue';
+export { default as Slider } from './components/Slider/Slider.vue';

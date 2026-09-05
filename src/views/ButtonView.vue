@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from '../components/Button/Button.vue';
 import { useTheme } from '../composables/useTheme';
@@ -38,6 +38,25 @@ const triggerMorphLoading = () => {
   }, 2200);
 };
 
+const downloadState = ref('Descargar');
+const triggerDownload = () => {
+  if (downloadState.value !== 'Descargar') return;
+  downloadState.value = 'Iniciando conexión...';
+  setTimeout(() => { downloadState.value = 'Descargando (12%)'; }, 800);
+  setTimeout(() => { downloadState.value = 'Descargando (45%)'; }, 1600);
+  setTimeout(() => { downloadState.value = 'Descargando (89%)'; }, 2200);
+  setTimeout(() => { downloadState.value = '¡Completado!'; }, 2800);
+  setTimeout(() => { downloadState.value = 'Descargar'; }, 5000);
+};
+
+const payState = ref('Pagar $15.00');
+const triggerPay = () => {
+  if (payState.value !== 'Pagar $15.00') return;
+  payState.value = 'Procesando pago seguro...';
+  setTimeout(() => { payState.value = '✓ Pago Aprobado'; }, 2000);
+  setTimeout(() => { payState.value = 'Pagar $15.00'; }, 4500);
+};
+
 // 3. Laboratorio Interactivo de Props
 type VariantType = 'solid' | 'framed' | 'soft' | 'ghost' | 'outline';
 type SizeType = 'micro' | 'tiny' | 'small' | 'medium' | 'large';
@@ -52,8 +71,44 @@ const playground = ref({
   shape: 'square' as ShapeType,
   loading: false,
   disabled: false,
-  sound: true,
-  as: 'button' as 'button' | 'a'
+  sound: true
+});
+
+const playgroundMode = ref<'normal' | 'stateful'>('normal');
+const statefulTexts = ref(['Descargar', 'Procesando...', '¡Completado!']);
+const currentStateIndex = ref(0);
+const statefulSpeed = ref(1500);
+let cycleInterval: number | null = null;
+
+const startCycle = () => {
+  if (cycleInterval) clearInterval(cycleInterval);
+  cycleInterval = window.setInterval(() => {
+    currentStateIndex.value = (currentStateIndex.value + 1) % statefulTexts.value.length;
+  }, statefulSpeed.value);
+};
+
+const stopCycle = () => {
+  if (cycleInterval) clearInterval(cycleInterval);
+  cycleInterval = null;
+};
+
+watch([playgroundMode, statefulSpeed], () => {
+  if (playgroundMode.value === 'stateful') startCycle();
+  else stopCycle();
+}, { immediate: true });
+
+onUnmounted(stopCycle);
+
+const addStatefulText = () => { if (statefulTexts.value.length < 5) statefulTexts.value.push('Nuevo Estado'); };
+const removeStatefulText = (idx: number) => { if (statefulTexts.value.length > 2) statefulTexts.value.splice(idx, 1); };
+
+const currentPlaygroundLabel = computed(() => {
+  if (playgroundMode.value === 'stateful') return statefulTexts.value[currentStateIndex.value] || 'Compose';
+  return playground.value.label;
+});
+
+const computedSlotName = computed(() => {
+  return playgroundMode.value === 'stateful' ? currentPlaygroundLabel.value : 'default';
 });
 
 // Íconos clásicos de Material Icons para el botón de icono
@@ -108,8 +163,8 @@ const colorDotMap: Record<ColorType, string> = {
 
 // Generador de código Vue en tiempo real para el Playground
 const generatedPlaygroundCode = computed(() => {
+  const isStateful = playgroundMode.value === 'stateful';
   const parts: string[] = ['<Button'];
-  if (playground.value.as !== 'button') parts.push(`as="${playground.value.as}"`);
   if (playground.value.variant !== 'solid') parts.push(`variant="${playground.value.variant}"`);
   if (playground.value.color !== 'black') parts.push(`color="${playground.value.color}"`);
   if (playground.value.size !== 'medium') parts.push(`size="${playground.value.size}"`);
@@ -117,12 +172,17 @@ const generatedPlaygroundCode = computed(() => {
   if (playground.value.loading) parts.push(`:loading="true"`);
   if (playground.value.disabled) parts.push(`:disabled="true"`);
   if (!playground.value.sound) parts.push(`:sound="false"`);
-  if (playground.value.as === 'a') parts.push('href="#"');
+  if (isStateful) parts.push(`:state="currentText"`);
 
   const tagHeader = parts.join(' ');
-  const textButtonCode = `${tagHeader}>\n  ${playground.value.label || 'Button'}\n</Button>`;
+  let statefulSlots = '';
+  if (isStateful) {
+    statefulSlots = statefulTexts.value.map(txt => `  <template #${txt.replace(/\\s+/g, '\\ ')}>${txt}</template>`).join('\n');
+  }
+
+  const textButtonCode = `${tagHeader}>\n${isStateful ? statefulSlots : `  ${playground.value.label || 'Button'}`}\n</Button>`;
   const iconButtonCode = `${tagHeader} :icon-only="true" aria-label="${selectedIconName.value}">\n  <svg viewBox="0 0 24 24" fill="currentColor">\n    <path d="..." />\n  </svg>\n</Button>`;
-  const iconTextButtonCode = `${tagHeader}>\n  <template #icon>\n    <svg viewBox="0 0 24 24" fill="currentColor">\n      <path d="..." />\n    </svg>\n  </template>\n  ${playground.value.label || 'Button'}\n</Button>`;
+  const iconTextButtonCode = `${tagHeader}>\n  <template #icon>\n    <svg viewBox="0 0 24 24" fill="currentColor">\n      <path d="..." />\n    </svg>\n  </template>\n${isStateful ? statefulSlots : `  ${playground.value.label || 'Button'}`}\n</Button>`;
 
   return `${textButtonCode}\n\n${iconButtonCode}\n\n${iconTextButtonCode}`;
 });
@@ -216,95 +276,32 @@ const selectedMatrixColor = ref<string>('all');
       </section>
 
       <!-- =========================================
-           3. HISTORIA & CARACTERÍSTICAS TÉCNICAS
-           ========================================= -->
-
-      <!-- Característica 1: Físicas de Resorte -->
-      <section class="story-section">
-        <h2 class="section-title">La Física del Resorte (Zero-Friction Spring)</h2>
-        <p class="section-text">
-          Los botones tradicionales usan transiciones lineales o cúbicas rígidas. En Ciervo UI, cada interacción está calculada con una función de resorte basada en física de 390ms inspirada en las micro-interacciones de Vercel/Rauno. El botón se hunde con suavidad al presionar y rebota con amortiguación orgánica al soltar.
-        </p>
-        <div class="showcase-row">
-          <Button variant="solid" color="black" shape="square">Solid Press</Button>
-          <Button variant="framed" color="orange" shape="square">Framed Click</Button>
-          <Button variant="soft" color="blue" shape="square">Soft Touch</Button>
-          <Button variant="outline" color="violet" shape="square">Outline Feedback</Button>
-        </div>
-      </section>
-
-      <!-- Característica 2: Morfismo de Iconos Zero-Shift -->
-      <section class="story-section">
-        <h2 class="section-title">Zero Layout Shift: Morfismo de Icono a Spinner</h2>
-        <p class="section-text">
-          El estándar en la industria suele sustituir los botones por textos de carga o deshabilitarlos toscamente. En Ciervo UI, cuando un botón de icono o de texto entra en estado <code class="inline-code">loading</code>, el icono rota y escala hacia cero mediante una cuadrícula de transformación CSS mientras el spinner ocupa su lugar con perfecta simetría geométrica y cero desplazamiento visual.
-        </p>
-        <div class="showcase-row">
-          <Button 
-            variant="solid" 
-            color="black" 
-            shape="square" 
-            size="medium"
-            :icon-only="true"
-            :loading="morphLoading"
-            @click="triggerMorphLoading"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
-            </svg>
-          </Button>
-
-          <Button 
-            variant="solid" 
-            color="orange" 
-            shape="square" 
-            size="medium"
-            :loading="morphLoading"
-            @click="triggerMorphLoading"
-          >
-            Guardar Cambios
-          </Button>
-        </div>
-      </section>
-
-      <!-- Característica 3: Feedback Acústico -->
-      <section class="story-section">
-        <h2 class="section-title">Feedback Acústico Espacial (Motor Cuelume)</h2>
-        <p class="section-text">
-          El sonido en la web no debe ser ruidoso ni artificial. Ciervo UI integra de forma nativa la librería de síntesis Web Audio <code class="inline-code">cuelume</code>, asignando un perfil acústico personalizado a cada peso visual: las variantes sólidas percuten con un chirp firme (<code class="inline-code">press</code>), las variantes suaves marcan tres tonos rápidos (<code class="inline-code">tick</code>), y las siluetas emiten un click mecánico (<code class="inline-code">release</code>).
-        </p>
-        <div class="showcase-row">
-          <Button variant="solid" color="pink" shape="round">Solid (Press)</Button>
-          <Button variant="soft" color="green" shape="round">Soft (Tick)</Button>
-          <Button variant="outline" color="cyan" shape="round">Outline (Release)</Button>
-          <Button variant="ghost" color="lime" shape="round">Ghost (Whisper)</Button>
-        </div>
-      </section>
-
-      <!-- Característica 4: Variantes Visuales -->
-      <section class="story-section">
-        <h2 class="section-title">Las 5 Variantes de Jerarquía</h2>
-        <p class="section-text">
-          Estructuradas para cubrir cualquier nivel de prominencia en tu interfaz: <code class="inline-code">solid</code> para acciones primarias definitivas, <code class="inline-code">framed</code> para acentos con borde exterior, <code class="inline-code">soft</code> para acciones secundarias con fondo al 10%, <code class="inline-code">outline</code> para botones con contorno y <code class="inline-code">ghost</code> para navegación sutil.
-        </p>
-        <div class="showcase-row">
-          <Button variant="solid" color="black" shape="round">Solid</Button>
-          <Button variant="framed" color="black" shape="round">Framed</Button>
-          <Button variant="soft" color="black" shape="round">Soft</Button>
-          <Button variant="outline" color="black" shape="round">Outline</Button>
-          <Button variant="ghost" color="black" shape="round">Ghost</Button>
-        </div>
-      </section>
-
-      <!-- =========================================
-           4. LABORATORIO INTERACTIVO DE PROPS
+           3. LABORATORIO INTERACTIVO DE PROPS
            ========================================= -->
       <section class="playground-section-container">
         <div class="section-header-wrap">
           <h2 class="section-title">Laboratorio Interactivo</h2>
           <p class="section-text">
-            Experimenta con todas las props del componente en tiempo real. Modifica el estado, variante, tamaño, color y forma mientras observas el botón de texto, el botón de icono y el botón de icono + texto.
+            Experimenta con todas las props del componente en tiempo real. Configura el botón y obtén el código exacto que necesitas.
           </p>
+        </div>
+
+        <!-- PESTAÑAS DE MODO (TABS) -->
+        <div class="playground-mode-tabs" style="display: flex; justify-content: flex-start; margin-bottom: 2rem;">
+          <div class="segmented-pill-group" style="display: inline-flex;">
+            <button
+              :class="['segment-pill-btn', { active: playgroundMode === 'normal' }]"
+              @click="playgroundMode = 'normal'"
+            >
+              Normal
+            </button>
+            <button
+              :class="['segment-pill-btn', { active: playgroundMode === 'stateful' }]"
+              @click="playgroundMode = 'stateful'"
+            >
+              Stateful
+            </button>
+          </div>
         </div>
 
         <!-- LIENZO DE PREVIEW DEL LABORATORIO -->
@@ -313,7 +310,6 @@ const selectedMatrixColor = ref<string>('all');
             
             <!-- 1. BOTÓN DE TEXTO PRINCIPAL -->
             <Button
-              :as="playground.as"
               :variant="playground.variant"
               :color="playground.color"
               :size="playground.size"
@@ -321,13 +317,13 @@ const selectedMatrixColor = ref<string>('all');
               :loading="playground.loading"
               :disabled="playground.disabled"
               :sound="playground.sound"
+              :state="playgroundMode === 'stateful' ? currentPlaygroundLabel : undefined"
             >
-              {{ playground.label }}
+              <template v-if="playgroundMode !== 'stateful'">{{ currentPlaygroundLabel }}</template>
             </Button>
 
-            <!-- 2. BOTÓN DE ICONO (MATERIAL ICON CON MORPHING A SPINNER) -->
+            <!-- 2. BOTÓN DE ICONO -->
             <Button
-              :as="playground.as"
               :variant="playground.variant"
               :color="playground.color"
               :size="playground.size"
@@ -343,9 +339,8 @@ const selectedMatrixColor = ref<string>('all');
               </svg>
             </Button>
 
-            <!-- 3. BOTÓN DE ICONO + TEXTO (MORPHING DE ICONO A SPINNER CON TEXTO FIJO) -->
+            <!-- 3. BOTÓN DE ICONO + TEXTO -->
             <Button
-              :as="playground.as"
               :variant="playground.variant"
               :color="playground.color"
               :size="playground.size"
@@ -353,13 +348,14 @@ const selectedMatrixColor = ref<string>('all');
               :loading="playground.loading"
               :disabled="playground.disabled"
               :sound="playground.sound"
+              :state="playgroundMode === 'stateful' ? currentPlaygroundLabel : undefined"
             >
               <template #icon>
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path :d="currentIconPath" />
                 </svg>
               </template>
-              {{ playground.label }}
+              <template #[computedSlotName]>{{ currentPlaygroundLabel }}</template>
             </Button>
 
           </div>
@@ -368,6 +364,65 @@ const selectedMatrixColor = ref<string>('all');
         <!-- FILAS DE CONTROL DE PROPS -->
         <div class="props-inspector-list">
           
+          <h3 style="margin: 1rem 0 0.5rem; font-size: 1rem; font-weight: 600; text-transform: lowercase; letter-spacing: 0.02em; color: var(--cuelume-gray-500)">Contenido</h3>
+          
+          <!-- PROP: SLOT LABEL O MÚLTIPLES ESTADOS -->
+          <div class="prop-control-row">
+            <div class="prop-info-col">
+              <span class="prop-name">{{ playgroundMode === 'stateful' ? 'stateful texts' : 'slot' }}</span>
+              <span class="prop-type-signature">{{ playgroundMode === 'stateful' ? 'array of strings (morphing)' : 'default label content' }}</span>
+            </div>
+            <div class="prop-input-col" style="flex-direction: column; gap: 0.5rem; align-items: stretch;">
+              <template v-if="playgroundMode === 'normal'">
+                <input 
+                  type="text" 
+                  v-model="playground.label" 
+                  class="sleek-text-input" 
+                  placeholder="Texto del botón..."
+                />
+              </template>
+              <template v-else>
+                <div v-for="(_, idx) in statefulTexts" :key="idx" style="display: flex; gap: 0.5rem;">
+                  <input 
+                    type="text" 
+                    v-model="statefulTexts[idx]" 
+                    class="sleek-text-input" 
+                    placeholder="Texto de estado..."
+                  />
+                  <button v-if="statefulTexts.length > 2" @click="removeStatefulText(idx)" class="segment-pill-btn" style="padding: 0 0.75rem; flex: none;">-</button>
+                </div>
+                <button v-if="statefulTexts.length < 5" @click="addStatefulText" class="segment-pill-btn" style="margin-top: 0.5rem;">+ Agregar estado</button>
+                
+                <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                  <span style="font-size: 0.8rem; color: var(--cuelume-gray-500); font-weight: 500;">Velocidad: {{ statefulSpeed }}ms</span>
+                  <input type="range" v-model.number="statefulSpeed" min="500" max="4000" step="100" style="width: 100%; accent-color: var(--cuelume-gray-500);" />
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- PROP: MATERIAL ICON -->
+          <div class="prop-control-row">
+            <div class="prop-info-col">
+              <span class="prop-name">icon (material)</span>
+              <span class="prop-type-signature">settings | bookmark | send | favorite | add</span>
+            </div>
+            <div class="prop-input-col">
+              <div class="segmented-pill-group">
+                <button
+                  v-for="ic in materialIcons"
+                  :key="ic.name"
+                  :class="['segment-pill-btn', { active: selectedIconName === ic.name }]"
+                  @click="selectedIconName = ic.name"
+                >
+                  {{ ic.name }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <h3 style="margin: 1.5rem 0 0.5rem; font-size: 1rem; font-weight: 600; text-transform: lowercase; letter-spacing: 0.02em; color: var(--cuelume-gray-500)">Apariencia</h3>
+
           <!-- PROP: VARIANT -->
           <div class="prop-control-row">
             <div class="prop-info-col">
@@ -383,26 +438,6 @@ const selectedMatrixColor = ref<string>('all');
                   @click="playground.variant = v"
                 >
                   {{ v }}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- PROP: SIZE -->
-          <div class="prop-control-row">
-            <div class="prop-info-col">
-              <span class="prop-name">size</span>
-              <span class="prop-type-signature">micro | tiny | small | medium | large</span>
-            </div>
-            <div class="prop-input-col">
-              <div class="segmented-pill-group">
-                <button
-                  v-for="s in sizesList"
-                  :key="s"
-                  :class="['segment-pill-btn', { active: playground.size === s }]"
-                  @click="playground.size = s"
-                >
-                  {{ s }}
                 </button>
               </div>
             </div>
@@ -452,25 +487,27 @@ const selectedMatrixColor = ref<string>('all');
             </div>
           </div>
 
-          <!-- PROP: MATERIAL ICON (PARA EL BOTÓN DE ICONO) -->
+          <!-- PROP: SIZE -->
           <div class="prop-control-row">
             <div class="prop-info-col">
-              <span class="prop-name">icon (material)</span>
-              <span class="prop-type-signature">settings | bookmark | send | favorite | add</span>
+              <span class="prop-name">size</span>
+              <span class="prop-type-signature">micro | tiny | small | medium | large</span>
             </div>
             <div class="prop-input-col">
               <div class="segmented-pill-group">
                 <button
-                  v-for="ic in materialIcons"
-                  :key="ic.name"
-                  :class="['segment-pill-btn', { active: selectedIconName === ic.name }]"
-                  @click="selectedIconName = ic.name"
+                  v-for="s in sizesList"
+                  :key="s"
+                  :class="['segment-pill-btn', { active: playground.size === s }]"
+                  @click="playground.size = s"
                 >
-                  {{ ic.name }}
+                  {{ s }}
                 </button>
               </div>
             </div>
           </div>
+
+          <h3 style="margin: 1.5rem 0 0.5rem; font-size: 1rem; font-weight: 600; text-transform: lowercase; letter-spacing: 0.02em; color: var(--cuelume-gray-500)">Estados & Comportamiento</h3>
 
           <!-- PROP: LOADING -->
           <div class="prop-control-row">
@@ -481,6 +518,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle loading state"
                 :class="{ checked: playground.loading }"
                 @click="playground.loading = !playground.loading"
                 role="checkbox"
@@ -502,6 +540,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle disabled state"
                 :class="{ checked: playground.disabled }"
                 @click="playground.disabled = !playground.disabled"
                 role="checkbox"
@@ -523,6 +562,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle sound state"
                 :class="{ checked: playground.sound }"
                 @click="playground.sound = !playground.sound"
                 role="checkbox"
@@ -535,45 +575,7 @@ const selectedMatrixColor = ref<string>('all');
             </div>
           </div>
 
-          <!-- PROP: AS (POLIMORFISMO) -->
-          <div class="prop-control-row">
-            <div class="prop-info-col">
-              <span class="prop-name">as</span>
-              <span class="prop-type-signature">'button' | 'a' | Component</span>
-            </div>
-            <div class="prop-input-col">
-              <div class="segmented-pill-group">
-                <button
-                  :class="['segment-pill-btn', { active: playground.as === 'button' }]"
-                  @click="playground.as = 'button'"
-                >
-                  button
-                </button>
-                <button
-                  :class="['segment-pill-btn', { active: playground.as === 'a' }]"
-                  @click="playground.as = 'a'"
-                >
-                  a (link)
-                </button>
-              </div>
-            </div>
-          </div>
 
-          <!-- PROP: SLOT LABEL -->
-          <div class="prop-control-row">
-            <div class="prop-info-col">
-              <span class="prop-name">slot</span>
-              <span class="prop-type-signature">default label content</span>
-            </div>
-            <div class="prop-input-col">
-              <input 
-                type="text" 
-                v-model="playground.label" 
-                class="sleek-text-input" 
-                placeholder="Texto del botón..."
-              />
-            </div>
-          </div>
 
         </div>
 
@@ -591,8 +593,206 @@ const selectedMatrixColor = ref<string>('all');
       </section>
 
       <!-- =========================================
-           5. MATRIZ SISTEMÁTICA DE COLOR
+           4. ANATOMÍA Y FÍSICAS (CORE)
            ========================================= -->
+      
+      <!-- Físicas de Resorte -->
+      <section class="story-section">
+        <h2 class="section-title">La Física del Resorte (Zero-Friction Spring)</h2>
+        <p class="section-text">
+          Los botones tradicionales usan transiciones lineales o cúbicas rígidas. En Ciervo UI, cada interacción está calculada con una función de resorte basada en física de 390ms inspirada en las micro-interacciones de Vercel/Rauno. El botón se hunde con suavidad al presionar y rebota con amortiguación orgánica al soltar.
+        </p>
+        <div class="showcase-row">
+          <Button variant="solid" color="black" shape="square">Solid Press</Button>
+          <Button variant="framed" color="orange" shape="square">Framed Click</Button>
+          <Button variant="soft" color="blue" shape="square">Soft Touch</Button>
+          <Button variant="outline" color="violet" shape="square">Outline Feedback</Button>
+        </div>
+      </section>
+
+      <!-- Feedback Acústico -->
+      <section class="story-section">
+        <h2 class="section-title">Feedback Acústico Espacial (Motor Cuelume)</h2>
+        <p class="section-text">
+          El sonido en la web no debe ser ruidoso ni artificial. Ciervo UI integra de forma nativa la librería de síntesis Web Audio <code class="inline-code">cuelume</code>, asignando un perfil acústico personalizado a cada peso visual: las variantes sólidas percuten con un chirp firme (<code class="inline-code">press</code>), las variantes suaves marcan tres tonos rápidos (<code class="inline-code">tick</code>), y las siluetas emiten un click mecánico (<code class="inline-code">release</code>).
+        </p>
+        <div class="showcase-row">
+          <Button variant="solid" color="pink" shape="round">Solid (Press)</Button>
+          <Button variant="soft" color="green" shape="round">Soft (Tick)</Button>
+          <Button variant="outline" color="cyan" shape="round">Outline (Release)</Button>
+          <Button variant="ghost" color="lime" shape="round">Ghost (Whisper)</Button>
+        </div>
+      </section>
+
+      <!-- =========================================
+           5. GUÍA DE PROPS
+           ========================================= -->
+
+      <!-- Tallas -->
+      <section class="story-section">
+        <h2 class="section-title">Tallas (Sizes)</h2>
+        <p class="section-text">
+          El componente cuenta con 5 tamaños calibrados matemáticamente para adaptarse a cualquier contexto: <code class="inline-code">micro</code>, <code class="inline-code">tiny</code>, <code class="inline-code">small</code>, <code class="inline-code">medium</code> y <code class="inline-code">large</code>. Cada talla ajusta automáticamente padding, fuente, y los radios de los bordes.
+        </p>
+        <div class="showcase-row">
+          <Button variant="solid" color="black" shape="round" size="micro">Micro</Button>
+          <Button variant="solid" color="black" shape="round" size="tiny">Tiny</Button>
+          <Button variant="solid" color="black" shape="round" size="small">Small</Button>
+          <Button variant="solid" color="black" shape="round" size="medium">Medium</Button>
+          <Button variant="solid" color="black" shape="round" size="large">Large</Button>
+        </div>
+      </section>
+
+      <!-- Formas -->
+      <section class="story-section">
+        <h2 class="section-title">Formas (Shapes)</h2>
+        <p class="section-text">
+          Soporte nativo para dos paradigmas visuales de interfaz: <code class="inline-code">square</code> (cajas con bordes suavizados para diseño corporativo o técnico) y <code class="inline-code">round</code> (píldoras completas para marketing y llamadas a la acción amigables).
+        </p>
+        <div class="showcase-row">
+          <Button variant="solid" color="blue" shape="square">Square Design</Button>
+          <Button variant="solid" color="blue" shape="round">Round Design</Button>
+        </div>
+      </section>
+
+      <!-- Iconos -->
+      <section class="story-section">
+        <h2 class="section-title">Íconos y Slots (Icons)</h2>
+        <p class="section-text">
+          El botón permite colocar íconos utilizando los slots <code class="inline-code">#icon</code> (para íconos iniciales) y <code class="inline-code">#trailingIcon</code> (para íconos finales). También puedes crear botones puramente visuales activando <code class="inline-code">icon-only</code>.
+        </p>
+        <div class="showcase-row">
+          <Button variant="soft" color="orange" shape="square" :icon-only="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path :d="materialIcons[0].path" />
+            </svg>
+          </Button>
+          <Button variant="soft" color="orange" shape="square">
+            <template #icon>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path :d="materialIcons[1].path" />
+              </svg>
+            </template>
+            Start Icon
+          </Button>
+          <Button variant="soft" color="orange" shape="square">
+            Trailing Icon
+            <template #trailingIcon>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path :d="materialIcons[2].path" />
+              </svg>
+            </template>
+          </Button>
+        </div>
+      </section>
+
+      <!-- Polimorfismo -->
+      <section class="story-section">
+        <h2 class="section-title">Polimorfismo (As)</h2>
+        <p class="section-text">
+          Usando la propiedad <code class="inline-code">as</code>, puedes renderizar el botón como una etiqueta nativa <code class="inline-code">&lt;a&gt;</code> para navegación semántica o SEO, conservando exactamente la misma física, estilo y eventos, permitiéndole convivir con cualquier enrutador como Vue Router o Nuxt Link.
+        </p>
+        <div class="showcase-row">
+          <Button as="a" href="#" variant="outline" color="cyan" shape="round">
+            Esto es un enlace &lt;a&gt;
+            <template #trailingIcon>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
+              </svg>
+            </template>
+          </Button>
+        </div>
+      </section>
+
+      <!-- =========================================
+           6. ESTADOS Y ZERO LAYOUT SHIFT
+           ========================================= -->
+
+      <section class="demo-section">
+        <h2 class="section-title">Zero Layout Shift Morphing (Loading & Stateful)</h2>
+        <div class="demo-card">
+          <p class="demo-description">
+            Al pasarle la propiedad <code>state</code>, el botón integra un motor de físicas en su interior. Renderiza los estados entrante y saliente en contenedores superpuestos y anima su anchura utilizando <strong>físicas de resortes (Spring)</strong>, garantizando cero desplazamiento abrupto del DOM y permitiendo un morphing orgánico. El mismo principio de <strong>Zero Shift</strong> se aplica a la animación de carga de íconos.
+          </p>
+          <div class="showcase-row" style="margin-top: 1.5rem;">
+            
+            <Button 
+              variant="solid" 
+              color="orange" 
+              shape="round" 
+              size="medium"
+              :state="downloadState"
+              :loading="downloadState.includes('Descargando') || downloadState.includes('Iniciando')"
+              @click="triggerDownload"
+            >
+              <template #icon>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+                </svg>
+              </template>
+            </Button>
+
+            <Button 
+              variant="framed" 
+              color="blue" 
+              shape="round" 
+              size="medium"
+              :state="payState"
+              :loading="payState.includes('Procesando')"
+              @click="triggerPay"
+            />
+
+            <Button 
+              variant="solid" 
+              color="black" 
+              shape="square" 
+              size="medium"
+              :icon-only="true"
+              :loading="morphLoading"
+              @click="triggerMorphLoading"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+              </svg>
+            </Button>
+            
+          </div>
+        </div>
+      </section>
+
+      <!-- Desactivado -->
+      <section class="story-section">
+        <h2 class="section-title">Estado de Desactivación (Disabled)</h2>
+        <p class="section-text">
+          El botón deshabilita las interacciones, silencia el motor acústico, transiciona a una opacidad tenue y bloquea los eventos pointer y focus en CSS para evitar que se desencadenen interacciones accidentales.
+        </p>
+        <div class="showcase-row">
+          <Button variant="solid" color="black" shape="round" disabled>Solid Disabled</Button>
+          <Button variant="soft" color="black" shape="round" disabled>Soft Disabled</Button>
+          <Button variant="outline" color="black" shape="round" disabled>Outline Disabled</Button>
+        </div>
+      </section>
+
+      <!-- =========================================
+           7. MATRIZ SISTEMÁTICA DE COLOR
+           ========================================= -->
+
+      <!-- Variantes -->
+      <section class="story-section">
+        <h2 class="section-title">Las 5 Variantes de Jerarquía</h2>
+        <p class="section-text">
+          Estructuradas para cubrir cualquier nivel de prominencia en tu interfaz: <code class="inline-code">solid</code> para acciones primarias definitivas, <code class="inline-code">framed</code> para acentos con borde exterior, <code class="inline-code">soft</code> para acciones secundarias con fondo al 10%, <code class="inline-code">outline</code> para botones con contorno y <code class="inline-code">ghost</code> para navegación sutil.
+        </p>
+        <div class="showcase-row">
+          <Button variant="solid" color="black" shape="round">Solid</Button>
+          <Button variant="framed" color="black" shape="round">Framed</Button>
+          <Button variant="soft" color="black" shape="round">Soft</Button>
+          <Button variant="outline" color="black" shape="round">Outline</Button>
+          <Button variant="ghost" color="black" shape="round">Ghost</Button>
+        </div>
+      </section>
+
+      <!-- Matriz Visual -->
       <section class="matrix-section">
         <div class="section-header-wrap">
           <h2 class="section-title">Matriz Visual de Color</h2>
@@ -648,7 +848,7 @@ const selectedMatrixColor = ref<string>('all');
       </section>
 
       <!-- =========================================
-           6. PIE DE PÁGINA
+           8. PIE DE PÁGINA
            ========================================= -->
       <footer class="demo-footer">
         <div class="footer-content">

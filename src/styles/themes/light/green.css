@@ -1,0 +1,29 @@
+.theme-light {
+    /* Framed (COPIA DE SOLID) */
+    --green-solid-base: rgba(34, 197, 94, 1);
+    --green-border-base: rgba(34, 197, 94, 1);
+    --green-text-base: rgba(0, 0, 0, 1);
+    --green-solid-hover: rgba(34, 197, 94, 0.80);
+    --green-border-hover: rgba(34, 197, 94, 0.80);
+    --green-solid-active-bg: rgba(34, 197, 94, 0.60);
+    --green-border-active: rgba(34, 197, 94, 0.60);
+    --green-solid-active-text: rgba(0, 0, 0, .80);
+    /* Solid */
+    --green-surface-base: rgba(34, 197, 94, 0.10);
+    --green-surface-border: transparent;
+    --green-surface-text-base: rgba(24, 140, 66, 1);
+    --green-surface-hover: rgba(34, 197, 94, 0.17);
+    --green-surface-active-bg: rgba(34, 197, 94, 0.23);
+    --green-surface-active-text: rgba(24, 140, 66, .80);
+    --green-transparent-base: transparent;
+    --green-transparent-border: transparent;
+    --green-transparent-text-base: rgba(24, 140, 66, 1);
+    --green-transparent-hover: rgba(34, 197, 94, .10);
+    --green-transparent-active-bg: rgba(34, 197, 94, .17);
+    --green-transparent-active-text: rgba(24, 140, 66, .80);
+    --green-outline-bg-base: rgba(34, 197, 94, .05);
+    --green-outline-text-base: rgba(24, 140, 66, 1);
+    --green-outline-hover: rgba(34, 197, 94, .10);
+    --green-outline-active-bg: rgba(34, 197, 94, .17);
+    --green-outline-active-text: rgba(24, 140, 66, .80);
+}

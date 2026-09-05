@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 import { bind } from 'cuelume';
+import GlimmOverlay from './components/Glimm/GlimmOverlay.vue';
 
 onMounted(() => {
   try {
@@ -15,5 +16,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <RouterView />
+  <main>
+    <RouterView />
+  </main>
+  <GlimmOverlay />
 </template>

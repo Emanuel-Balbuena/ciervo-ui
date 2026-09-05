@@ -1,0 +1,32 @@
+.theme-light {
+    /* Framed (COPIA DE SOLID) */
+    --blue-solid-base: rgba(66, 89, 246, 1);
+    --blue-border-base: rgba(66, 89, 246, 1);
+    --blue-text-base: rgba(255, 255, 255, 1);
+    --blue-solid-hover: rgba(66, 89, 246, 0.80);
+    --blue-border-hover: rgba(66, 89, 246, 0.80);
+    --blue-solid-active-bg: rgba(66, 89, 246, 0.75);
+    --blue-border-active: rgba(66, 89, 246, 0.75);
+    --blue-solid-active-text: rgba(255, 255, 255, .80);
+    /* Solid: HEX puros (Opacidad 100%) */
+    /* Soft: Uso de Transparencias (RGBA) ej. 17% */
+    --blue-surface-base: rgba(66, 89, 246, 0.10);
+    --blue-surface-border: transparent;
+    --blue-surface-text-base: rgba(66, 89, 246, 1);
+    --blue-surface-hover: rgba(66, 89, 246, 0.17);
+    --blue-surface-active-bg: rgba(66, 89, 246, 0.23);
+    --blue-surface-active-text: rgba(66, 89, 246, .80);
+    /* Ghost: Transparencias al hacer hover */
+    --blue-transparent-base: transparent;
+    --blue-transparent-border: transparent;
+    --blue-transparent-text-base: rgba(66, 89, 246, 1);
+    --blue-transparent-hover: rgba(66, 89, 246, .10);
+    --blue-transparent-active-bg: rgba(66, 89, 246, .17);
+    --blue-transparent-active-text: rgba(66, 89, 246, .80);
+    /* Outline: Borde sólido/semi-transparente, fondo transparente */
+    --blue-outline-bg-base: rgba(66, 89, 246, .05);
+    --blue-outline-text-base: rgba(66, 89, 246, 1);
+    --blue-outline-hover: rgba(66, 89, 246, .10);
+    --blue-outline-active-bg: rgba(66, 89, 246, .17);
+    --blue-outline-active-text: rgba(66, 89, 246, .80);
+}

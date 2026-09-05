@@ -1,4 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&display=swap');
+@import "../../styles/themes/colors/black.css";
+@import "../../styles/themes/colors/red.css";
+@import "../../styles/themes/colors/orange.css";
+@import "../../styles/themes/colors/yellow.css";
+@import "../../styles/themes/colors/lime.css";
+@import "../../styles/themes/colors/green.css";
+@import "../../styles/themes/colors/cyan.css";
+@import "../../styles/themes/colors/blue.css";
+@import "../../styles/themes/colors/violet.css";
+@import "../../styles/themes/colors/pink.css";
 
 /* =========================================
    1. EL CHASIS BASE (Purificado)
@@ -47,8 +56,8 @@
 
     padding-top: var(--btn-pad-y, 8px);
     padding-bottom: var(--btn-pad-y, 8px);
-    padding-right: var(--btn-pad-x-right, 20px);
-    padding-left: var(--btn-pad-x-left, 16px);
+    padding-right: var(--btn-pad-x, 16px);
+    padding-left: var(--btn-pad-x, 16px);
 
     cursor: pointer;
     text-decoration: none;
@@ -67,6 +76,20 @@
         width,
         background-color,
         color;
+}
+
+/* 
+ * CLASE CHASIS PARA ZERO LAYOUT SHIFT MORPHING 
+ * Anula transiciones nativas de CSS sobre width para evitar conflictos con JS
+ * y limpia width del will-change para ahorrar rasterización constante de GPU en móviles.
+ */
+.btn.btn-js-motion,
+.btn-js-motion {
+    transition: background-color 125ms ease-out,
+        color 125ms ease-out,
+        border-color 125ms ease-out,
+        transform var(--btn-spring-duration) var(--btn-spring-easing) !important;
+    will-change: transform, background-color, color !important;
 }
 
 .btn:active:not(:disabled):not(.is-loading),
@@ -547,920 +570,416 @@
 
 
 /* =========================================
-   3. DICCIONARIO: TEMA CLARO (Con Transparencias RGBA) En la rama theme-ligth el framed es una copia de solid debido a que la gama de colores es imcompatible con esta variante.
-   ========================================= */
-
-/* --- NEUTRAL (BLACK) LIGHT MODE --- */
-.theme-light .btn-color-black {
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(0, 0, 0, 1);
-    --framed-border: rgba(0, 0, 0, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(0, 0, 0, 0.80);
-    --framed-hover-border: rgba(0, 0, 0, 0.80);
-    --framed-active-bg: rgba(0, 0, 0, 0.75);
-    --framed-active-border: rgba(0, 0, 0, 0.75);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid */
-    --solid-bg: rgba(0, 0, 0, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(0, 0, 0, 0.80);
-    --solid-active-bg: rgba(0, 0, 0, 0.75);
-    --solid-active-text: rgba(255, 255, 255, .80);
-
-    /* Soft: Transparencia de Negro puro (ej. 8% y 15%) */
-    --soft-bg: rgba(0, 0, 0, 0.05);
-    --soft-border: transparent;
-    --soft-text: rgba(0, 0, 0, 1);
-    --soft-hover: rgba(0, 0, 0, 0.10);
-    --soft-active-bg: rgba(0, 0, 0, 0.15);
-    --soft-active-text: rgba(0, 0, 0, 0.70);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(0, 0, 0, 1);
-    --ghost-hover: rgba(0, 0, 0, 0.05);
-    --ghost-active-bg: rgba(0, 0, 0, 0.10);
-    --ghost-active-text: rgba(0, 0, 0, 0.70);
-
-    /* Outline */
-    --outline-bg: rgba(0, 0, 0, 0.02);
-    --outline-border: rgba(0, 0, 0, 0.20);
-    --outline-text: rgba(0, 0, 0, 1);
-    --outline-hover: rgba(0, 0, 0, 0.05);
-    --outline-active-bg: rgba(0, 0, 0, 0.10);
-    --outline-active-text: rgba(0, 0, 0, 0.70);
-}
-
-/* --- RED LIGHT MODE --- */
-.theme-light .btn-color-red {
-
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(255, 11, 10, 1);
-    --framed-border: rgba(255, 11, 10, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(255, 11, 10, 0.80);
-    --framed-hover-border: rgba(255, 11, 10, 0.80);
-    --framed-active-bg: rgba(255, 11, 10, 0.75);
-    --framed-active-border: rgba(255, 11, 10, 0.75);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid */
-    --solid-bg: rgba(255, 11, 10, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(255, 11, 10, 0.85);
-    --solid-active-bg: rgba(255, 11, 10, 0.75);
-    --solid-active-text: rgba(255, 255, 255, .80);
-
-    /* Soft: Transparencia de Rojo puro (ej. 8% y 15%) */
-    --soft-bg: rgba(255, 11, 10, 0.10);
-    --soft-border: transparent;
-    --soft-text: rgba(255, 11, 10, 1);
-    --soft-hover: rgba(255, 11, 10, 0.17);
-    --soft-active-bg: rgba(255, 11, 10, 0.23);
-    --soft-active-text: rgba(255, 11, 10, 0.80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(255, 11, 10, 1);
-    --ghost-hover: rgba(255, 11, 10, 0.10);
-    --ghost-active-bg: rgba(255, 11, 10, 0.17);
-    --ghost-active-text: rgba(255, 11, 10, 0.80);
-
-    /* Outline */
-    --outline-bg: rgba(255, 11, 10, 0.05);
-    --outline-border: rgba(255, 11, 10, 0.15);
-    --outline-text: rgba(255, 11, 10, 1);
-    --outline-hover: rgba(255, 11, 10, 0.10);
-    --outline-active-bg: rgba(255, 11, 10, 0.17);
-    --outline-active-text: rgba(255, 11, 10, 0.80);
-}
-
-/* --- ACCENT (ORANGE) LIGHT MODE --- */
-.theme-light .btn-color-orange {
-
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(255, 77, 0, 1);
-    --framed-border: rgba(255, 77, 0, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(255, 77, 0, 0.80);
-    --framed-hover-border: rgba(255, 77, 0, 0.80);
-    --framed-active-bg: rgba(255, 77, 0, 0.75);
-    --framed-active-border: rgba(255, 77, 0, 0.75);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid: HEX puros (Opacidad 100%) */
-    --solid-bg: rgba(255, 77, 0, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(255, 77, 0, 0.85);
-    --solid-active-bg: rgba(255, 77, 0, 0.75);
-    --solid-active-text: rgba(255, 255, 255, .80);
-
-    /* Soft: Uso de Transparencias (RGBA) ej. 17% */
-    --soft-bg: rgba(255, 77, 0, 0.10);
-    --soft-border: transparent;
-    --soft-text: rgba(255, 77, 0, 1);
-    --soft-hover: rgba(255, 77, 0, 0.17);
-    --soft-active-bg: rgba(255, 77, 0, 0.23);
-    --soft-active-text: rgba(255, 77, 0, .80);
-
-    /* Ghost: Transparencias al hacer hover */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(255, 77, 0, 1);
-    --ghost-hover: rgba(255, 77, 0, .10);
-    --ghost-active-bg: rgba(255, 77, 0, .17);
-    --ghost-active-text: rgba(255, 77, 0, .80);
-
-    /* Outline: Borde sólido/semi-transparente, fondo transparente */
-    --outline-bg: rgba(255, 77, 0, .05);
-    --outline-border: rgba(255, 77, 0, 0.20);
-    --outline-text: rgba(255, 77, 0, 1);
-    --outline-hover: rgba(255, 77, 0, .10);
-    --outline-active-bg: rgba(255, 77, 0, .17);
-    --outline-active-text: rgba(255, 77, 0, .80);
-}
-
-/* --- YELLOW LIGHT MODE --- */
-.theme-light .btn-color-yellow {
-
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(255, 184, 48, 1);
-    --framed-border: rgba(255, 184, 48, 1);
-    --framed-text: rgba(0, 0, 0, 1);
-    --framed-hover-bg: rgba(255, 184, 48, 0.80);
-    --framed-hover-border: rgba(255, 184, 48, 0.80);
-    --framed-active-bg: rgba(255, 184, 48, 0.75);
-    --framed-active-border: rgba(255, 184, 48, 0.75);
-    --framed-active-text: rgba(0, 0, 0, .80);
-
-    /* Solid */
-    --solid-bg: rgba(255, 184, 48, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(0, 0, 0, 1);
-    --solid-hover: rgba(255, 184, 48, 0.85);
-    --solid-active-bg: rgba(255, 184, 48, 0.75);
-    --solid-active-text: rgba(0, 0, 0, .80);
-
-    /* Soft */
-    --soft-bg: rgba(255, 184, 48, 0.15);
-    --soft-border: transparent;
-    --soft-text: rgba(163, 106, 0, 1);
-    --soft-hover: rgba(255, 184, 48, 0.22);
-    --soft-active-bg: rgba(255, 184, 48, 0.28);
-    --soft-active-text: rgba(163, 106, 0, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(163, 106, 0, 1);
-    --ghost-hover: rgba(255, 184, 48, .15);
-    --ghost-active-bg: rgba(255, 184, 48, .22);
-    --ghost-active-text: rgba(163, 106, 0, .80);
-
-    /* Outline */
-    --outline-bg: rgba(255, 184, 48, .07);
-    --outline-border: rgba(255, 184, 48, 0.20);
-    --outline-text: rgba(163, 106, 0, 1);
-    --outline-hover: rgba(255, 184, 48, .15);
-    --outline-active-bg: rgba(255, 184, 48, .22);
-    --outline-active-text: rgba(163, 106, 0, .80);
-}
-
-/* --- LIME LIGHT MODE --- */
-.theme-light .btn-color-lime {
-
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(163, 230, 53, 1);
-    --framed-border: rgba(163, 230, 53, 1);
-    --framed-text: rgba(0, 0, 0, 1);
-    --framed-hover-bg: rgba(163, 230, 53, 0.80);
-    --framed-hover-border: rgba(163, 230, 53, 0.80);
-    --framed-active-bg: rgba(163, 230, 53, 0.60);
-    --framed-active-border: rgba(163, 230, 53, 0.60);
-    --framed-active-text: rgba(0, 0, 0, .80);
-
-    /* Solid */
-    --solid-bg: rgba(163, 230, 53, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(0, 0, 0, 1);
-    --solid-hover: rgba(163, 230, 53, 0.80);
-    --solid-active-bg: rgba(163, 230, 53, 0.60);
-    --solid-active-text: rgba(0, 0, 0, .80);
-
-    /* Soft */
-    --soft-bg: rgba(163, 230, 53, 0.15);
-    --soft-border: transparent;
-    --soft-text: rgba(96, 145, 18, 1);
-    --soft-hover: rgba(163, 230, 53, 0.22);
-    --soft-active-bg: rgba(163, 230, 53, 0.28);
-    --soft-active-text: rgba(96, 145, 18, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(96, 145, 18, 1);
-    --ghost-hover: rgba(163, 230, 53, .15);
-    --ghost-active-bg: rgba(163, 230, 53, .22);
-    --ghost-active-text: rgba(96, 145, 18, .80);
-
-    /* Outline */
-    --outline-bg: rgba(163, 230, 53, .07);
-    --outline-border: rgba(163, 230, 53, 0.35);
-    --outline-text: rgba(96, 145, 18, 1);
-    --outline-hover: rgba(163, 230, 53, .15);
-    --outline-active-bg: rgba(163, 230, 53, .22);
-    --outline-active-text: rgba(96, 145, 18, .80);
-}
-
-/* --- GREEN LIGHT MODE --- */
-.theme-light .btn-color-green {
-
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(34, 197, 94, 1);
-    --framed-border: rgba(34, 197, 94, 1);
-    --framed-text: rgba(0, 0, 0, 1);
-    --framed-hover-bg: rgba(34, 197, 94, 0.80);
-    --framed-hover-border: rgba(34, 197, 94, 0.80);
-    --framed-active-bg: rgba(34, 197, 94, 0.60);
-    --framed-active-border: rgba(34, 197, 94, 0.60);
-    --framed-active-text: rgba(0, 0, 0, .80);
-
-    /* Solid */
-    --solid-bg: rgba(34, 197, 94, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(0, 0, 0, 1);
-    --solid-hover: rgba(34, 197, 94, 0.85);
-    --solid-active-bg: rgba(34, 197, 94, 0.75);
-    --solid-active-text: rgba(0, 0, 0, .80);
-
-    --soft-bg: rgba(34, 197, 94, 0.10);
-    --soft-border: transparent;
-    --soft-text: rgba(24, 140, 66, 1);
-    --soft-hover: rgba(34, 197, 94, 0.17);
-    --soft-active-bg: rgba(34, 197, 94, 0.23);
-    --soft-active-text: rgba(24, 140, 66, .80);
-
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(24, 140, 66, 1);
-    --ghost-hover: rgba(34, 197, 94, .10);
-    --ghost-active-bg: rgba(34, 197, 94, .17);
-    --ghost-active-text: rgba(24, 140, 66, .80);
-
-    --outline-bg: rgba(34, 197, 94, .05);
-    --outline-border: rgba(34, 197, 94, 0.20);
-    --outline-text: rgba(24, 140, 66, 1);
-    --outline-hover: rgba(34, 197, 94, .10);
-    --outline-active-bg: rgba(34, 197, 94, .17);
-    --outline-active-text: rgba(24, 140, 66, .80);
-}
-
-/* --- CYAN LIGHT MODE --- */
-.theme-light .btn-color-cyan {
-
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(6, 182, 212, 1);
-    --framed-border: rgba(6, 182, 212, 1);
-    --framed-text: rgba(0, 0, 0, 1);
-    --framed-hover-bg: rgba(6, 182, 212, 0.80);
-    --framed-hover-border: rgba(6, 182, 212, 0.80);
-    --framed-active-bg: rgba(6, 182, 212, 0.60);
-    --framed-active-border: rgba(6, 182, 212, 0.60);
-    --framed-active-text: rgba(0, 0, 0, .80);
-
-    /* Solid */
-    --solid-bg: rgba(6, 182, 212, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(0, 0, 0, 1);
-    --solid-hover: rgba(6, 182, 212, 0.85);
-    --solid-active-bg: rgba(6, 182, 212, 0.75);
-    --solid-active-text: rgba(0, 0, 0, .80);
-
-    /* Soft */
-    --soft-bg: rgba(6, 182, 212, 0.10);
-    --soft-border: transparent;
-    --soft-text: rgba(5, 135, 158, 1);
-    --soft-hover: rgba(6, 182, 212, 0.17);
-    --soft-active-bg: rgba(6, 182, 212, 0.23);
-    --soft-active-text: rgba(5, 135, 158, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(5, 135, 158, 1);
-    --ghost-hover: rgba(6, 182, 212, .10);
-    --ghost-active-bg: rgba(6, 182, 212, .17);
-    --ghost-active-text: rgba(5, 135, 158, .80);
-
-    /* Outline */
-    --outline-bg: rgba(6, 182, 212, .05);
-    --outline-border: rgba(6, 182, 212, 0.20);
-    --outline-text: rgba(5, 135, 158, 1);
-    --outline-hover: rgba(6, 182, 212, .10);
-    --outline-active-bg: rgba(6, 182, 212, .17);
-    --outline-active-text: rgba(5, 135, 158, .80);
-}
-
-/* --- BLUE LIGHT MODE --- */
-.theme-light .btn-color-blue {
-
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(66, 89, 246, 1);
-    --framed-border: rgba(66, 89, 246, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(66, 89, 246, 0.80);
-    --framed-hover-border: rgba(66, 89, 246, 0.80);
-    --framed-active-bg: rgba(66, 89, 246, 0.75);
-    --framed-active-border: rgba(66, 89, 246, 0.75);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid: HEX puros (Opacidad 100%) */
-    --solid-bg: rgba(66, 89, 246, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(66, 89, 246, 0.85);
-    --solid-active-bg: rgba(66, 89, 246, 0.75);
-    --solid-active-text: rgba(255, 255, 255, .80);
-
-    /* Soft: Uso de Transparencias (RGBA) ej. 17% */
-    --soft-bg: rgba(66, 89, 246, 0.10);
-    --soft-border: transparent;
-    --soft-text: rgba(66, 89, 246, 1);
-    --soft-hover: rgba(66, 89, 246, 0.17);
-    --soft-active-bg: rgba(66, 89, 246, 0.23);
-    --soft-active-text: rgba(66, 89, 246, .80);
-
-    /* Ghost: Transparencias al hacer hover */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(66, 89, 246, 1);
-    --ghost-hover: rgba(66, 89, 246, .10);
-    --ghost-active-bg: rgba(66, 89, 246, .17);
-    --ghost-active-text: rgba(66, 89, 246, .80);
-
-    /* Outline: Borde sólido/semi-transparente, fondo transparente */
-    --outline-bg: rgba(66, 89, 246, .05);
-    --outline-border: rgba(66, 89, 246, 0.20);
-    --outline-text: rgba(66, 89, 246, 1);
-    --outline-hover: rgba(66, 89, 246, .10);
-    --outline-active-bg: rgba(66, 89, 246, .17);
-    --outline-active-text: rgba(66, 89, 246, .80);
-}
-
-/* --- VIOLET LIGHT MODE --- */
-.theme-light .btn-color-violet {
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(147, 51, 234, 1);
-    --framed-border: rgba(147, 51, 234, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(147, 51, 234, 0.80);
-    --framed-hover-border: rgba(147, 51, 234, 0.80);
-    --framed-active-bg: rgba(147, 51, 234, 0.75);
-    --framed-active-border: rgba(147, 51, 234, 0.75);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid */
-    --solid-bg: rgba(147, 51, 234, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(147, 51, 234, 0.85);
-    --solid-active-bg: rgba(147, 51, 234, 0.75);
-    --solid-active-text: rgba(255, 255, 255, .80);
-
-    /* Soft */
-    --soft-bg: rgba(147, 51, 234, 0.10);
-    --soft-border: transparent;
-    --soft-text: rgba(147, 51, 234, 1);
-    --soft-hover: rgba(147, 51, 234, 0.17);
-    --soft-active-bg: rgba(147, 51, 234, 0.23);
-    --soft-active-text: rgba(147, 51, 234, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(147, 51, 234, 1);
-    --ghost-hover: rgba(147, 51, 234, .10);
-    --ghost-active-bg: rgba(147, 51, 234, .17);
-    --ghost-active-text: rgba(147, 51, 234, .80);
-
-    /* Outline */
-    --outline-bg: rgba(147, 51, 234, .05);
-    --outline-border: rgba(147, 51, 234, 0.20);
-    --outline-text: rgba(147, 51, 234, 1);
-    --outline-hover: rgba(147, 51, 234, .10);
-    --outline-active-bg: rgba(147, 51, 234, .17);
-    --outline-active-text: rgba(147, 51, 234, .80);
-}
-
-/* --- PINK LIGTH MODE --- */
-.theme-light .btn-color-pink {
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(255, 20, 147, 1);
-    --framed-border: rgba(255, 20, 147, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(255, 20, 147, 0.80);
-    --framed-hover-border: rgba(255, 20, 147, 0.80);
-    --framed-active-bg: rgba(255, 20, 147, 0.75);
-    --framed-active-border: rgba(255, 20, 147, 0.75);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid */
-    --solid-bg: rgba(255, 20, 147, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(255, 20, 147, 0.85);
-    --solid-active-bg: rgba(255, 20, 147, 0.75);
-    --solid-active-text: rgba(255, 255, 255, .80);
-
-    /* Soft */
-    --soft-bg: rgba(255, 20, 147, 0.10);
-    --soft-border: transparent;
-    --soft-text: rgba(255, 20, 147, 1);
-    --soft-hover: rgba(255, 20, 147, 0.17);
-    --soft-active-bg: rgba(255, 20, 147, 0.23);
-    --soft-active-text: rgba(255, 20, 147, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(255, 20, 147, 1);
-    --ghost-hover: rgba(255, 20, 147, .10);
-    --ghost-active-bg: rgba(255, 20, 147, .17);
-    --ghost-active-text: rgba(255, 20, 147, .80);
-
-    /* Outline */
-    --outline-bg: rgba(255, 20, 147, .05);
-    --outline-border: rgba(255, 20, 147, 0.20);
-    --outline-text: rgba(255, 20, 147, 1);
-    --outline-hover: rgba(255, 20, 147, .10);
-    --outline-active-bg: rgba(255, 20, 147, .17);
-    --outline-active-text: rgba(255, 20, 147, .80);
-}
-
-/* THEME DARK */
-/* --- NEUTRAL (BLACK) DARK MODE --- */
-.theme-dark .btn-color-black {
-    /* Framed (COPIA DE SOLID) */
-    --framed-bg: rgba(255, 255, 255, 1);
-    --framed-border: rgba(255, 255, 255, 1);
-    --framed-text: rgba(0, 0, 0, 1);
-    --framed-hover-bg: rgba(255, 255, 255, 0.80);
-    --framed-hover-border: rgba(255, 255, 255, 0.80);
-    --framed-active-bg: rgba(255, 255, 255, 0.75);
-    --framed-active-border: rgba(255, 255, 255, 0.75);
-    --framed-active-text: rgba(0, 0, 0, .80);
-
-    /* Solid */
-    --solid-bg: rgba(255, 255, 255, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(0, 0, 0, 1);
-    --solid-hover: rgba(255, 255, 255, .85);
-    --solid-active-bg: rgba(255, 255, 255, 0.75);
-    --solid-active-text: rgba(0, 0, 0, .80);
-
-    /* Soft: Transparencia de Negro puro (ej. 8% y 15%) */
-    --soft-bg: rgba(255, 255, 255, 0.12);
-    --soft-border: transparent;
-    --soft-text: rgba(255, 255, 255, 1);
-    --soft-hover: rgba(255, 255, 255, 0.14);
-    --soft-active-bg: rgba(255, 255, 255, 0.18);
-    --soft-active-text: rgba(255, 255, 255, 0.80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(255, 255, 255, 1);
-    --ghost-hover: rgba(255, 255, 255, 0.12);
-    --ghost-active-bg: rgba(255, 255, 255, 0.14);
-    --ghost-active-text: rgba(255, 255, 255, 0.80);
-
-    /* Outline */
-    --outline-bg: rgba(255, 255, 255, 0.05);
-    --outline-border: rgba(255, 255, 255, 0.20);
-    --outline-text: rgba(255, 255, 255, 1);
-    --outline-hover: rgba(255, 255, 255, 0.12);
-    --outline-active-bg: rgba(255, 255, 255, 0.14);
-    --outline-active-text: rgba(255, 255, 255, 0.80);
-}
-
-/* --- RED DARK MODE --- */
-.theme-dark .btn-color-red {
-    /* Framed */
-    --framed-bg: rgba(255, 11, 10, 1);
-    --framed-border: rgba(255, 60, 59, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(255, 48, 47, 1);
-    --framed-hover-border: rgba(255, 84, 84, 1);
-    --framed-active-bg: rgba(255, 72, 71, 1);
-    --framed-active-border: rgba(255, 96, 96, 1);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid */
-    --solid-bg: rgba(255, 11, 10, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(255, 48, 47, 1);
-    --solid-active-bg: rgba(255, 72, 71, 1);
-    --solid-active-text: rgba(255, 255, 255, .80);
-
-    /* Soft */
-    --soft-bg: rgba(255, 11, 10, .25);
-    --soft-border: transparent;
-    --soft-text: rgba(255, 92, 92, 1);
-    --soft-hover: rgba(255, 11, 10, .30);
-    --soft-active-bg: rgba(255, 11, 10, .35);
-    --soft-active-text: rgba(255, 92, 92, 0.8);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(255, 92, 92, 1);
-    --ghost-hover: rgba(255, 11, 10, .25);
-    --ghost-active-bg: rgba(255, 11, 10, .30);
-    --ghost-active-text: rgba(255, 92, 92, .80);
-
-    /* Outline */
-    --outline-bg: rgba(255, 11, 10, 0.13);
-    --outline-border: rgba(255, 11, 10, 0.35);
-    --outline-text: rgba(255, 92, 92, 1);
-    --outline-hover: rgba(255, 11, 10, .25);
-    --outline-active-bg: rgba(255, 11, 10, .30);
-    --outline-active-text: rgba(255, 92, 92, .80);
-}
-
-/* --- ACCENT (ORANGE) DARK MODE --- */
-.theme-dark .btn-color-orange {
-    /* Framed */
-    --framed-bg: rgba(255, 77, 0, 1);
-    --framed-border: rgba(255, 113, 51, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(255, 104, 38, 1);
-    --framed-hover-border: rgba(255, 130, 77, 1);
-    --framed-active-bg: rgba(255, 121, 64, 1);
-    --framed-active-border: rgba(255, 148, 102, 1);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid */
-    --solid-bg: rgba(255, 77, 0, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(255, 104, 38, 1);
-    --solid-active-bg: rgba(255, 121, 64, 1);
-    --solid-active-text: rgba(255, 255, 255, .80);
-
-    /* Soft: Uso de Transparencias (RGBA) ej. 17% */
-    --soft-bg: rgba(255, 77, 0, 0.25);
-    --soft-border: transparent;
-    --soft-text: rgba(255, 77, 0, 1);
-    --soft-hover: rgba(255, 77, 0, 0.30);
-    --soft-active-bg: rgba(255, 77, 0, 0.35);
-    --soft-active-text: rgba(255, 77, 0, .80);
-
-    /* Ghost: Transparencias al hacer hover */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(255, 77, 0, 1);
-    --ghost-hover: rgba(255, 77, 0, .25);
-    --ghost-active-bg: rgba(255, 77, 0, .30);
-    --ghost-active-text: rgba(255, 77, 0, .80);
-
-    /* Outline: Borde sólido/semi-transparente, fondo transparente */
-    --outline-bg: rgba(255, 77, 0, .05);
-    --outline-border: rgba(255, 77, 0, 0.20);
-    --outline-text: rgba(255, 77, 0, 1);
-    --outline-hover: rgba(255, 77, 0, .25);
-    --outline-active-bg: rgba(255, 77, 0, .30);
-    --outline-active-text: rgba(255, 77, 0, .80);
-}
-
-/* --- YELLOW DARK MODE --- */
-.theme-dark .btn-color-yellow {
-    /* Framed */
-    --framed-bg: rgba(255, 184, 48, 1);
-    --framed-border: rgba(255, 205, 110, 1);
-    --framed-text: rgba(0, 0, 0, 1);
-    --framed-hover-bg: rgba(255, 195, 79, 1);
-    --framed-hover-border: rgba(255, 219, 151, 1);
-    --framed-active-bg: rgba(255, 202, 100, 1);
-    --framed-active-border: rgba(255, 227, 172, 1);
-    --framed-active-text: rgba(0, 0, 0, .80);
-
-    /* Solid */
-    --solid-bg: rgba(255, 184, 48, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(0, 0, 0, 1);
-    --solid-hover: rgba(255, 195, 79, 1);
-    --solid-active-bg: rgba(255, 202, 100, 1);
-    --solid-active-text: rgba(0, 0, 0, .80);
-
-    /* Soft */
-    --soft-bg: rgba(255, 184, 48, 0.25);
-    --soft-border: transparent;
-    --soft-text: rgba(255, 184, 48, 1);
-    --soft-hover: rgba(255, 184, 48, .30);
-    --soft-active-bg: rgba(255, 184, 48, 0.35);
-    --soft-active-text: rgba(255, 184, 48, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(255, 184, 48, 1);
-    --ghost-hover: rgba(255, 184, 48, .25);
-    --ghost-active-bg: rgba(255, 184, 48, .30);
-    --ghost-active-text: rgba(255, 184, 48, .80);
-
-    /* Outline */
-    --outline-bg: rgba(255, 184, 48, .13);
-    --outline-border: rgba(255, 184, 48, 0.35);
-    --outline-text: rgba(255, 184, 48, 1);
-    --outline-hover: rgba(255, 184, 48, .25);
-    --outline-active-bg: rgba(255, 184, 48, .30);
-    --outline-active-text: rgba(255, 184, 48, .80);
-}
-
-/* --- LIME DARK MODE --- */
-.theme-dark .btn-color-lime {
-    /* Framed */
-    --framed-bg: rgba(163, 230, 53, 1);
-    --framed-border: rgba(200, 240, 134, 1);
-    --framed-text: rgba(0, 0, 0, 1);
-    --framed-hover-bg: rgba(181, 235, 93, 1);
-    --framed-hover-border: rgba(218, 245, 174, 1);
-    --framed-active-bg: rgba(200, 240, 134, 1);
-    --framed-active-border: rgba(227, 248, 194, 1);
-    --framed-active-text: rgba(0, 0, 0, .80);
-
-    /* Solid */
-    --solid-bg: rgba(163, 230, 53, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(0, 0, 0, 1);
-    --solid-hover: rgba(181, 235, 93, 1);
-    --solid-active-bg: rgba(200, 240, 134, 1);
-    --solid-active-text: rgba(0, 0, 0, .80);
-
-    /* Soft */
-    --soft-bg: rgba(163, 230, 53, .25);
-    --soft-border: transparent;
-    --soft-text: rgba(163, 230, 53, 1);
-    --soft-hover: rgba(163, 230, 53, .30);
-    --soft-active-bg: rgba(163, 230, 53, 0.35);
-    --soft-active-text: rgba(163, 230, 53, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(163, 230, 53, 1);
-    --ghost-hover: rgba(163, 230, 53, .25);
-    --ghost-active-bg: rgba(163, 230, 53, .30);
-    --ghost-active-text: rgba(163, 230, 53, .80);
-
-    /* Outline */
-    --outline-bg: rgba(163, 230, 53, .13);
-    --outline-border: rgba(163, 230, 53, 0.35);
-    --outline-text: rgba(163, 230, 53, 1);
-    --outline-hover: rgba(163, 230, 53, .25);
-    --outline-active-bg: rgba(163, 230, 53, .30);
-    --outline-active-text: rgba(163, 230, 53, .80);
-}
-
-/* --- GREEN DARK MODE --- */
-.theme-dark .btn-color-green {
-    /* Framed */
-    --framed-bg: rgba(34, 197, 94, 1);
-    --framed-border: rgba(100, 214, 142, 1);
-    --framed-text: rgba(0, 0, 0, 1);
-    --framed-hover-bg: rgba(67, 206, 118, 1);
-    --framed-hover-border: rgba(144, 226, 174, 1);
-    --framed-active-bg: rgba(84, 211, 134, 1);
-    --framed-active-border: rgba(167, 232, 191, 1);
-    --framed-active-text: rgba(0, 0, 0, .80);
-
-    /* Solid */
-    --solid-bg: rgba(34, 197, 94, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(0, 0, 0, 1);
-    --solid-hover: rgba(67, 206, 118, 1);
-    --solid-active-bg: rgba(84, 211, 134, 1);
-    --solid-active-text: rgba(0, 0, 0, 0.8);
-
-    /* Soft */
-    --soft-bg: rgba(34, 197, 94, .25);
-    --soft-border: transparent;
-    --soft-text: rgba(34, 197, 94, 1);
-    --soft-hover: rgba(67, 206, 118, .30);
-    --soft-active-bg: rgba(84, 211, 134, 0.35);
-    --soft-active-text: rgba(34, 197, 94, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(34, 197, 94, 1);
-    --ghost-hover: rgba(67, 206, 118, .25);
-    --ghost-active-bg: rgba(84, 211, 134, .30);
-    --ghost-active-text: rgba(34, 197, 94, .80);
-
-    /* Outline */
-    --outline-bg: rgba(34, 197, 94, .13);
-    --outline-border: rgba(34, 197, 94, 0.35);
-    --outline-text: rgba(34, 197, 94, 1);
-    --outline-hover: rgba(67, 206, 118, .25);
-    --outline-active-bg: rgba(84, 211, 134, .30);
-    --outline-active-text: rgba(34, 197, 94, .80);
-}
-
-/* --- CYAN DARK MODE --- */
-.theme-dark .btn-color-cyan {
-    /* Framed */
-    --framed-bg: rgba(6, 182, 212, 1);
-    --framed-border: rgba(81, 204, 225, 1);
-    --framed-text: rgba(0, 0, 0, 1);
-    --framed-hover-bg: rgba(43, 193, 219, 1);
-    --framed-hover-border: rgba(130, 218, 233, 1);
-    --framed-active-bg: rgba(68, 200, 223, 1);
-    --framed-active-border: rgba(155, 226, 238, 1);
-    --framed-active-text: rgba(0, 0, 0, .80);
-
-    /* Solid */
-    --solid-bg: rgba(6, 182, 212, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(0, 0, 0, 1);
-    --solid-hover: rgba(43, 193, 219, 1);
-    --solid-active-bg: rgba(68, 200, 223, 1);
-    --solid-active-text: rgba(0, 0, 0, 0.8);
-
-    /* Soft */
-    --soft-bg: rgba(6, 182, 212, .25);
-    --soft-border: transparent;
-    --soft-text: rgba(6, 182, 212, 1);
-    --soft-hover: rgba(6, 182, 212, .30);
-    --soft-active-bg: rgba(6, 182, 212, 0.35);
-    --soft-active-text: rgba(6, 182, 212, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(6, 182, 212, 1);
-    --ghost-hover: rgba(6, 182, 212, .25);
-    --ghost-active-bg: rgba(6, 182, 212, .30);
-    --ghost-active-text: rgba(6, 182, 212, .80);
-
-    /* Outline */
-    --outline-bg: rgba(6, 182, 212, .13);
-    --outline-border: rgba(6, 182, 212, 0.35);
-    --outline-text: rgba(6, 182, 212, 1);
-    --outline-hover: rgba(6, 182, 212, .25);
-    --outline-active-bg: rgba(6, 182, 212, .30);
-    --outline-active-text: rgba(6, 182, 212, .80);
-}
-
-/* --- BLUE DARK MODE --- */
-.theme-dark .btn-color-blue {
-    /* Framed */
-    --framed-bg: rgba(66, 89, 246, 1);
-    --framed-border: rgba(104, 122, 248, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(94, 114, 247, 1);
-    --framed-hover-border: rgba(123, 139, 249, 1);
-    --framed-active-bg: rgba(113, 130, 248, 1);
-    --framed-active-border: rgba(132, 147, 249, 1);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid */
-    --solid-bg: rgba(66, 89, 246, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(94, 114, 247, 1);
-    --solid-active-bg: rgba(113, 130, 248, 1);
-    --solid-active-text: rgba(255, 255, 255, 0.8);
-
-    /* Soft */
-    --soft-bg: rgba(66, 89, 246, .25);
-    --soft-border: transparent;
-    --soft-text: rgba(113, 130, 248, 1);
-    --soft-hover: rgba(66, 89, 246, .30);
-    --soft-active-bg: rgba(66, 89, 246, 0.35);
-    --soft-active-text: rgba(113, 130, 248, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(113, 130, 248, 1);
-    --ghost-hover: rgba(66, 89, 246, .25);
-    --ghost-active-bg: rgba(66, 89, 246, .30);
-    --ghost-active-text: rgba(113, 130, 248, .80);
-
-    /* Outline */
-    --outline-bg: rgba(66, 89, 246, .13);
-    --outline-border: rgba(66, 89, 246, 0.35);
-    --outline-text: rgba(113, 130, 248, 1);
-    --outline-hover: rgba(66, 89, 246, .25);
-    --outline-active-bg: rgba(66, 89, 246, .30);
-    --outline-active-text: rgba(113, 130, 248, .80);
-}
-
-/* --- VIOLET DARK MODE --- */
-.theme-dark .btn-color-violet {
-    /* Framed */
-    --framed-bg: rgba(147, 51, 234, 1);
-    --framed-border: rgba(169, 92, 238, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(163, 80, 237, 1);
-    --framed-hover-border: rgba(179, 112, 240, 1);
-    --framed-active-bg: rgba(174, 102, 239, 1);
-    --framed-active-border: rgba(185, 122, 241, 1);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid */
-    --solid-bg: rgba(147, 51, 234, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(163, 80, 237, 1);
-    --solid-active-bg: rgba(174, 102, 239, 1);
-    --solid-active-text: rgba(255, 255, 255, 0.8);
-
-    /* Soft */
-    --soft-bg: rgba(147, 51, 234, .25);
-    --soft-border: transparent;
-    --soft-text: rgba(176, 107, 239, 1);
-    --soft-hover: rgba(147, 51, 234, .30);
-    --soft-active-bg: rgba(147, 51, 234, 0.35);
-    --soft-active-text: rgba(176, 107, 239, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(176, 107, 239, 1);
-    --ghost-hover: rgba(147, 51, 234, .25);
-    --ghost-active-bg: rgba(147, 51, 234, .30);
-    --ghost-active-text: rgba(176, 107, 239, .80);
-
-    /* Outline */
-    --outline-bg: rgba(147, 51, 234, .13);
-    --outline-border: rgba(147, 51, 234, 0.35);
-    --outline-text: rgba(176, 107, 239, 1);
-    --outline-hover: rgba(147, 51, 234, .25);
-    --outline-active-bg: rgba(147, 51, 234, .30);
-    --outline-active-text: rgba(176, 107, 239, .80);
-}
-
-/* --- PINK DARK MODE --- */
-.theme-dark .btn-color-pink {
-    /* Framed */
-    --framed-bg: rgba(255, 20, 147, 1);
-    --framed-border: rgba(255, 91, 179, 1);
-    --framed-text: rgba(255, 255, 255, 1);
-    --framed-hover-bg: rgba(255, 55, 163, 1);
-    --framed-hover-border: rgba(255, 114, 190, 1);
-    --framed-active-bg: rgba(255, 79, 174, 1);
-    --framed-active-border: rgba(255, 137, 201, 1);
-    --framed-active-text: rgba(255, 255, 255, .80);
-
-    /* Solid */
-    --solid-bg: rgba(255, 20, 147, 1);
-    --solid-border: transparent;
-    --solid-text: rgba(255, 255, 255, 1);
-    --solid-hover: rgba(236, 100, 166, 1);
-    --solid-active-bg: rgba(237, 125, 182, 1);
-    --solid-active-text: rgba(255, 255, 255, 0.8);
-
-    /* Soft */
-    --soft-bg: rgba(255, 20, 147, .25);
-    --soft-border: transparent;
-    --soft-text: rgba(255, 20, 147, 1);
-    --soft-hover: rgba(255, 20, 147, .30);
-    --soft-active-bg: rgba(255, 20, 147, 0.35);
-    --soft-active-text: rgba(255, 20, 147, .80);
-
-    /* Ghost */
-    --ghost-bg: transparent;
-    --ghost-border: transparent;
-    --ghost-text: rgba(255, 20, 147, 1);
-    --ghost-hover: rgba(255, 20, 147, .25);
-    --ghost-active-bg: rgba(255, 20, 147, .30);
-    --ghost-active-text: rgba(255, 20, 147, .80);
-
-    /* Outline */
-    --outline-bg: rgba(255, 20, 147, .13);
-    --outline-border: rgba(255, 20, 147, 0.35);
-    --outline-text: rgba(255, 20, 147, 1);
-    --outline-hover: rgba(255, 20, 147, .25);
-    --outline-active-bg: rgba(255, 20, 147, .30);
-    --outline-active-text: rgba(255, 20, 147, .80);
-}
-
-/* =========================================
    FÍSICA INDEPENDIENTE PARA DISPOSITIVOS MÓVILES
    ========================================= */
 @media (max-width: 768px),
 (pointer: coarse) {
     .btn {
-        --btn-spring-duration: 230ms;
+        --btn-spring-duration: 300ms;
     }
 }
+
+/* =========================================
+   6. STATEFUL (Animación de Texto Mágico)
+   ========================================= */
+
+.btn-text.is-stateful {
+    overflow: visible !important;
+    min-width: max-content !important;
+}
+
+.stateful-motion-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 1. Forzamos el centrado desde la raíz */
+    clip-path: inset(-10px -1px -10px -1x);
+    white-space: nowrap;
+    /* Eliminamos el vertical-align: middle; para no interferir con la altura natural de la tipografía */
+}
+
+/* El Fantasma Medidor:
+   visibility: hidden lo oculta visualmente, pero se queda en el flujo
+   para dar la altura y anchura al contenedor. */
+.stateful-ghost-measurer {
+    visibility: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 2. Misma geometría exacta */
+    white-space: nowrap;
+}
+
+/* El Escenario Visual que contiene las transiciones */
+.stateful-visual-stage {
+    position: absolute;
+    inset: 0;
+    /* 3. Reemplazamos top/left/bottom por inset para expandir uniformemente a los 4 lados */
+    display: flex;
+    pointer-events: none;
+}
+
+/* Los nodos internos de la Transición */
+.stateful-visual-node {
+    position: absolute;
+    inset: 0;
+    /* 4. El nodo visual abraza las 4 paredes del medidor */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* 5. El secreto del centrado perfecto */
+    white-space: nowrap;
+    /* 6. Igualamos el nowrap para que mida los espacios como el fantasma */
+    will-change: transform, opacity, filter;
+}/* --- MAPPING DE VARIABLES GLOBALES A LOCALES --- */
+.btn-color-black {
+    --framed-bg: var(--black-solid-base);
+    --framed-border: var(--black-border-base);
+    --framed-text: var(--black-text-base);
+    --framed-hover-bg: var(--black-solid-hover);
+    --framed-hover-border: var(--black-border-hover, var(--black-border-base));
+    --framed-active-bg: var(--black-solid-active-bg);
+    --framed-active-border: var(--black-border-active, var(--black-border-base));
+    --framed-active-text: var(--black-solid-active-text);
+    --solid-bg: var(--black-solid-base);
+    --solid-border: transparent;
+    --solid-text: var(--black-text-base);
+    --solid-hover: var(--black-solid-hover);
+    --solid-active-bg: var(--black-solid-active-bg);
+    --solid-active-text: var(--black-solid-active-text);
+    --soft-bg: var(--black-surface-base);
+    --soft-border: transparent;
+    --soft-text: var(--black-surface-text-base);
+    --soft-hover: var(--black-surface-hover);
+    --soft-active-bg: var(--black-surface-active-bg);
+    --soft-active-text: var(--black-surface-active-text);
+    --ghost-bg: transparent;
+    --ghost-border: transparent;
+    --ghost-text: var(--black-transparent-text-base);
+    --ghost-hover: var(--black-transparent-hover);
+    --ghost-active-bg: var(--black-transparent-active-bg);
+    --ghost-active-text: var(--black-transparent-active-text);
+    --outline-bg: var(--black-outline-bg-base);
+    --outline-border: var(--black-border-base);
+    --outline-text: var(--black-outline-text-base);
+    --outline-hover: var(--black-outline-hover);
+    --outline-active-bg: var(--black-outline-active-bg);
+    --outline-active-text: var(--black-outline-active-text);
+}
+
+.btn-color-red {
+    --framed-bg: var(--red-solid-base);
+    --framed-border: var(--red-border-base);
+    --framed-text: var(--red-text-base);
+    --framed-hover-bg: var(--red-solid-hover);
+    --framed-hover-border: var(--red-border-hover, var(--red-border-base));
+    --framed-active-bg: var(--red-solid-active-bg);
+    --framed-active-border: var(--red-border-active, var(--red-border-base));
+    --framed-active-text: var(--red-solid-active-text);
+    --solid-bg: var(--red-solid-base);
+    --solid-border: transparent;
+    --solid-text: var(--red-text-base);
+    --solid-hover: var(--red-solid-hover);
+    --solid-active-bg: var(--red-solid-active-bg);
+    --solid-active-text: var(--red-solid-active-text);
+    --soft-bg: var(--red-surface-base);
+    --soft-border: transparent;
+    --soft-text: var(--red-surface-text-base);
+    --soft-hover: var(--red-surface-hover);
+    --soft-active-bg: var(--red-surface-active-bg);
+    --soft-active-text: var(--red-surface-active-text);
+    --ghost-bg: transparent;
+    --ghost-border: transparent;
+    --ghost-text: var(--red-transparent-text-base);
+    --ghost-hover: var(--red-transparent-hover);
+    --ghost-active-bg: var(--red-transparent-active-bg);
+    --ghost-active-text: var(--red-transparent-active-text);
+    --outline-bg: var(--red-outline-bg-base);
+    --outline-border: var(--red-border-base);
+    --outline-text: var(--red-outline-text-base);
+    --outline-hover: var(--red-outline-hover);
+    --outline-active-bg: var(--red-outline-active-bg);
+    --outline-active-text: var(--red-outline-active-text);
+}
+
+.btn-color-orange {
+    --framed-bg: var(--orange-solid-base);
+    --framed-border: var(--orange-border-base);
+    --framed-text: var(--orange-text-base);
+    --framed-hover-bg: var(--orange-solid-hover);
+    --framed-hover-border: var(--orange-border-hover, var(--orange-border-base));
+    --framed-active-bg: var(--orange-solid-active-bg);
+    --framed-active-border: var(--orange-border-active, var(--orange-border-base));
+    --framed-active-text: var(--orange-solid-active-text);
+    --solid-bg: var(--orange-solid-base);
+    --solid-border: transparent;
+    --solid-text: var(--orange-text-base);
+    --solid-hover: var(--orange-solid-hover);
+    --solid-active-bg: var(--orange-solid-active-bg);
+    --solid-active-text: var(--orange-solid-active-text);
+    --soft-bg: var(--orange-surface-base);
+    --soft-border: transparent;
+    --soft-text: var(--orange-surface-text-base);
+    --soft-hover: var(--orange-surface-hover);
+    --soft-active-bg: var(--orange-surface-active-bg);
+    --soft-active-text: var(--orange-surface-active-text);
+    --ghost-bg: transparent;
+    --ghost-border: transparent;
+    --ghost-text: var(--orange-transparent-text-base);
+    --ghost-hover: var(--orange-transparent-hover);
+    --ghost-active-bg: var(--orange-transparent-active-bg);
+    --ghost-active-text: var(--orange-transparent-active-text);
+    --outline-bg: var(--orange-outline-bg-base);
+    --outline-border: var(--orange-border-base);
+    --outline-text: var(--orange-outline-text-base);
+    --outline-hover: var(--orange-outline-hover);
+    --outline-active-bg: var(--orange-outline-active-bg);
+    --outline-active-text: var(--orange-outline-active-text);
+}
+
+.btn-color-yellow {
+    --framed-bg: var(--yellow-solid-base);
+    --framed-border: var(--yellow-border-base);
+    --framed-text: var(--yellow-text-base);
+    --framed-hover-bg: var(--yellow-solid-hover);
+    --framed-hover-border: var(--yellow-border-hover, var(--yellow-border-base));
+    --framed-active-bg: var(--yellow-solid-active-bg);
+    --framed-active-border: var(--yellow-border-active, var(--yellow-border-base));
+    --framed-active-text: var(--yellow-solid-active-text);
+    --solid-bg: var(--yellow-solid-base);
+    --solid-border: transparent;
+    --solid-text: var(--yellow-text-base);
+    --solid-hover: var(--yellow-solid-hover);
+    --solid-active-bg: var(--yellow-solid-active-bg);
+    --solid-active-text: var(--yellow-solid-active-text);
+    --soft-bg: var(--yellow-surface-base);
+    --soft-border: transparent;
+    --soft-text: var(--yellow-surface-text-base);
+    --soft-hover: var(--yellow-surface-hover);
+    --soft-active-bg: var(--yellow-surface-active-bg);
+    --soft-active-text: var(--yellow-surface-active-text);
+    --ghost-bg: transparent;
+    --ghost-border: transparent;
+    --ghost-text: var(--yellow-transparent-text-base);
+    --ghost-hover: var(--yellow-transparent-hover);
+    --ghost-active-bg: var(--yellow-transparent-active-bg);
+    --ghost-active-text: var(--yellow-transparent-active-text);
+    --outline-bg: var(--yellow-outline-bg-base);
+    --outline-border: var(--yellow-border-base);
+    --outline-text: var(--yellow-outline-text-base);
+    --outline-hover: var(--yellow-outline-hover);
+    --outline-active-bg: var(--yellow-outline-active-bg);
+    --outline-active-text: var(--yellow-outline-active-text);
+}
+
+.btn-color-lime {
+    --framed-bg: var(--lime-solid-base);
+    --framed-border: var(--lime-border-base);
+    --framed-text: var(--lime-text-base);
+    --framed-hover-bg: var(--lime-solid-hover);
+    --framed-hover-border: var(--lime-border-hover, var(--lime-border-base));
+    --framed-active-bg: var(--lime-solid-active-bg);
+    --framed-active-border: var(--lime-border-active, var(--lime-border-base));
+    --framed-active-text: var(--lime-solid-active-text);
+    --solid-bg: var(--lime-solid-base);
+    --solid-border: transparent;
+    --solid-text: var(--lime-text-base);
+    --solid-hover: var(--lime-solid-hover);
+    --solid-active-bg: var(--lime-solid-active-bg);
+    --solid-active-text: var(--lime-solid-active-text);
+    --soft-bg: var(--lime-surface-base);
+    --soft-border: transparent;
+    --soft-text: var(--lime-surface-text-base);
+    --soft-hover: var(--lime-surface-hover);
+    --soft-active-bg: var(--lime-surface-active-bg);
+    --soft-active-text: var(--lime-surface-active-text);
+    --ghost-bg: transparent;
+    --ghost-border: transparent;
+    --ghost-text: var(--lime-transparent-text-base);
+    --ghost-hover: var(--lime-transparent-hover);
+    --ghost-active-bg: var(--lime-transparent-active-bg);
+    --ghost-active-text: var(--lime-transparent-active-text);
+    --outline-bg: var(--lime-outline-bg-base);
+    --outline-border: var(--lime-border-base);
+    --outline-text: var(--lime-outline-text-base);
+    --outline-hover: var(--lime-outline-hover);
+    --outline-active-bg: var(--lime-outline-active-bg);
+    --outline-active-text: var(--lime-outline-active-text);
+}
+
+.btn-color-green {
+    --framed-bg: var(--green-solid-base);
+    --framed-border: var(--green-border-base);
+    --framed-text: var(--green-text-base);
+    --framed-hover-bg: var(--green-solid-hover);
+    --framed-hover-border: var(--green-border-hover, var(--green-border-base));
+    --framed-active-bg: var(--green-solid-active-bg);
+    --framed-active-border: var(--green-border-active, var(--green-border-base));
+    --framed-active-text: var(--green-solid-active-text);
+    --solid-bg: var(--green-solid-base);
+    --solid-border: transparent;
+    --solid-text: var(--green-text-base);
+    --solid-hover: var(--green-solid-hover);
+    --solid-active-bg: var(--green-solid-active-bg);
+    --solid-active-text: var(--green-solid-active-text);
+    --soft-bg: var(--green-surface-base);
+    --soft-border: transparent;
+    --soft-text: var(--green-surface-text-base);
+    --soft-hover: var(--green-surface-hover);
+    --soft-active-bg: var(--green-surface-active-bg);
+    --soft-active-text: var(--green-surface-active-text);
+    --ghost-bg: transparent;
+    --ghost-border: transparent;
+    --ghost-text: var(--green-transparent-text-base);
+    --ghost-hover: var(--green-transparent-hover);
+    --ghost-active-bg: var(--green-transparent-active-bg);
+    --ghost-active-text: var(--green-transparent-active-text);
+    --outline-bg: var(--green-outline-bg-base);
+    --outline-border: var(--green-border-base);
+    --outline-text: var(--green-outline-text-base);
+    --outline-hover: var(--green-outline-hover);
+    --outline-active-bg: var(--green-outline-active-bg);
+    --outline-active-text: var(--green-outline-active-text);
+}
+
+.btn-color-cyan {
+    --framed-bg: var(--cyan-solid-base);
+    --framed-border: var(--cyan-border-base);
+    --framed-text: var(--cyan-text-base);
+    --framed-hover-bg: var(--cyan-solid-hover);
+    --framed-hover-border: var(--cyan-border-hover, var(--cyan-border-base));
+    --framed-active-bg: var(--cyan-solid-active-bg);
+    --framed-active-border: var(--cyan-border-active, var(--cyan-border-base));
+    --framed-active-text: var(--cyan-solid-active-text);
+    --solid-bg: var(--cyan-solid-base);
+    --solid-border: transparent;
+    --solid-text: var(--cyan-text-base);
+    --solid-hover: var(--cyan-solid-hover);
+    --solid-active-bg: var(--cyan-solid-active-bg);
+    --solid-active-text: var(--cyan-solid-active-text);
+    --soft-bg: var(--cyan-surface-base);
+    --soft-border: transparent;
+    --soft-text: var(--cyan-surface-text-base);
+    --soft-hover: var(--cyan-surface-hover);
+    --soft-active-bg: var(--cyan-surface-active-bg);
+    --soft-active-text: var(--cyan-surface-active-text);
+    --ghost-bg: transparent;
+    --ghost-border: transparent;
+    --ghost-text: var(--cyan-transparent-text-base);
+    --ghost-hover: var(--cyan-transparent-hover);
+    --ghost-active-bg: var(--cyan-transparent-active-bg);
+    --ghost-active-text: var(--cyan-transparent-active-text);
+    --outline-bg: var(--cyan-outline-bg-base);
+    --outline-border: var(--cyan-border-base);
+    --outline-text: var(--cyan-outline-text-base);
+    --outline-hover: var(--cyan-outline-hover);
+    --outline-active-bg: var(--cyan-outline-active-bg);
+    --outline-active-text: var(--cyan-outline-active-text);
+}
+
+.btn-color-blue {
+    --framed-bg: var(--blue-solid-base);
+    --framed-border: var(--blue-border-base);
+    --framed-text: var(--blue-text-base);
+    --framed-hover-bg: var(--blue-solid-hover);
+    --framed-hover-border: var(--blue-border-hover, var(--blue-border-base));
+    --framed-active-bg: var(--blue-solid-active-bg);
+    --framed-active-border: var(--blue-border-active, var(--blue-border-base));
+    --framed-active-text: var(--blue-solid-active-text);
+    --solid-bg: var(--blue-solid-base);
+    --solid-border: transparent;
+    --solid-text: var(--blue-text-base);
+    --solid-hover: var(--blue-solid-hover);
+    --solid-active-bg: var(--blue-solid-active-bg);
+    --solid-active-text: var(--blue-solid-active-text);
+    --soft-bg: var(--blue-surface-base);
+    --soft-border: transparent;
+    --soft-text: var(--blue-surface-text-base);
+    --soft-hover: var(--blue-surface-hover);
+    --soft-active-bg: var(--blue-surface-active-bg);
+    --soft-active-text: var(--blue-surface-active-text);
+    --ghost-bg: transparent;
+    --ghost-border: transparent;
+    --ghost-text: var(--blue-transparent-text-base);
+    --ghost-hover: var(--blue-transparent-hover);
+    --ghost-active-bg: var(--blue-transparent-active-bg);
+    --ghost-active-text: var(--blue-transparent-active-text);
+    --outline-bg: var(--blue-outline-bg-base);
+    --outline-border: var(--blue-border-base);
+    --outline-text: var(--blue-outline-text-base);
+    --outline-hover: var(--blue-outline-hover);
+    --outline-active-bg: var(--blue-outline-active-bg);
+    --outline-active-text: var(--blue-outline-active-text);
+}
+
+.btn-color-violet {
+    --framed-bg: var(--violet-solid-base);
+    --framed-border: var(--violet-border-base);
+    --framed-text: var(--violet-text-base);
+    --framed-hover-bg: var(--violet-solid-hover);
+    --framed-hover-border: var(--violet-border-hover, var(--violet-border-base));
+    --framed-active-bg: var(--violet-solid-active-bg);
+    --framed-active-border: var(--violet-border-active, var(--violet-border-base));
+    --framed-active-text: var(--violet-solid-active-text);
+    --solid-bg: var(--violet-solid-base);
+    --solid-border: transparent;
+    --solid-text: var(--violet-text-base);
+    --solid-hover: var(--violet-solid-hover);
+    --solid-active-bg: var(--violet-solid-active-bg);
+    --solid-active-text: var(--violet-solid-active-text);
+    --soft-bg: var(--violet-surface-base);
+    --soft-border: transparent;
+    --soft-text: var(--violet-surface-text-base);
+    --soft-hover: var(--violet-surface-hover);
+    --soft-active-bg: var(--violet-surface-active-bg);
+    --soft-active-text: var(--violet-surface-active-text);
+    --ghost-bg: transparent;
+    --ghost-border: transparent;
+    --ghost-text: var(--violet-transparent-text-base);
+    --ghost-hover: var(--violet-transparent-hover);
+    --ghost-active-bg: var(--violet-transparent-active-bg);
+    --ghost-active-text: var(--violet-transparent-active-text);
+    --outline-bg: var(--violet-outline-bg-base);
+    --outline-border: var(--violet-border-base);
+    --outline-text: var(--violet-outline-text-base);
+    --outline-hover: var(--violet-outline-hover);
+    --outline-active-bg: var(--violet-outline-active-bg);
+    --outline-active-text: var(--violet-outline-active-text);
+}
+
+.btn-color-pink {
+    --framed-bg: var(--pink-solid-base);
+    --framed-border: var(--pink-border-base);
+    --framed-text: var(--pink-text-base);
+    --framed-hover-bg: var(--pink-solid-hover);
+    --framed-hover-border: var(--pink-border-hover, var(--pink-border-base));
+    --framed-active-bg: var(--pink-solid-active-bg);
+    --framed-active-border: var(--pink-border-active, var(--pink-border-base));
+    --framed-active-text: var(--pink-solid-active-text);
+    --solid-bg: var(--pink-solid-base);
+    --solid-border: transparent;
+    --solid-text: var(--pink-text-base);
+    --solid-hover: var(--pink-solid-hover);
+    --solid-active-bg: var(--pink-solid-active-bg);
+    --solid-active-text: var(--pink-solid-active-text);
+    --soft-bg: var(--pink-surface-base);
+    --soft-border: transparent;
+    --soft-text: var(--pink-surface-text-base);
+    --soft-hover: var(--pink-surface-hover);
+    --soft-active-bg: var(--pink-surface-active-bg);
+    --soft-active-text: var(--pink-surface-active-text);
+    --ghost-bg: transparent;
+    --ghost-border: transparent;
+    --ghost-text: var(--pink-transparent-text-base);
+    --ghost-hover: var(--pink-transparent-hover);
+    --ghost-active-bg: var(--pink-transparent-active-bg);
+    --ghost-active-text: var(--pink-transparent-active-text);
+    --outline-bg: var(--pink-outline-bg-base);
+    --outline-border: var(--pink-border-base);
+    --outline-text: var(--pink-outline-text-base);
+    --outline-hover: var(--pink-outline-hover);
+    --outline-active-bg: var(--pink-outline-active-bg);
+    --outline-active-text: var(--pink-outline-active-text);
+}
+

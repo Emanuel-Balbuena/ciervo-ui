@@ -458,6 +458,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle attached state"
                 :class="{ checked: playground.attached }"
                 @click="playground.attached = !playground.attached"
                 role="checkbox"
@@ -479,6 +480,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle mandatory state"
                 :class="{ checked: playground.mandatory }"
                 @click="playground.mandatory = !playground.mandatory"
                 role="checkbox"
@@ -500,6 +502,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle disabled state"
                 :class="{ checked: playground.disabled }"
                 @click="playground.disabled = !playground.disabled"
                 role="checkbox"
@@ -521,6 +524,7 @@ const selectedMatrixColor = ref<string>('all');
             <div class="prop-input-col">
               <button 
                 class="sleek-checkbox"
+                aria-label="Toggle icon fill state"
                 :class="{ checked: playground.iconFill }"
                 @click="playground.iconFill = !playground.iconFill"
                 role="checkbox"

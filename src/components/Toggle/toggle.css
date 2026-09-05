@@ -2,6 +2,17 @@
    TOGGLE & TOGGLE GROUP (CIERVO UI)
    ========================================= */
 
+@import "../../styles/themes/colors/black.css";
+@import "../../styles/themes/colors/red.css";
+@import "../../styles/themes/colors/orange.css";
+@import "../../styles/themes/colors/yellow.css";
+@import "../../styles/themes/colors/lime.css";
+@import "../../styles/themes/colors/green.css";
+@import "../../styles/themes/colors/cyan.css";
+@import "../../styles/themes/colors/blue.css";
+@import "../../styles/themes/colors/violet.css";
+@import "../../styles/themes/colors/pink.css";
+
 @import "../Button/button.css";
 @import "../ButtonGroup/button-group.css";
 
@@ -212,4 +223,47 @@
 .btn-toggle.btn-variant-ghost.is-pressed:active:not(:disabled) {
     --btn-bg: var(--ghost-active-bg);
     --btn-text: var(--ghost-active-text);
+}
+
+/* =========================================
+   STATEFUL (Animación de Texto Mágico)
+   ========================================= */
+
+.btn-text.is-stateful {
+  overflow: visible !important;
+  min-width: max-content !important;
+}
+
+.stateful-motion-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  clip-path: inset(-10px -2px -10px -2px);
+  white-space: nowrap;
+}
+
+.stateful-ghost-measurer {
+  visibility: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.stateful-visual-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  pointer-events: none;
+}
+
+.stateful-visual-node {
+  position: absolute;
+  inset: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  will-change: transform, opacity, filter;
 }

@@ -1,0 +1,32 @@
+.theme-dark {
+    /* Framed */
+    --orange-solid-base: rgba(255, 77, 0, 1);
+    --orange-border-base: rgba(255, 113, 51, 1);
+    --orange-text-base: rgba(255, 255, 255, 1);
+    --orange-solid-hover: rgba(255, 104, 38, 1);
+    --orange-border-hover: rgba(255, 130, 77, 1);
+    --orange-solid-active-bg: rgba(255, 121, 64, 1);
+    --orange-border-active: rgba(255, 148, 102, 1);
+    --orange-solid-active-text: rgba(255, 255, 255, .80);
+    /* Solid */
+    /* Soft: Uso de Transparencias (RGBA) ej. 17% */
+    --orange-surface-base: rgba(255, 77, 0, 0.25);
+    --orange-surface-border: transparent;
+    --orange-surface-text-base: rgba(255, 77, 0, 1);
+    --orange-surface-hover: rgba(255, 77, 0, 0.30);
+    --orange-surface-active-bg: rgba(255, 77, 0, 0.35);
+    --orange-surface-active-text: rgba(255, 77, 0, .80);
+    /* Ghost: Transparencias al hacer hover */
+    --orange-transparent-base: transparent;
+    --orange-transparent-border: transparent;
+    --orange-transparent-text-base: rgba(255, 77, 0, 1);
+    --orange-transparent-hover: rgba(255, 77, 0, .25);
+    --orange-transparent-active-bg: rgba(255, 77, 0, .30);
+    --orange-transparent-active-text: rgba(255, 77, 0, .80);
+    /* Outline: Borde sólido/semi-transparente, fondo transparente */
+    --orange-outline-bg-base: rgba(255, 77, 0, .05);
+    --orange-outline-text-base: rgba(255, 77, 0, 1);
+    --orange-outline-hover: rgba(255, 77, 0, .25);
+    --orange-outline-active-bg: rgba(255, 77, 0, .30);
+    --orange-outline-active-text: rgba(255, 77, 0, .80);
+}

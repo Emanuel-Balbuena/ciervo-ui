@@ -1,0 +1,170 @@
+/* =========================================
+   SLIDER COMPONENT
+   ========================================= */
+
+@import "../../styles/themes/colors/black.css";
+@import "../../styles/themes/colors/red.css";
+@import "../../styles/themes/colors/orange.css";
+@import "../../styles/themes/colors/yellow.css";
+@import "../../styles/themes/colors/lime.css";
+@import "../../styles/themes/colors/green.css";
+@import "../../styles/themes/colors/cyan.css";
+@import "../../styles/themes/colors/blue.css";
+@import "../../styles/themes/colors/violet.css";
+@import "../../styles/themes/colors/pink.css";
+
+.ciervo-slider {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    touch-action: none;
+    cursor: pointer;
+    /* Default spacing */
+    padding: 12px 0;
+}
+
+.ciervo-slider.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Expand the clickable area to catch events on protruding thumbs */
+.ciervo-slider::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    bottom: -10px;
+    left: -10px;
+    right: -10px;
+    z-index: 0;
+}
+
+.ciervo-slider.orientation-vertical {
+    padding: 0 12px;
+    height: 100%;
+    min-height: 120px;
+}
+
+/* =========================================
+   THE TRACK
+   ========================================= */
+.slider-track {
+    position: relative;
+    background: var(--surface-highest, #E7E7E7);
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.ciervo-slider.orientation-horizontal .slider-track {
+    width: 100%;
+    height: 6px;
+}
+
+.ciervo-slider.orientation-vertical .slider-track {
+    height: 100%;
+    width: 6px;
+}
+
+/* =========================================
+   THE FILL
+   ========================================= */
+.slider-fill {
+    position: absolute;
+    background: var(--surface-highest, #E7E7E7);
+    border-radius: 9999px;
+    will-change: transform;
+}
+
+.ciervo-slider.orientation-horizontal .slider-fill {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+}
+
+.ciervo-slider.orientation-vertical .slider-fill {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100%;
+}
+
+/* =========================================
+   LIQUID SVG WRAPPER
+   ========================================= */
+.slider-liquid-svg {
+    position: absolute;
+    pointer-events: none;
+    overflow: visible;
+    color: var(--btn-bg, var(--orange-solid-base));
+}
+
+.ciervo-slider.orientation-horizontal .slider-liquid-svg {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.ciervo-slider.orientation-vertical .slider-liquid-svg {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* =========================================
+   SVG CIRCLES
+   ========================================= */
+.liquid-thumb,
+.liquid-child {
+    fill: var(--slider-bg, var(--orange-solid-base));
+    will-change: transform;
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+/* =========================================
+   COLOR SYSTEM
+   ========================================= */
+.ciervo-slider.color-black {
+    --slider-bg: var(--black-solid-base);
+}
+
+.ciervo-slider.color-red {
+    --slider-bg: var(--red-solid-base);
+}
+
+.ciervo-slider.color-orange {
+    --slider-bg: var(--orange-solid-base);
+}
+
+.ciervo-slider.color-yellow {
+    --slider-bg: var(--yellow-solid-base);
+}
+
+.ciervo-slider.color-lime {
+    --slider-bg: var(--lime-solid-base);
+}
+
+.ciervo-slider.color-green {
+    --slider-bg: var(--green-solid-base);
+}
+
+.ciervo-slider.color-cyan {
+    --slider-bg: var(--cyan-solid-base);
+}
+
+.ciervo-slider.color-blue {
+    --slider-bg: var(--blue-solid-base);
+}
+
+.ciervo-slider.color-violet {
+    --slider-bg: var(--violet-solid-base);
+}
+
+.ciervo-slider.color-pink {
+    --slider-bg: var(--pink-solid-base);
+}
