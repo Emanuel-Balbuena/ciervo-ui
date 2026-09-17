@@ -25,6 +25,7 @@
     --blue-transparent-active-text: rgba(113, 130, 248, .80);
     /* Outline */
     --blue-outline-bg-base: rgba(66, 89, 246, .13);
+    --blue-outline-border-base: rgba(66, 89, 246, 0.35);
     --blue-outline-text-base: rgba(113, 130, 248, 1);
     --blue-outline-hover: rgba(66, 89, 246, .25);
     --blue-outline-active-bg: rgba(66, 89, 246, .30);

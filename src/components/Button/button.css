@@ -661,7 +661,7 @@
     --ghost-active-bg: var(--black-transparent-active-bg);
     --ghost-active-text: var(--black-transparent-active-text);
     --outline-bg: var(--black-outline-bg-base);
-    --outline-border: var(--black-border-base);
+    --outline-border: var(--black-outline-border-base);
     --outline-text: var(--black-outline-text-base);
     --outline-hover: var(--black-outline-hover);
     --outline-active-bg: var(--black-outline-active-bg);
@@ -696,7 +696,7 @@
     --ghost-active-bg: var(--red-transparent-active-bg);
     --ghost-active-text: var(--red-transparent-active-text);
     --outline-bg: var(--red-outline-bg-base);
-    --outline-border: var(--red-border-base);
+    --outline-border: var(--red-outline-border-base);
     --outline-text: var(--red-outline-text-base);
     --outline-hover: var(--red-outline-hover);
     --outline-active-bg: var(--red-outline-active-bg);
@@ -731,7 +731,7 @@
     --ghost-active-bg: var(--orange-transparent-active-bg);
     --ghost-active-text: var(--orange-transparent-active-text);
     --outline-bg: var(--orange-outline-bg-base);
-    --outline-border: var(--orange-border-base);
+    --outline-border: var(--orange-outline-border-base);
     --outline-text: var(--orange-outline-text-base);
     --outline-hover: var(--orange-outline-hover);
     --outline-active-bg: var(--orange-outline-active-bg);
@@ -766,7 +766,7 @@
     --ghost-active-bg: var(--yellow-transparent-active-bg);
     --ghost-active-text: var(--yellow-transparent-active-text);
     --outline-bg: var(--yellow-outline-bg-base);
-    --outline-border: var(--yellow-border-base);
+    --outline-border: var(--yellow-outline-border-base);
     --outline-text: var(--yellow-outline-text-base);
     --outline-hover: var(--yellow-outline-hover);
     --outline-active-bg: var(--yellow-outline-active-bg);
@@ -801,7 +801,7 @@
     --ghost-active-bg: var(--lime-transparent-active-bg);
     --ghost-active-text: var(--lime-transparent-active-text);
     --outline-bg: var(--lime-outline-bg-base);
-    --outline-border: var(--lime-border-base);
+    --outline-border: var(--lime-outline-border-base);
     --outline-text: var(--lime-outline-text-base);
     --outline-hover: var(--lime-outline-hover);
     --outline-active-bg: var(--lime-outline-active-bg);
@@ -836,7 +836,7 @@
     --ghost-active-bg: var(--green-transparent-active-bg);
     --ghost-active-text: var(--green-transparent-active-text);
     --outline-bg: var(--green-outline-bg-base);
-    --outline-border: var(--green-border-base);
+    --outline-border: var(--green-outline-border-base);
     --outline-text: var(--green-outline-text-base);
     --outline-hover: var(--green-outline-hover);
     --outline-active-bg: var(--green-outline-active-bg);
@@ -871,7 +871,7 @@
     --ghost-active-bg: var(--cyan-transparent-active-bg);
     --ghost-active-text: var(--cyan-transparent-active-text);
     --outline-bg: var(--cyan-outline-bg-base);
-    --outline-border: var(--cyan-border-base);
+    --outline-border: var(--cyan-outline-border-base);
     --outline-text: var(--cyan-outline-text-base);
     --outline-hover: var(--cyan-outline-hover);
     --outline-active-bg: var(--cyan-outline-active-bg);
@@ -906,7 +906,7 @@
     --ghost-active-bg: var(--blue-transparent-active-bg);
     --ghost-active-text: var(--blue-transparent-active-text);
     --outline-bg: var(--blue-outline-bg-base);
-    --outline-border: var(--blue-border-base);
+    --outline-border: var(--blue-outline-border-base);
     --outline-text: var(--blue-outline-text-base);
     --outline-hover: var(--blue-outline-hover);
     --outline-active-bg: var(--blue-outline-active-bg);
@@ -941,7 +941,7 @@
     --ghost-active-bg: var(--violet-transparent-active-bg);
     --ghost-active-text: var(--violet-transparent-active-text);
     --outline-bg: var(--violet-outline-bg-base);
-    --outline-border: var(--violet-border-base);
+    --outline-border: var(--violet-outline-border-base);
     --outline-text: var(--violet-outline-text-base);
     --outline-hover: var(--violet-outline-hover);
     --outline-active-bg: var(--violet-outline-active-bg);
@@ -976,7 +976,7 @@
     --ghost-active-bg: var(--pink-transparent-active-bg);
     --ghost-active-text: var(--pink-transparent-active-text);
     --outline-bg: var(--pink-outline-bg-base);
-    --outline-border: var(--pink-border-base);
+    --outline-border: var(--pink-outline-border-base);
     --outline-text: var(--pink-outline-text-base);
     --outline-hover: var(--pink-outline-hover);
     --outline-active-bg: var(--pink-outline-active-bg);

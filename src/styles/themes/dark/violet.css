@@ -25,6 +25,7 @@
     --violet-transparent-active-text: rgba(176, 107, 239, .80);
     /* Outline */
     --violet-outline-bg-base: rgba(147, 51, 234, .13);
+    --violet-outline-border-base: rgba(147, 51, 234, 0.35);
     --violet-outline-text-base: rgba(176, 107, 239, 1);
     --violet-outline-hover: rgba(147, 51, 234, .25);
     --violet-outline-active-bg: rgba(147, 51, 234, .30);

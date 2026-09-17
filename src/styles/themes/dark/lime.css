@@ -25,6 +25,7 @@
     --lime-transparent-active-text: rgba(163, 230, 53, .80);
     /* Outline */
     --lime-outline-bg-base: rgba(163, 230, 53, .13);
+    --lime-outline-border-base: rgba(163, 230, 53, 0.35);
     --lime-outline-text-base: rgba(163, 230, 53, 1);
     --lime-outline-hover: rgba(163, 230, 53, .25);
     --lime-outline-active-bg: rgba(163, 230, 53, .30);

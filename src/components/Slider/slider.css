@@ -52,7 +52,7 @@
    ========================================= */
 .slider-track {
     position: relative;
-    background: var(--surface-highest, #E7E7E7);
+    background: var(--slider-track-bg, var(--surface-highest, #E7E7E7));
     border-radius: 9999px;
     overflow: hidden;
 }
@@ -72,9 +72,12 @@
    ========================================= */
 .slider-fill {
     position: absolute;
-    background: var(--surface-highest, #E7E7E7);
     border-radius: 9999px;
     will-change: transform;
+}
+
+.ciervo-slider.has-colored-track .slider-fill {
+    background: var(--slider-fill-colored, transparent);
 }
 
 .ciervo-slider.orientation-horizontal .slider-fill {
@@ -131,40 +134,60 @@
    ========================================= */
 .ciervo-slider.color-black {
     --slider-bg: var(--black-solid-base);
+    --slider-track-bg: var(--black-surface-active-bg);
+    --slider-fill-colored: var(--black-border-base);
 }
 
 .ciervo-slider.color-red {
     --slider-bg: var(--red-solid-base);
+    --slider-track-bg: var(--red-surface-active-bg);
+    --slider-fill-colored: var(--red-border-base);
 }
 
 .ciervo-slider.color-orange {
     --slider-bg: var(--orange-solid-base);
+    --slider-track-bg: var(--orange-surface-active-bg);
+    --slider-fill-colored: var(--orange-border-base);
 }
 
 .ciervo-slider.color-yellow {
     --slider-bg: var(--yellow-solid-base);
+    --slider-track-bg: var(--yellow-surface-active-bg);
+    --slider-fill-colored: var(--yellow-border-base);
 }
 
 .ciervo-slider.color-lime {
     --slider-bg: var(--lime-solid-base);
+    --slider-track-bg: var(--lime-surface-active-bg);
+    --slider-fill-colored: var(--lime-border-base);
 }
 
 .ciervo-slider.color-green {
     --slider-bg: var(--green-solid-base);
+    --slider-track-bg: var(--green-surface-active-bg);
+    --slider-fill-colored: var(--green-border-base);
 }
 
 .ciervo-slider.color-cyan {
     --slider-bg: var(--cyan-solid-base);
+    --slider-track-bg: var(--cyan-surface-active-bg);
+    --slider-fill-colored: var(--cyan-border-base);
 }
 
 .ciervo-slider.color-blue {
     --slider-bg: var(--blue-solid-base);
+    --slider-track-bg: var(--blue-surface-active-bg);
+    --slider-fill-colored: var(--blue-border-base);
 }
 
 .ciervo-slider.color-violet {
     --slider-bg: var(--violet-solid-base);
+    --slider-track-bg: var(--violet-surface-active-bg);
+    --slider-fill-colored: var(--violet-border-base);
 }
 
 .ciervo-slider.color-pink {
     --slider-bg: var(--pink-solid-base);
+    --slider-track-bg: var(--pink-surface-active-bg);
+    --slider-fill-colored: var(--pink-border-base);
 }

@@ -1,7 +1,7 @@
 .theme-light {
     /* Framed (COPIA DE SOLID) */
     --green-solid-base: rgba(34, 197, 94, 1);
-    --green-border-base: rgba(34, 197, 94, 1);
+    --green-border-base: rgba(100, 214, 142, 1);
     --green-text-base: rgba(0, 0, 0, 1);
     --green-solid-hover: rgba(34, 197, 94, 0.80);
     --green-border-hover: rgba(34, 197, 94, 0.80);
@@ -22,6 +22,7 @@
     --green-transparent-active-bg: rgba(34, 197, 94, .17);
     --green-transparent-active-text: rgba(24, 140, 66, .80);
     --green-outline-bg-base: rgba(34, 197, 94, .05);
+    --green-outline-border-base: rgba(34, 197, 94, 0.20);
     --green-outline-text-base: rgba(24, 140, 66, 1);
     --green-outline-hover: rgba(34, 197, 94, .10);
     --green-outline-active-bg: rgba(34, 197, 94, .17);

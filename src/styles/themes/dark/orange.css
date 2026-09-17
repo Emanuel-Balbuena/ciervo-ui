@@ -24,8 +24,9 @@
     --orange-transparent-active-bg: rgba(255, 77, 0, .30);
     --orange-transparent-active-text: rgba(255, 77, 0, .80);
     /* Outline: Borde sólido/semi-transparente, fondo transparente */
-    --orange-outline-bg-base: rgba(255, 77, 0, .05);
-    --orange-outline-text-base: rgba(255, 77, 0, 1);
+    --orange-outline-bg-base: rgba(255, 77, 0, 0.13);
+    --orange-outline-border-base: rgba(255, 77, 0, 0.35);
+    --orange-outline-text-base: rgba(255, 126, 71, 1);
     --orange-outline-hover: rgba(255, 77, 0, .25);
     --orange-outline-active-bg: rgba(255, 77, 0, .30);
     --orange-outline-active-text: rgba(255, 77, 0, .80);

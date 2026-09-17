@@ -25,6 +25,7 @@
     --pink-transparent-active-text: rgba(255, 20, 147, .80);
     /* Outline */
     --pink-outline-bg-base: rgba(255, 20, 147, .13);
+    --pink-outline-border-base: rgba(255, 20, 147, 0.35);
     --pink-outline-text-base: rgba(255, 20, 147, 1);
     --pink-outline-hover: rgba(255, 20, 147, .25);
     --pink-outline-active-bg: rgba(255, 20, 147, .30);

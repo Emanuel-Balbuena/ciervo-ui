@@ -1,7 +1,7 @@
 .theme-light {
     /* Framed (COPIA DE SOLID) */
     --lime-solid-base: rgba(163, 230, 53, 1);
-    --lime-border-base: rgba(163, 230, 53, 1);
+    --lime-border-base: rgba(200, 240, 134, 1);
     --lime-text-base: rgba(0, 0, 0, 1);
     --lime-solid-hover: rgba(163, 230, 53, 0.80);
     --lime-border-hover: rgba(163, 230, 53, 0.80);
@@ -25,6 +25,7 @@
     --lime-transparent-active-text: rgba(96, 145, 18, .80);
     /* Outline */
     --lime-outline-bg-base: rgba(163, 230, 53, .07);
+    --lime-outline-border-base: rgba(163, 230, 53, 0.35);
     --lime-outline-text-base: rgba(96, 145, 18, 1);
     --lime-outline-hover: rgba(163, 230, 53, .15);
     --lime-outline-active-bg: rgba(163, 230, 53, .22);

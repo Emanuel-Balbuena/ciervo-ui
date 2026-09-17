@@ -7,6 +7,9 @@ import ToggleGroupView from '../views/ToggleGroupView.vue';
 import GlimmLabView from '../views/GlimmLabView.vue';
 
 import SliderView from '../views/SliderView.vue';
+import ModalView from '../views/ModalView.vue';
+import CardView from '../views/CardView.vue';
+import GsapMorphView from '../views/GsapMorphView.vue';
 
 const routes = [
   {
@@ -43,6 +46,21 @@ const routes = [
     path: '/glimm-lab',
     name: 'glimm-lab',
     component: GlimmLabView
+  },
+  {
+    path: '/modal',
+    name: 'modal',
+    component: ModalView
+  },
+  {
+    path: '/card',
+    name: 'card',
+    component: CardView
+  },
+  {
+    path: '/gsap-morph',
+    name: 'gsap-morph',
+    component: GsapMorphView
   }
 ];
 

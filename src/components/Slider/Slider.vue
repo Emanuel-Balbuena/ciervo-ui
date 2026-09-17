@@ -43,11 +43,6 @@ const childRefs = ref<SVGCircleElement[][]>([]);
 const filterId = `gooey-filter-${useId()}`;
 const isDragging = ref(false);
 
-function getThumbColor(index: number) {
-  const shades = ['solid-base', 'border-base', 'solid-hover', 'border-active'];
-  const shade = shades[Math.min(index, shades.length - 1)];
-  return `var(--${props.color}-${shade})`;
-}
 const internalValue = ref<number | number[]>(
   (props.modelValue as number | number[] | undefined) ?? 
   (props.defaultValue as number | number[] | undefined) ?? 
@@ -70,15 +65,16 @@ const physics = createMotion(
   { onChange: () => renderVisuals(physics.state) }
 ) as any;
 
-const componentClass = computed(() => {
-  return [
-    'ciervo-slider',
-    `orientation-${props.orientation}`,
-    `color-${props.color}`,
-    { 'is-dragging': isDragging.value },
-    { 'is-disabled': props.disabled }
-  ];
-});
+const componentClass = computed(() => [
+  'ciervo-slider',
+  `orientation-${props.orientation}`,
+  `color-${props.color}`,
+  { 
+    'is-dragging': isDragging.value,
+    'is-disabled': props.disabled,
+    'has-colored-track': props.coloredTrack
+  }
+]);
 
 onMounted(() => {
   if (trackRef.value) {
@@ -414,7 +410,6 @@ function onPointerUp(event: PointerEvent) {
       <div 
         class="slider-fill" 
         ref="fillRef"
-        :style="{ backgroundColor: coloredTrack ? `var(--${color}-solid-base)` : '' }"
       ></div>
     </div>
     
@@ -433,7 +428,6 @@ function onPointerUp(event: PointerEvent) {
             :key="'child-' + index + '-' + cIdx"
             :ref="(el) => { if (el) { if (!childRefs[index]) childRefs[index] = []; childRefs[index][cIdx] = el as SVGCircleElement } }" 
             class="liquid-child" 
-            :style="{ fill: getThumbColor(index) }"
             :cx="orientation === 'vertical' ? '50%' : '0'" 
             :cy="orientation === 'vertical' ? '0' : '50%'" 
             :r="r" 
@@ -441,7 +435,6 @@ function onPointerUp(event: PointerEvent) {
           <circle 
             :ref="(el) => { if (el) thumbRefs[index] = el as SVGCircleElement }" 
             class="liquid-thumb" 
-            :style="{ fill: getThumbColor(index) }"
             :cx="orientation === 'vertical' ? '50%' : '0'" 
             :cy="orientation === 'vertical' ? '0' : '50%'" 
             :r="thumbRadius" 

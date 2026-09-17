@@ -71,6 +71,8 @@ function handleWallWrapperHover(e: MouseEvent) {
   wallValue.value = percent;
 }
 
+// --- HERRAMIENTA INTERNA TEMPORAL ---
+
 // Valores independientes para la Matriz Visual
 const matrixValues = ref([10, 20, 30, 40, 50, 60, 70, 80, 90, 100]);
 

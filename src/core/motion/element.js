@@ -21,7 +21,7 @@
 import { createMotion, easing as easingTransition, spring as springTransition } from './engine.js'
 import { prefersReducedMotion } from '../env.js'
 
-const REST = { x: 0, y: 0, xPercent: 0, yPercent: 0, scale: 1, scaleX: 1, scaleY: 1, opacity: 1, blur: 0 }
+const REST = { x: 0, y: 0, xPercent: 0, yPercent: 0, scale: 1, scaleX: 1, scaleY: 1, opacity: 1, blur: 0, rotateZ: 0, rotateX: 0, rotateY: 0 }
 
 const controllers = new WeakMap()
 
@@ -41,13 +41,17 @@ class ElementMotion {
     }
 
     render() {
-        const { x, y, xPercent, yPercent, scale, scaleX, scaleY, opacity, blur } = this.motion.state
+        const { x, y, xPercent, yPercent, scale, scaleX, scaleY, opacity, blur, rotateZ, rotateX, rotateY } = this.motion.state
         const style = this.element.style
-        let transform = `translate(${x}px, ${y}px)`
+        let transform = `translate3d(${x}px, ${y}px, 0)`
         if (xPercent) transform += ` translateX(${xPercent}%)`
         if (yPercent) transform += ` translateY(${yPercent}%)`
         if (scale !== 1) transform += ` scale(${scale})`
         if (scaleX !== 1 || scaleY !== 1) transform += ` scale(${scaleX}, ${scaleY})`
+        if (rotateZ) transform += ` rotateZ(${rotateZ}deg)`
+        if (rotateX) transform += ` rotateX(${rotateX}deg)`
+        if (rotateY) transform += ` rotateY(${rotateY}deg)`
+        
         style.transform = transform
         style.opacity = String(opacity)
         // Only write a filter when there is one: `blur(0px)` still promotes the

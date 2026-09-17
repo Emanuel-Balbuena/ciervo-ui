@@ -30,3 +30,13 @@ study/
 *.sw?
 # Backup folders
 src/backup_perfect_button/
+
+# Reasonix: config, estado e instrucciones locales (no se comparten)
+reasonix.toml
+.reasonix/
+REASONIX.local.md
+AGENTS.local.md
+CLAUDE.local.md
+
+# Credenciales locales: no commitear nunca
+.env

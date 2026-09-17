@@ -25,6 +25,7 @@
     --black-transparent-active-text: rgba(255, 255, 255, 0.80);
     /* Outline */
     --black-outline-bg-base: rgba(255, 255, 255, 0.05);
+    --black-outline-border-base: rgba(255, 255, 255, 0.15);
     --black-outline-text-base: rgba(255, 255, 255, 1);
     --black-outline-hover: rgba(255, 255, 255, 0.12);
     --black-outline-active-bg: rgba(255, 255, 255, 0.14);
