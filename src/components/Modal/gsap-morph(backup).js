@@ -3870,31 +3870,17 @@ export function gsapMorphToOrigin({
 
     // Keep the dialog anchored to the exact unrotated viewport position while
     // the source boxes are measured.
-    //
-    // El traspaso puede entrar dos veces sobre el MISMO dialogo (el cierre lo
-    // re-dispara al emitir el store). La segunda vez ya esta anclado y el valor
-    // medido coincide con el escrito salvo ruido sub-pixel: re-escribirlo re-
-    // snap-ea la posicion y eso se ve como un paso/temblor de ~0.1px al
-    // aterrizar. Si ya esta anclado dentro de medio pixel, no hay nada que
-    // anclar y la escritura solo puede moverlo.
-    const yaAnclado =
-        dialogEl.style.position === 'absolute'
-        && Math.abs(parseFloat(dialogEl.style.left) - unrotatedRect.left) < 0.5
-        && Math.abs(parseFloat(dialogEl.style.top) - unrotatedRect.top) < 0.5
+    dialogEl.style.position =
+        'absolute'
 
-    if (!yaAnclado) {
-        dialogEl.style.position =
-            'absolute'
+    dialogEl.style.left =
+        `${unrotatedRect.left}px`
 
-        dialogEl.style.left =
-            `${unrotatedRect.left}px`
+    dialogEl.style.top =
+        `${unrotatedRect.top}px`
 
-        dialogEl.style.top =
-            `${unrotatedRect.top}px`
-
-        dialogEl.style.margin =
-            '0'
-    }
+    dialogEl.style.margin =
+        '0'
 
 
     // -------------------------------------------------------------------------

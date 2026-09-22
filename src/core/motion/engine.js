@@ -58,9 +58,25 @@ class Channel {
     }
 
     setTarget(target, config) {
+        // Un canal que YA esta en su destino ha asentado, aunque no haya
+        // integrado ni un frame: se avisa igual que en las otras dos ramas.
+        //
+        // Sin este `onSettle`, quien lleva la cuenta de pendientes se queda
+        // esperando un aviso que no llega nunca. Medido en el lab, abriendo y
+        // cerrando en 28 ms: el shell todavia no se habia movido del trigger,
+        // asi que los destinos del cierre (la geometria del trigger) eran
+        // IDENTICOS a los valores actuales de x/y/width/height. Los cuatro se
+        // apagaban por esta rama en silencio, el `Set` de pendientes del morph
+        // se quedaba en 3 para siempre, `motion onComplete` no llegaba nunca y
+        // el cierre entero -- cuyo gate pide `motionFinished` -- solo lo
+        // terminaba el temporizador de seguridad a los 900 ms: el elemento
+        // compartido quedaba flotando hasta que el safety forzaba el handoff y
+        // su fundido.
         if (target === this.current && (!config || !this.active)) {
             this.target = target
             this.active = false
+            this.onChange?.(this.current)
+            this.onSettle?.()
             return
         }
 
@@ -115,11 +131,11 @@ class Channel {
             const steps = Math.max(1, Math.ceil(subDt / (1 / 60)))
             const stepDt = subDt / steps
             for (let i = 0; i < steps; i += 1) {
-                const displacement = this.current - this.target
+                const displacement = this.current - this.target;
                 const springForce = -c.stiffness * displacement
                 const dampingForce = -c.damping * this.velocity
                 const acceleration = (springForce + dampingForce) / c.mass
-                this.velocity += acceleration * stepDt
+                this.velocity += acceleration * stepDt;
                 this.current += this.velocity * stepDt
             }
             if (

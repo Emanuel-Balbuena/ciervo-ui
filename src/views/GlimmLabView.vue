@@ -23,7 +23,7 @@ const config = ref({
   rippleAmount: 1,
   swellAmount: 0.55,
   brightness: 1,
-  customSolidHex: '#f97316'
+  customSolidHex: '#ff4d00'
 });
 
 // 2. Simulated Moments States (Best Practices)
@@ -39,12 +39,12 @@ const paletteOptions = [
   { key: 'citrus', name: 'Citrus', color: 'linear-gradient(135deg, #34C759, #FFCC00, #FF8D28)' },
   { key: 'azure', name: 'Azure', color: 'linear-gradient(135deg, #00C0E8, #6155F5)' },
   { key: 'ember', name: 'Ember', color: 'linear-gradient(135deg, #FFCC00, #FF2D55)' },
-  { key: 'ciervo', name: 'Ciervo Warm', color: 'linear-gradient(135deg, #f97316, #fb923c, #ea580c)' },
+  { key: 'ciervo', name: 'Ciervo Warm', color: 'linear-gradient(135deg, #ff4d00, #fb923c, #ea580c)' },
   { key: 'neon', name: 'Neon Cyber', color: 'linear-gradient(135deg, #00f5d4, #7b2cbf, #f72585)' },
   { key: 'aurora', name: 'Aurora', color: 'linear-gradient(135deg, #05ffa1, #00bbf9, #4361ee)' },
   { key: 'monochrome', name: 'Monochrome', color: 'linear-gradient(135deg, #ffffff, #9ca3af)' },
-  { key: 'solidOrange', name: 'Sólido Naranja', color: '#f97316' },
-  { key: 'solidBlue', name: 'Sólido Azul', color: '#3b82f6' },
+  { key: 'solidOrange', name: 'Sólido Naranja', color: '#ff4d00' },
+  { key: 'solidBlue', name: 'Sólido Azul', color: '#4259f6' },
   { key: 'customSolid', name: 'Sólido Custom', color: config.value.customSolidHex }
 ];
 
@@ -175,18 +175,6 @@ async function copyCode() {
           <span class="meta-divider">·</span>
           <span>Experimental</span>
         </div>
-        
-        <div class="theme-toggle">
-          <Button 
-            variant="ghost" 
-            color="black" 
-            shape="round" 
-            size="small"
-            @click="toggleTheme"
-          >
-            {{ isDark ? 'Modo Claro ☀️' : 'Modo Oscuro 🌙' }}
-          </Button>
-        </div>
       </header>
 
       <!-- HERO -->
@@ -251,7 +239,7 @@ async function copyCode() {
             <div class="moment-card" :class="{ active: publishState === 'published' }">
               <div class="moment-card-header">
                 <span class="moment-badge">Momento 1: Publicación</span>
-                <span class="moment-status-dot" :style="{ background: publishState === 'published' ? '#22c55e' : '#f97316' }"></span>
+                <span class="moment-status-dot" :style="{ background: publishState === 'published' ? '#22c55e' : '#ff4d00' }"></span>
               </div>
               <h3 class="moment-title">Lanzar a Producción</h3>
               <p class="moment-desc">
@@ -272,7 +260,7 @@ async function copyCode() {
             <div class="moment-card" :class="{ active: zenMode }">
               <div class="moment-card-header">
                 <span class="moment-badge">Momento 2: Modo Enfocado</span>
-                <span class="moment-status-dot" :style="{ background: zenMode ? '#a855f7' : '#9ca3af' }"></span>
+                <span class="moment-status-dot" :style="{ background: zenMode ? '#9333ea' : '#9ca3af' }"></span>
               </div>
               <h3 class="moment-title">Entorno Zen</h3>
               <p class="moment-desc">
@@ -348,7 +336,7 @@ async function copyCode() {
                   type="text"
                   v-model="config.customSolidHex"
                   class="custom-hex-input"
-                  placeholder="#f97316"
+                  placeholder="#ff4d00"
                 />
               </div>
             </div>
@@ -696,8 +684,8 @@ async function copyCode() {
 
 .palette-select-btn.active {
   background: rgba(249, 115, 22, 0.12);
-  border-color: #f97316;
-  color: #f97316;
+  border-color: #ff4d00;
+  color: #ff4d00;
 }
 
 .palette-preview-swatch {
@@ -741,7 +729,7 @@ async function copyCode() {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #f97316;
+  background: #ff4d00;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   transition: transform 120ms ease;
@@ -755,7 +743,7 @@ async function copyCode() {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #f97316;
+  background: #ff4d00;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }

@@ -1,0 +1,24 @@
+/* ── PullCord — required styles ─────────────────────────────────────────────
+   Geometry/physics live in the component; only colours, the entrance and the
+   focus ring live here. Position + theme via custom properties:
+
+     --pullcord-top     anchor offset from the top (default 0px)
+     --pullcord-right   distance from the right edge (default 7rem)
+     --pullcord-z       z-index of the wrapper (default 5)
+     --pullcord-ink     rope colour (default neutral 45% gray)
+*/
+
+
+.pullcord-knob {
+  -webkit-tap-highlight-color: transparent;
+  border-radius: 50%;
+}
+
+.pullcord-knob:active {
+  cursor: grabbing;
+}
+
+.pullcord-knob:focus-visible {
+  outline: 2px solid var(--pullcord-ink, rgba(127, 127, 127, 0.6));
+  outline-offset: -9px; /* pulls the ring in to sit around the small weight */
+}

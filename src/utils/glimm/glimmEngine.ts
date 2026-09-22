@@ -235,14 +235,14 @@ export const GLIMM_PALETTES: Record<string, CosinePalette> = {
   ember: accentChain(["#FFCC00", "#FF8D28", "#FF2D55"]),
 
   // ciervo-ui bespoke additions
-  ciervo: accentChain(["#f97316", "#fb923c", "#ea580c"]),
+  ciervo: accentChain(["#ff4d00", "#fb923c", "#ea580c"]),
   neon: accentChain(["#00f5d4", "#7b2cbf", "#f72585"]),
   aurora: accentChain(["#05ffa1", "#00bbf9", "#4361ee"]),
   monochrome: accentChain(["#ffffff", "#d1d5db", "#9ca3af"]),
 
   // Solid presets
-  solidOrange: createSolidPalette("#f97316"),
-  solidBlue: createSolidPalette("#3b82f6"),
+  solidOrange: createSolidPalette("#ff4d00"),
+  solidBlue: createSolidPalette("#4259f6"),
   solidWhite: createSolidPalette("#ffffff")
 };
 

@@ -6,7 +6,7 @@
  * same way they sit on the toast queue.
  */
 
-export function createModalStore() {
+export function createSelectStore() {
     const listeners = new Set()
     const pendingClose = new Set()
     let items = []
@@ -38,8 +38,8 @@ export function createModalStore() {
             confirmLabel: options.confirmLabel,
             cancelLabel: options.cancelLabel,
             variant: options.variant ?? 'neutral',
-            color: options.color ?? 'black',
             dismissible: options.dismissible !== false,
+            closeOnScroll: options.closeOnScroll !== false,
             gesture: options.gesture !== false,
 
             content: options.content ?? null,
@@ -55,6 +55,7 @@ export function createModalStore() {
             placeholder: options.placeholder ?? '',
             defaultValue: options.defaultValue ?? '',
             physics: options.physics ?? 'none',
+            color: options.color ?? 'black',
             onClosing: typeof options.onClosing === 'function' ? options.onClosing : null,
             closing: false,
             result: undefined,
@@ -64,7 +65,11 @@ export function createModalStore() {
         return id
     }
 
-    function close(id, result) {
+    // `options` viaja pegado al cierre, no al item: es lo que solo se sabe en el
+    // instante de cerrar. Hoy lo unico que lleva es `morph.exitSource` -- la fila
+    // elegida, que tiene que volar al trigger -- y no puede vivir en el item
+    // porque el item se creo al abrir, cuando no habia ninguna eleccion.
+    function close(id, result, options = null) { console.log("store.close CALLED FOR", id);
         const item = items.find((entry) => entry.id === id && !entry.closing)
         if (!item || pendingClose.has(id)) return
 
@@ -74,7 +79,7 @@ export function createModalStore() {
             if (!current) return
             if (allow === false) return
             current.onClosing?.()
-            replace(id, { closing: true, result })
+            replace(id, { closing: true, result, closeOptions: options })
         }
 
         if (typeof item.beforeClose !== 'function') {
@@ -88,10 +93,10 @@ export function createModalStore() {
         })
     }
 
-    function closeTop(result) {
+    function closeTop(result, options = null) {
         for (let i = items.length - 1; i >= 0; i -= 1) {
             if (!items[i].closing) {
-                close(items[i].id, result)
+                close(items[i].id, result, options)
                 return items[i].id
             }
         }

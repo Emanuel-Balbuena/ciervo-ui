@@ -59,6 +59,11 @@ let trackSize = 0;
 let activeThumbIndex = 0;
 let dragOffset = 0;
 
+const scaleFactor = computed(() => props.thumbRadius / 8);
+const scaledTailRadii = computed(() => props.tailRadii.map(r => r * scaleFactor.value));
+const scaledMaxLag = computed(() => props.maxLag * scaleFactor.value);
+const blurStdDev = computed(() => 3.2 * scaleFactor.value);
+
 // Central Physics Orchestrator
 const physics = createMotion(
   {}, // State is dynamically initialized via setTarget
@@ -202,8 +207,8 @@ function renderVisuals(state: Record<string, number>) {
     if (clampedTailRaw > trackSize) clampedTailRaw = trackSize;
 
     const visualLag = clampedTailRaw - clampedThumb;
-    const clampedTail = Math.abs(visualLag) > props.maxLag 
-      ? clampedThumb + Math.sign(visualLag) * props.maxLag 
+    const clampedTail = Math.abs(visualLag) > scaledMaxLag.value 
+      ? clampedThumb + Math.sign(visualLag) * scaledMaxLag.value 
       : clampedTailRaw;
 
     const actualLag = clampedTail - clampedThumb;
@@ -240,7 +245,7 @@ function renderVisuals(state: Record<string, number>) {
       });
     }
 
-    const N_radii = props.tailRadii.length;
+    const N_radii = scaledTailRadii.value.length;
     for (let j = 0; j < N_radii; j++) {
       const el = childRefs.value[i]?.[j];
       if (el) {
@@ -416,7 +421,7 @@ function onPointerUp(event: PointerEvent) {
     <svg class="slider-liquid-svg" aria-hidden="true">
       <defs>
         <filter :id="filterId">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="blur" />
+          <feGaussianBlur in="SourceGraphic" :stdDeviation="blurStdDev" result="blur" />
           <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
         </filter>
       </defs>
@@ -424,7 +429,7 @@ function onPointerUp(event: PointerEvent) {
       <g :filter="`url(#${filterId})`" class="liquid-group">
         <template v-for="(_, index) in normalizedValues" :key="'thumb-group-' + index">
           <circle 
-            v-for="(r, cIdx) in tailRadii"
+            v-for="(r, cIdx) in scaledTailRadii"
             :key="'child-' + index + '-' + cIdx"
             :ref="(el) => { if (el) { if (!childRefs[index]) childRefs[index] = []; childRefs[index][cIdx] = el as SVGCircleElement } }" 
             class="liquid-child" 

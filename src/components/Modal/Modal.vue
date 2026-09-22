@@ -8,6 +8,7 @@ const props = defineProps({
   physics: { type: String, default: 'none' }, // '2d' | '3d' | 'both' | 'none'
   placement: { type: String, default: 'center' },
   size: { type: String, default: 'md' },
+  color: { type: String, default: 'orange' },
   gesture: { type: Boolean, default: true },
   dismissible: { type: Boolean, default: true },
   mode: { type: String, default: 'transform' },
@@ -36,6 +37,7 @@ const openModal = async () => {
   const promise = modal.open({
     content: contentRef.value?.children.length ? contentRef.value : null,
     placement: props.placement,
+    color: props.color,
     size: props.size,
     gesture: props.gesture,
     dismissible: props.dismissible,
@@ -70,6 +72,10 @@ watch(() => props.open, (newVal) => {
 });
 
 
+
+watch(() => props.color, (newColor) => {
+  if (currentId) modal.update(currentId, { color: newColor });
+});
 
 onMounted(() => {
   // Option A: No local observer needed. The engine handles it via ResizeObserver on the body.

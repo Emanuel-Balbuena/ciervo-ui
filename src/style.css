@@ -291,10 +291,10 @@ html.dark {
   --pill-active-bg: #32333b;
   --pill-active-text: #ffffff;
   --checkbox-border: #35363e;
-  --checkbox-checked: #f97316;
+  --checkbox-checked: #ff4d00;
   --input-bg: #18191c;
   --input-border: #2c2d34;
-  --input-focus: #f97316;
+  --input-focus: #ff4d00;
 }
 
 *,
@@ -315,6 +315,11 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+::selection {
+  background-color: var(--primary-color, #ff4d00);
+  color: var(--primary-foreground, #ffffff);
+}
+
 code,
 pre,
 .font-mono {
@@ -322,16 +327,15 @@ pre,
 }
 
 /* =========================================
-   THEME TOGGLE EFFECT: POLYGON (CLIP-PATH)
+   THEME TOGGLE EFFECT: CRISP CIRCLE CLIP-PATH
    ========================================= */
 ::view-transition-group(root) {
-  animation-duration: 0.7s;
-  animation-timing-function: var(--expo-out);
+  animation-duration: 0.85s; /* Un poco más ágil pero suave */
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1); /* Curva premium (ease-out-quint) */
 }
 
 ::view-transition-new(root) {
-  animation-name: reveal-light;
-  animation-fill-mode: both;
+  animation: reveal-theme-sharp 0.85s both;
 }
 
 ::view-transition-old(root),
@@ -341,28 +345,14 @@ pre,
   z-index: -1;
 }
 
-.dark::view-transition-new(root) {
-  animation-name: reveal-dark;
-  animation-fill-mode: both;
-}
-
-@keyframes reveal-dark {
+@keyframes reveal-theme-sharp {
   from {
-    clip-path: polygon(50% -71%, -50% 71%, -50% 71%, 50% -71%);
+    /* Nace exactamente desde el centro-arriba, pero como un punto nítido */
+    clip-path: circle(0% at 50% 0%);
   }
-
   to {
-    clip-path: polygon(50% -71%, -50% 71%, 50% 171%, 171% 50%);
-  }
-}
-
-@keyframes reveal-light {
-  from {
-    clip-path: polygon(171% 50%, 50% 171%, 50% 171%, 171% 50%);
-  }
-
-  to {
-    clip-path: polygon(171% 50%, 50% 171%, -50% 71%, 50% -71%);
+    /* Se expande para cubrir toda la pantalla */
+    clip-path: circle(150% at 50% 0%);
   }
 }
 
@@ -1162,4 +1152,32 @@ pre,
     grid-template-columns: 1fr;
     gap: 6px;
   }
+}
+
+/* Global Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) transparent;
 }

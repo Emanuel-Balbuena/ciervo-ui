@@ -1,0 +1,760 @@
+@import "../../styles/themes/colors/orange.css";
+@import "../../styles/themes/colors/blue.css";
+@import "../../styles/themes/colors/red.css";
+@import "../../styles/themes/colors/yellow.css";
+@import "../../styles/themes/colors/black.css";
+@import "../../styles/themes/colors/green.css";
+@import "../../styles/themes/colors/cyan.css";
+@import "../../styles/themes/colors/lime.css";
+@import "../../styles/themes/colors/violet.css";
+@import "../../styles/themes/colors/pink.css";
+
+/**
+ * apertura. Styles.
+ *
+ * Every value a design might want to change is a custom property, declared on
+ * `:where(:root)` so it carries ZERO specificity. Same contract as the toast
+ * package: drop this file into a blank page and the dialogs look finished.
+ *
+ * Class names are all prefixed `apr-` and none of them are generated.
+ */
+
+:where(:root) {
+    --slt-bg: #ffffff;
+    --slt-fg: #1b1b1f;
+    --slt-muted: #5c5c66;
+    --slt-radius: 32px;
+    --slt-sheet-radius: 18px;
+    --slt-shadow: 0 8px 40px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.22);
+    --slt-padding: 28px 28px 24px;
+    --slt-max-width: min(440px, calc(100vw - 32px));
+    --slt-gap: 16px;
+
+    --slt-font-family: inherit;
+    --slt-font-size: 0.9375rem;
+    --slt-line-height: 1.45;
+    --slt-font-weight: 400;
+    --slt-title-size: 1.25rem;
+    --slt-title-weight: 600;
+
+    /* 2300 es el modal. El select vive justo debajo para que el modal gane
+       siempre, sin depender de cual se monto antes. */
+    --slt-z-index: 2200;
+    --slt-overlay: color-mix(in srgb, #0c0c10 42%, transparent);
+    --slt-overlay-blur: 10px;
+
+    /* --- Anatomia del select ------------------------------------------------
+       El alto de fila es la unidad de todo: de el salen la altura de la lista
+       (`maxVisibleRows`), la de cada fila y la del encabezado, asi que una sola
+       cifra las mueve todas. */
+    --slt-row-h: 38px;
+    --slt-row-radius: 8px;
+    --slt-list-pad: 6px;
+    --slt-head-pad: 14px;
+
+    --slt-btn-radius: 999px;
+    --slt-btn-bg: #1b1b1f;
+    --slt-btn-fg: #ffffff;
+    --slt-inplace-overlay: color-mix(in srgb, #0c0c10 22%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+    :where(:root) {
+        --slt-bg: #1c1b1f;
+        --slt-fg: #e6e1e5;
+        --slt-muted: #adaaae;
+        --slt-shadow: 0 12px 48px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.16);
+        --slt-overlay: color-mix(in srgb, #000000 56%, transparent);
+        --slt-btn-bg: #ececef;
+        --slt-btn-fg: #0e0e10;
+        --slt-inplace-overlay: color-mix(in srgb, #000000 36%, transparent);
+    }
+}
+
+/* El tema de la app lo pone `useTheme` como clase en `<html>` (`html.dark`),
+   no el SO: sin este bloque el desplegable seguia claro con la pagina a
+   oscuras (el portal vive en `body`, pero las variables se heredan de la
+   raiz, asi que llegan igual). Mismos valores que el bloque de arriba. */
+html.dark {
+    --slt-bg: #1c1b1f;
+    --slt-fg: #e6e1e5;
+    --slt-muted: #adaaae;
+    --slt-shadow: 0 12px 48px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.16);
+    --slt-overlay: color-mix(in srgb, #000000 56%, transparent);
+    --slt-btn-bg: #ececef;
+    --slt-btn-fg: #0e0e10;
+    --slt-inplace-overlay: color-mix(in srgb, #000000 36%, transparent);
+}
+
+/* La app tambien marca el claro explicito (`theme-light`): sin este bloque,
+   con el SO a oscuras el `prefers-color-scheme` de arriba pintaba el
+   desplegable oscuro sobre la pagina clara. `html.theme-light` (0,1,1) gana
+   al `:where(:root)` (0) del media, asi que el tema de la app manda en las
+   dos direcciones; sin ninguna clase, el SO sigue decidiendo (consumidores
+   de la libreria sin `useTheme`). */
+html.theme-light {
+    --slt-bg: #ffffff;
+    --slt-fg: #1b1b1f;
+    --slt-muted: #5c5c66;
+    --slt-shadow: 0 8px 40px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.22);
+    --slt-overlay: color-mix(in srgb, #0c0c10 42%, transparent);
+    --slt-btn-bg: #1b1b1f;
+    --slt-btn-fg: #ffffff;
+    --slt-inplace-overlay: color-mix(in srgb, #0c0c10 22%, transparent);
+}
+
+.slt-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: var(--slt-z-index);
+}
+
+.slt-item {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    isolation: isolate;
+}
+
+.slt-item-placed {
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.slt-item-inplace .slt-overlay {
+    background: transparent;
+    max-width: var(--slt-max-width);
+    outline: none;
+    touch-action: pan-y;
+}
+
+.slt-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: transparent;
+}
+
+.slt-dialog {
+    position: relative;
+    pointer-events: auto;
+    max-width: var(--slt-max-width);
+    outline: none;
+    touch-action: pan-y;
+}
+
+.slt-sheet .slt-shell {
+    border-bottom-left-radius: var(--slt-sheet-radius);
+    border-bottom-right-radius: var(--slt-sheet-radius);
+}
+
+.slt-shell {
+    position: relative;
+    width: 100%;
+    display: flex;
+    box-sizing: border-box;
+    background: var(--slt-bg);
+    color: var(--slt-fg);
+    border-radius: var(--slt-radius);
+    box-shadow: var(--slt-shadow);
+    overflow: hidden;
+    font-family: var(--slt-font-family);
+    font-size: var(--slt-font-size);
+    font-weight: var(--slt-font-weight);
+    line-height: var(--slt-line-height);
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.slt-body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: var(--slt-padding);
+    box-sizing: border-box;
+}
+
+.slt-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--slt-gap);
+    min-width: min(280px, 100%);
+}
+
+.slt-title {
+    margin: 0;
+    font-size: var(--slt-title-size);
+    font-weight: var(--slt-title-weight);
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+}
+
+.slt-description {
+    margin: 0;
+    color: var(--slt-muted);
+}
+
+.slt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.slt-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    border: 1px solid transparent;
+    border-radius: var(--slt-btn-radius);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.slt-btn:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+}
+
+.slt-btn-ghost {
+    border-color: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.slt-btn-ghost:hover,
+.slt-btn-ghost:focus-visible {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.slt-btn-solid {
+    background: var(--slt-btn-bg);
+    color: var(--slt-btn-fg);
+}
+
+
+
+
+.slt-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+    border-radius: 12px;
+    background: color-mix(in srgb, currentColor 5%, transparent);
+    color: inherit;
+    font: inherit;
+    outline: none;
+}
+
+.slt-input:focus {
+    border-color: color-mix(in srgb, currentColor 40%, transparent);
+}
+
+
+
+/* =========================================
+   SELECT ANATOMY
+   =========================================
+   El motor es solo layout y publica geometria; el contenido decide. Estas son
+   las piezas con las que el componente decide, y son las mismas que recibe
+   cualquier consumidor que use `options` en vez de escribir las filas a mano.
+
+   Regla que gobierna todo el bloque: el shell ES el trigger en los dos extremos
+   del morph (mide exactamente lo que el), asi que nada del cuerpo puede tener
+   margen propio. El aire lo ponen el encabezado y la lista, no el `<body>`. */
+
+.slt-body:has(> .apr-card > .slt-content) {
+    padding: 0;
+}
+
+/* LA CADENA DE ALTURAS.
+   El motor publica su tope como `max-height` en el dialogo, y eso acota el
+   MARCO, no el contenido: en flujo normal un hijo ignora el max-height de su
+   padre y se desborda. Medido antes de arreglarlo, en la demo: el dialogo medÃ­a
+   415px y el mock-trigger acababa 41px POR DEBAJO de su propio borde, con la
+   lista entera fuera.
+
+   Para que el tope llegue hasta abajo, cada eslabon que va del cuerpo a la lista
+   -- el `.apr-card` que mete el motor, el contenido del componente y la lista --
+   tiene que ser una columna flex que pueda encogerse. El que cede es la lista, y
+   scrollea. Va en el paquete y no en el consumidor porque es fontaneria del
+   motor: `fillBody` mete ese `.apr-card` y nadie de fuera sabe que existe. */
+.slt-body:has(> .apr-card > .slt-content) > .apr-card,
+.slt-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    box-sizing: border-box;
+}
+
+/* --- El encabezado ---------------------------------------------------------
+   Es la copia del trigger que vive dentro del dialogo: el elemento compartido.
+   Por eso NO es un control -- ni borde, ni radio, ni fondo, ni un `<button>`.
+   Un boton aqui hereda el `:active` del original (ocupan los mismos pixeles) y
+   el `scale(0.96)` se ve en el desplegable abierto. Lo unico que lo separa de la
+   lista es la linea de 1px.
+
+   `--slt-head-height` y `--slt-head-inset` los escribe el componente midiendo el
+   trigger de verdad: el encabezado tiene que caer exactamente donde el, o el
+   elemento compartido no esta compartido. */
+.slt-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    min-height: var(--slt-head-height, 42px);
+    padding-left: calc(var(--slt-head-pad) + var(--slt-head-inset, 0px));
+    padding-right: var(--slt-head-outset, var(--slt-head-pad));
+
+    /* La linea que separa el encabezado de la lista va por `box-shadow` y no por
+       `border`, y no es cosmetica: el alto del encabezado ES el del trigger
+       (`--slt-head-height`), asi que con `box-sizing: border-box` un borde de 1px
+       deja la caja de contenido en 41 en vez de 42 y la etiqueta centra 0.5px mas
+       arriba que la del trigger. Ese medio pixel lo tenia que devolver el cierre
+       midiendo las dos cajas vivas y publicando `--slt-head-shift` (medido: 1.5px,
+       o sea un salto al arrancar el cierre). Con la sombra el alto no se toca y el
+       numero sale 0 solo.
+
+       La linea va en una variable para que las variantes de `title` puedan
+       voltearla sin repetir el `color-mix`: el que gane la cascada en ESTE
+       elemento es el que lee el `box-shadow` de aqui. */
+    --slt-head-line: inset 0 -1px 0 color-mix(in srgb, currentColor 8%, transparent);
+    box-shadow: var(--slt-head-line);
+    user-select: none;
+}
+
+/* --- Donde vive el encabezado (prop `title`) -------------------------------
+
+   Solo el ORDEN dentro del contenido, que ya es una columna flex. El alto de la
+   caja no cambia -- el encabezado mide el alto del trigger y la lista se lleva
+   lo que sobra en las tres variantes --, asi que `slotFor` mide lo mismo y el
+   motor no se entera de cual esta puesta.
+
+   `trigger` sigue las clases que el LADO resuelto deja en el dialogo
+   (`sideClasses`), no el placement pedido: si la caja no cabe arriba y el motor
+   la voltea, el encabezado tiene que cambiar de lado con ella. Con el pedido en
+   vez del resuelto, la caja creceria en un sentido y el encabezado viajaria al
+   otro en cada vuelco. */
+.slt-content[data-slt-title='bottom'] > .slt-head,
+.slt-dialog.slt-placed-bottom .slt-content[data-slt-title='trigger'] > .slt-head {
+    order: 1;
+    /* Abajo, la linea que lo separa de la lista es la de ARRIBA. */
+    --slt-head-line: inset 0 1px 0 color-mix(in srgb, currentColor 8%, transparent);
+}
+
+/* El elemento compartido no es picable. Sin esto se lleva por delante el clic
+   del trigger real, que esta justo debajo. */
+[data-slt-shared] {
+    pointer-events: none;
+}
+
+.slt-head-label,
+.slt-trigger-label,
+.slt-option-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* El residuo vertical entre la etiqueta del encabezado y la del trigger. No se
+   puede resolver en CSS: depende de la tipografia que traiga el trigger del
+   consumidor, asi que la mide el cierre sobre las dos cajas vivas y la publica
+   como variable en el dialogo.
+
+   `translate` y no `top` ni `margin`: mueve la tinta sin tocar la caja, que es
+   la que el motor ya midio. */
+.slt-head-label {
+    /* El clip de `overflow: hidden` corta por el PADDING box. El interlineado que
+       la etiqueta copia del trigger es 16px, pero su caja de glifos mide 20: los
+       2px que sobresalen por lado se comian el descendente de la "p" (medido:
+       1.34px de tinta menos que el MISMO texto en el trigger -- 14 contra 15.17).
+       El aire no mueve la tinta, que va centrada y crece igual arriba y abajo: lo
+       unico que cambia es que deja de cortar. */
+    padding-block: 2px;
+    transform: translateY(var(--slt-head-shift, 0px));
+}
+
+/* Dentro del dialogo el select esta abierto, asi que el chevron mira arriba. */
+.slt-head .slt-chevron {
+    transform: rotate(180deg);
+}
+
+.slt-chevron {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    transition: transform var(--btn-spring-duration, 390ms) var(--btn-spring-ease, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+/* --- La lista --------------------------------------------------------------
+
+   La barra. El defecto del navegador trae 15px Y botones de flecha arriba y
+   abajo; aqui se queda en 6px, sin botones, y con el pulgar en el color del
+   texto en vez de un gris del sistema. */
+.slt-list {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 2px;
+    padding: var(--slt-list-pad);
+    box-sizing: border-box;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    /* `maxVisibleRows` entra por aqui: el componente escribe `--slt-rows`. El
+       tope del viewport lo sigue poniendo el motor en el dialogo, y este se le
+       suma. */
+    max-height: calc(var(--slt-rows, 8) * var(--slt-row-h) + var(--slt-list-pad) * 2);
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--slt-btn-bg) transparent;
+}
+
+.slt-list::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.slt-list::-webkit-scrollbar-track,
+.slt-list::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.slt-list::-webkit-scrollbar-thumb {
+    background: var(--slt-btn-bg);
+    border-radius: 999px;
+}
+
+.slt-list::-webkit-scrollbar-thumb:hover {
+    background: var(--slt-btn-bg);
+}
+
+/* Las flechas. No basta con `display: none` en el selector pelado: en Chromium
+   cada boton se pinta con su propia regla de pseudo-clase, asi que hay que
+   apagarlas una a una o queda el hueco. */
+.slt-list::-webkit-scrollbar-button,
+.slt-list::-webkit-scrollbar-button:single-button,
+.slt-list::-webkit-scrollbar-button:vertical:start:decrement,
+.slt-list::-webkit-scrollbar-button:vertical:end:increment,
+.slt-list::-webkit-scrollbar-button:horizontal:start:decrement,
+.slt-list::-webkit-scrollbar-button:horizontal:end:increment {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent;
+}
+
+/* --- Las filas -------------------------------------------------------------
+
+   Todas miden lo mismo y llevan los MISMOS hijos, incluido el visto bueno: el
+   que no esta elegido lo lleva con `opacity: 0`. Con un `v-if` la fila elegida
+   se quedaba con una linea y las demas con dos, y su etiqueta caia 6.8px mas
+   abajo que las otras (medido: `.btn-text` de 32px contra 18.4px). */
+.slt-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    min-height: calc(var(--slt-row-h) - 2px);
+
+    /* LA TINTA DE LA FILA TIENE QUE CAER DONDE LA DEL ENCABEZADO.
+       El encabezado esta clavado al trigger por el morph -- es el elemento
+       compartido -- asi que el que se mueve es la fila. Su tinta arranca en
+       `list-pad + este padding`, y tiene que dar `head-pad + inset`: medido, 16
+       contra 23, o sea 7px de desfase en cada fila respecto al titulo.
+       Y por la derecha lo mismo con el visto bueno contra el chevron del
+       encabezado. Se escribe como resta y no como numero para que siga valiendo
+       cuando el consumidor cambie `--slt-head-pad`. */
+    padding-left: calc(var(--slt-head-pad) + var(--slt-head-inset, 0px) - var(--slt-list-pad));
+    padding-right: calc(var(--slt-head-outset, var(--slt-head-pad)) - var(--slt-list-pad));
+    box-sizing: border-box;
+    border: 0;
+    border-radius: var(--slt-row-radius);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.slt-option:hover {
+    background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+/* El resaltado del teclado, que lo pinta el HOST y no Vue.
+   Clase aparte a proposito: Vue reescribe `class` entera en cada repintado, asi
+   que si el host usara la misma que el componente, el primer render le borraria
+   el resaltado. Se pintan las dos, con el mismo valor. */
+.slt-option.is-active,
+.slt-option.slt-kbd-active {
+    background: color-mix(in srgb, currentColor 9%, transparent);
+}
+
+.slt-option.is-selected {
+    font-weight: 600;
+    color: var(--slt-btn-bg);
+}
+
+.slt-option.is-disabled {
+    opacity: 0.38;
+    cursor: default;
+}
+
+.slt-option.is-disabled:hover {
+    background: transparent;
+}
+
+.slt-option-check {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    opacity: 0;
+}
+
+.slt-option.is-selected .slt-option-check {
+    opacity: 1;
+}
+
+/* El vacio se sangra como una fila, no como un parrafo: si no, el unico texto de
+   un select sin opciones arranca 7px a la izquierda del resto. */
+.slt-empty {
+    padding: 12px calc(var(--slt-head-outset, var(--slt-head-pad)) - var(--slt-list-pad)) 12px
+        calc(var(--slt-head-pad) + var(--slt-head-inset, 0px) - var(--slt-list-pad));
+    text-align: left;
+    opacity: 0.55;
+}
+
+/* --- El trigger ------------------------------------------------------------
+
+   El envoltorio alrededor del slot `#trigger`. Existe por dos razones: es el
+   elemento al que el motor ancla cuando el consumidor no pasa `origin`, y es
+   donde se corrige la alineacion del trigger prestado. */
+.slt-trigger-slot {
+    display: inline-flex;
+    max-width: 100%;
+    vertical-align: middle;
+}
+
+/* El `Button` envuelve todo su slot en `.btn-text`, que CENTRA lo que lleva
+   dentro, y su ripple mide 0x0 pero sigue contando como item flex: con
+   `justify-content: space-between` el reparto es *ripple al principio - texto
+   al medio - icono al final*, y la etiqueta acaba pegada al borde derecho.
+   Medido en el trigger de la demo: `.btn-text` de 88.18px empezando en
+   `left: 240.91` dentro de una caja de 93.89 a 343.89.
+
+   Estas tres lineas son todo lo que hace falta para devolverla a la izquierda,
+   y van aqui y no en el consumidor porque no son su problema: su trigger ya esta
+   escrito y no tiene por que saber como se llama el envoltorio de otro
+   componente. */
+.slt-trigger-slot .btn-text {
+    flex: 1 1 auto;
+    justify-content: flex-start;
+    text-align: left;
+
+    /* Y de paso deja de medir distinto que el encabezado.
+       Con la etiqueta en linea, su caja de glifos (20px) cuelga de la caja de
+       linea (16px) y la tinta queda baja dentro del boton: medido, 13.17px de
+       aire arriba contra 7.67 abajo. El encabezado y las filas la dibujan como
+       item flex, que centra el medio-interlineado y da 12.17 / 10. Es el MISMO
+       texto midiendo distinto segun quien lo envuelva, y por eso el fantasma
+       aterrizaba con 1.5px de residuo que el cierre tenia que corregir a mano.
+       Como contenedor flex, la etiqueta se centra sola y los dos numeros
+       coinciden. */
+    display: flex;
+    align-items: center;
+}
+
+/* El chevron del trigger vive pegado al TEXTO porque `.btn-text` no reparte el
+   aire que le sobra: medido, el chevron de la demo empieza en 534.36, justo donde
+   termina la etiqueta, en una caja que llega hasta 684.69. Abierto, el chevron
+   del encabezado si esta al borde derecho, y ese es el que gusta.
+   `margin-left: auto` y no `space-between`: con tres hijos el reparto de
+   `space-between` dejaria la etiqueta en el medio. Asi el ultimo hijo se va al
+   borde y el resto se queda donde estaba, sin que el consumidor escriba nada. */
+.slt-trigger-slot .btn-text > svg:last-child,
+.slt-trigger-slot .btn-text > .slt-chevron {
+    margin-left: auto;
+}
+
+
+/* El trigger por defecto, para quien no pase slot. */
+.slt-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: var(--slt-head-height, 42px);
+    padding-left: calc(var(--slt-head-pad) + var(--slt-head-inset, 0px));
+    padding-right: var(--slt-head-pad);
+    box-sizing: border-box;
+    border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+    border-radius: var(--slt-radius, 12px);
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+/* Abierto, la flecha mira hacia arriba. En el encabezado es al reves porque el
+   encabezado vive en el lado contrario al trigger cuando el motor vuelca la
+   caja (`slt-placed-*`), asi que la regla de arriba vale para los dos. */
+.slt-trigger-slot.is-open .slt-trigger .slt-chevron {
+    transform: rotate(180deg);
+}
+
+/* =========================================
+   COLOR SYSTEM
+   ========================================= */
+.slt-item.color-orange {
+    --slt-bg: var(--canvas-bg, #f4f4f5);
+    --slt-fg: var(--text-primary, #1b1b1f);
+    --slt-border: var(--orange-border-base);
+    --slt-btn-bg: var(--orange-solid-base);
+    --slt-btn-fg: var(--orange-text-base);
+    --slt-inplace-overlay: var(--orange-surface-active-bg);
+}
+
+.slt-item.color-blue {
+    --slt-bg: var(--canvas-bg, #f4f4f5);
+    --slt-fg: var(--text-primary, #1b1b1f);
+    --slt-border: var(--blue-border-base);
+    --slt-btn-bg: var(--blue-solid-base);
+    --slt-btn-fg: var(--blue-text-base);
+    --slt-inplace-overlay: var(--blue-surface-active-bg);
+}
+
+.slt-item.color-red {
+    --slt-bg: var(--canvas-bg, #f4f4f5);
+    --slt-fg: var(--text-primary, #1b1b1f);
+    --slt-border: var(--red-border-base);
+    --slt-btn-bg: var(--red-solid-base);
+    --slt-btn-fg: var(--red-text-base);
+    --slt-inplace-overlay: var(--red-surface-active-bg);
+}
+
+.slt-item.color-yellow {
+    --slt-bg: var(--canvas-bg, #f4f4f5);
+    --slt-fg: var(--text-primary, #1b1b1f);
+    --slt-border: var(--yellow-border-base);
+    --slt-btn-bg: var(--yellow-solid-base);
+    --slt-btn-fg: var(--yellow-text-base);
+    --slt-inplace-overlay: var(--yellow-surface-active-bg);
+}
+
+.slt-item.color-black {
+    --slt-bg: var(--canvas-bg, #f4f4f5);
+    --slt-fg: var(--text-primary, #1b1b1f);
+    --slt-border: var(--black-border-base);
+    --slt-btn-bg: var(--black-solid-base);
+    --slt-btn-fg: var(--black-text-base);
+    --slt-inplace-overlay: var(--black-surface-active-bg);
+}
+
+.slt-item.color-green {
+    --slt-bg: var(--canvas-bg, #f4f4f5);
+    --slt-fg: var(--text-primary, #1b1b1f);
+    --slt-border: var(--green-border-base);
+    --slt-btn-bg: var(--green-solid-base);
+    --slt-btn-fg: var(--green-text-base);
+    --slt-inplace-overlay: var(--green-surface-active-bg);
+}
+
+.slt-item.color-cyan {
+    --slt-bg: var(--canvas-bg, #f4f4f5);
+    --slt-fg: var(--text-primary, #1b1b1f);
+    --slt-border: var(--cyan-border-base);
+    --slt-btn-bg: var(--cyan-solid-base);
+    --slt-btn-fg: var(--cyan-text-base);
+    --slt-inplace-overlay: var(--cyan-surface-active-bg);
+}
+
+.slt-item.color-lime {
+    --slt-bg: var(--canvas-bg, #f4f4f5);
+    --slt-fg: var(--text-primary, #1b1b1f);
+    --slt-border: var(--lime-border-base);
+    --slt-btn-bg: var(--lime-solid-base);
+    --slt-btn-fg: var(--lime-text-base);
+    --slt-inplace-overlay: var(--lime-surface-active-bg);
+}
+
+.slt-item.color-violet {
+    --slt-bg: var(--canvas-bg, #f4f4f5);
+    --slt-fg: var(--text-primary, #1b1b1f);
+    --slt-border: var(--violet-border-base);
+    --slt-btn-bg: var(--violet-solid-base);
+    --slt-btn-fg: var(--violet-text-base);
+    --slt-inplace-overlay: var(--violet-surface-active-bg);
+}
+
+.slt-item.color-pink {
+    --slt-bg: var(--canvas-bg, #f4f4f5);
+    --slt-fg: var(--text-primary, #1b1b1f);
+    --slt-border: var(--pink-border-base);
+    --slt-btn-bg: var(--pink-solid-base);
+    --slt-btn-fg: var(--pink-text-base);
+    --slt-inplace-overlay: var(--pink-surface-active-bg);
+}
+
+/* Evitar que el trigger se escale al hacer clic/hover (rompe la medida inicial de GSAP) */
+.slt-trigger-slot > * {
+    transform: none !important;
+}
+.slt-trigger-slot > *:active,
+.slt-trigger-slot > *:hover {
+    transform: none !important;
+}
+
+
+/* Fix GSAP morph initial measure by totally disabling transform/scale on triggers */
+.slt-trigger-slot,
+.slt-trigger-slot *,
+.slt-trigger-slot *:active,
+.slt-trigger-slot *:hover,
+.slt-trigger-slot *.is-touching {
+    transform: none !important;
+    scale: 1 !important;
+}
+
+
+/* OVERRIDE DEFINITIVO para anular la escala del botÃ³n (trigger) de Select */
+html body .slt-trigger-slot .btn,
+html body .slt-trigger-slot .btn:hover,
+html body .slt-trigger-slot .btn:active,
+html body .slt-trigger-slot .btn.is-touching,
+html body .slt-trigger-slot *,
+html body .slt-trigger-slot *:hover,
+html body .slt-trigger-slot *:active,
+html body .slt-trigger-slot *.is-touching {
+    transform: none !important;
+    scale: 1 !important;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s !important;
+}
+
+/* --- Closing Animations --- */
+.slt-shell[data-closing="true"] .slt-list::-webkit-scrollbar-thumb,
+.slt-shell[data-closing="true"] .slt-list::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+.slt-shell[data-closing="true"] .slt-list {
+    scrollbar-color: transparent transparent !important;
+}
+.slt-shell[data-closing="true"] .slt-option-check {
+    opacity: 0 !important;
+    transition: opacity 0.1s ease-out !important;
+}

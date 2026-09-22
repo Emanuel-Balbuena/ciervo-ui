@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import Button from '../components/Button/Button.vue';
 import Slider from '../components/Slider/Slider.vue';
 import Modal from '../components/Modal/Modal.vue';
+import Select from '../components/Select/Select.vue';
 import { useTheme } from '../composables/useTheme';
 
 const router = useRouter();
@@ -132,20 +133,22 @@ const handleOpen = (e: Event) => {
 
           <div class="control-group inline">
             <label class="control-label">Placement</label>
-            <select v-model="playground.placement" class="pill-select">
-              <option value="center">Center</option>
-              <option value="anchor">Anchor</option>
-              <option value="bottom">Bottom</option>
-              <option value="inplace">Inplace (Center)</option>
-              <option value="inplace-tl">Inplace (Top-Left)</option>
-              <option value="inplace-t">Inplace (Top)</option>
-              <option value="inplace-tr">Inplace (Top-Right)</option>
-              <option value="inplace-l">Inplace (Left)</option>
-              <option value="inplace-r">Inplace (Right)</option>
-              <option value="inplace-bl">Inplace (Bottom-Left)</option>
-              <option value="inplace-b">Inplace (Bottom)</option>
-              <option value="inplace-br">Inplace (Bottom-Right)</option>
-            </select>
+            <div style="min-width: 180px;">
+              <Select v-model="playground.placement" placement="inplace-b" :options="[
+                { value: 'center', label: 'Center' },
+                { value: 'anchor', label: 'Anchor' },
+                { value: 'bottom', label: 'Bottom' },
+                { value: 'inplace', label: 'Inplace (Center)' },
+                { value: 'inplace-tl', label: 'Inplace (Top-Left)' },
+                { value: 'inplace-t', label: 'Inplace (Top)' },
+                { value: 'inplace-tr', label: 'Inplace (Top-Right)' },
+                { value: 'inplace-l', label: 'Inplace (Left)' },
+                { value: 'inplace-r', label: 'Inplace (Right)' },
+                { value: 'inplace-bl', label: 'Inplace (Bottom-Left)' },
+                { value: 'inplace-b', label: 'Inplace (Bottom)' },
+                { value: 'inplace-br', label: 'Inplace (Bottom-Right)' }
+              ]" />
+            </div>
           </div>
 
           <div class="control-group inline">

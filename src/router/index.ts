@@ -7,11 +7,36 @@ import ToggleGroupView from '../views/ToggleGroupView.vue';
 import GlimmLabView from '../views/GlimmLabView.vue';
 
 import SliderView from '../views/SliderView.vue';
-import ModalView from '../views/ModalView.vue';
 import CardView from '../views/CardView.vue';
 import GsapMorphView from '../views/GsapMorphView.vue';
+import ThemeSelectView from '../views/ThemeSelectView.vue';
+import MenuView from '../views/MenuView.vue';
 
 const routes = [
+  {
+    path: '/menu',
+    name: 'menu',
+    component: MenuView
+  },
+  {
+    path: '/appearance',
+    redirect: '/theme-select'
+  },
+  {
+    path: '/theme-select',
+    name: 'theme-select',
+    component: ThemeSelectView
+  },
+  {
+    path: '/pullcord',
+    name: 'pullcord',
+    component: () => import('../views/PullCordView.vue')
+  },
+  {
+    path: '/select',
+    name: 'select',
+    component: () => import('../views/SelectView.vue')
+  },
   {
     path: '/',
     name: 'home',
@@ -50,7 +75,7 @@ const routes = [
   {
     path: '/modal',
     name: 'modal',
-    component: ModalView
+    component: GsapMorphView
   },
   {
     path: '/card',
@@ -59,8 +84,7 @@ const routes = [
   },
   {
     path: '/gsap-morph',
-    name: 'gsap-morph',
-    component: GsapMorphView
+    redirect: '/modal'
   }
 ];
 

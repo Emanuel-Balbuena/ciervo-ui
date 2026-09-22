@@ -8,16 +8,17 @@
 import { fillBody } from './card.js'
 import { createPageLock, focusFirst } from './lock.js'
 import { morphFromOrigin, morphToOrigin, hideOrigin, restoreOrigin, MORPH_DEFAULTS } from './morph.js'
-import { gsapMorphFromOrigin, gsapMorphToOrigin } from './gsap-morph.js'
+import { gsapSelectFromOrigin, gsapSelectToOrigin } from './select.js'
 import { motionOf, killMotion } from '../../core/motion/element.js'
 import { createMotion, spring } from '../../core/motion/engine.js'
 import { Easing, springEase } from '../../core/motion/easing.js'
 import { prefersReducedMotion } from './env.js'
 import { resolveMorph, applySize } from './presets.js'
-import { layoutSlot, originBox, resolvePlacement, trackOrigin, createSlotFollow } from './placement.js'
+import { layoutSlot, resolvePlacement, trackOrigin, createSlotFollow, unscaledRect } from './placement.js'
 import { attachDismissGesture } from './gesture.js'
 
 export const HOST_DEFAULTS = {
+    overlay: 'none', // 'glass', 'scrim', 'none'
     overlayDuration: 0.35,
     enterDuration: 0.5,
     enterDistance: 16,
@@ -32,9 +33,16 @@ export const HOST_DEFAULTS = {
     underSpring: { stiffness: 180, damping: 22, velocity: 0 },
     placementGap: 8,
     placementPadding: 16,
-    // Constante de tiempo (segundos) con la que el modal persigue al trigger
-    // cuando la pagina se scrollea. `0` devuelve la escritura directa de antes.
-    placementFollow: 0.25,
+    // Constante de tiempo (segundos) con la que el dropdown persigue al trigger
+    // cuando la pagina se scrollea. `0` = escritura directa, en el mismo frame.
+    //
+    // CERO, y no el 0.25 del modal. El polo es una virtud en un modal, que es un
+    // objeto aparte con peso: llega un poco tarde y se lee como inercia. Aqui el
+    // dialogo NO es un objeto aparte, es el trigger -- esa es toda la ilusion --
+    // y un polo significa un retraso de regimen `v * tau`: scrolleando a 1000 px/s
+    // el mock se queda 250 px por detras de su trigger. Un elemento compartido
+    // que va por detras de si mismo no esta compartido.
+    placementFollow: 0,
     morph: MORPH_DEFAULTS,
 }
 
@@ -51,7 +59,7 @@ function canMorphFrom(origin) {
         && origin.getBoundingClientRect().width > 0
 }
 
-export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) {
+export function createSelectHost({ store, options = {}, mountTo = 'body' } = {}) {
     const config = {
         ...HOST_DEFAULTS,
         ...options,
@@ -128,17 +136,280 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
     function ensureMounted() {
         if (layer || typeof document === 'undefined') return
         layer = document.createElement('div')
-        layer.className = 'apr-layer'
+        layer.className = 'slt-layer'
         layer.setAttribute('aria-live', 'off')
         targetOf().append(layer)
         document.addEventListener('keydown', onKeyDown)
+        document.addEventListener('pointerdown', onPointerDown, true)
+        document.addEventListener('scroll', onScroll, true)
+        document.addEventListener('wheel', onWheel, { capture: true, passive: false })
+        document.addEventListener('touchmove', onWheel, { capture: true, passive: false })
+    }
+
+    function topLive() {
+        return [...store.getItems()].reverse().find((item) => !item.closing)
+    }
+
+    // -------------------------------------------------------------------------
+    // TECLADO
+    //
+    // La clase la pinta el HOST y no el componente, y con otro nombre
+    // (`slt-kbd-active`, no `is-active`): Vue reescribe la `class` entera en cada
+    // repintado, asi que una clase que escribiera el host sobre un elemento que
+    // Vue tambien pinta desaparece en el primer render. `select.css` las pinta
+    // iguales, porque para el usuario son lo mismo.
+    // -------------------------------------------------------------------------
+
+    const KBD_ACTIVE = 'slt-kbd-active'
+
+    // Escribir dentro de un campo no es navegar un desplegable. Sin esto, un
+    // input encima del select perderia las flechas y el espacio.
+    function isEditable(target) {
+        if (!(target instanceof HTMLElement)) return false
+        if (target.isContentEditable) return true
+        const tag = target.tagName
+        return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+    }
+
+    // Las filas navegables del select de arriba. Vacio -- y por tanto teclado
+    // apagado -- en cuanto el dialogo no sea un select: el host tambien sirve
+    // modales, y un modal no tiene lista.
+    function rowsOf(node) {
+        const list = node?.dialog.querySelector('.slt-list')
+        if (!list) return []
+        return [...list.querySelectorAll('.slt-option')].filter(
+            (row) => !row.classList.contains('is-disabled'),
+        )
+    }
+
+    function markedRow(node) {
+        return node?.dialog.querySelector(`.slt-option.${KBD_ACTIVE}`) ?? null
+    }
+
+    function mark(node, row) {
+        if (!node) return
+        for (const el of node.dialog.querySelectorAll(`.slt-option.${KBD_ACTIVE}`)) {
+            el.classList.remove(KBD_ACTIVE)
+        }
+        if (!row) return
+        row.classList.add(KBD_ACTIVE)
+        // `nearest`: mueve lo minimo para que entre. Con `center` la lista
+        // saltaria en cada flecha.
+        row.scrollIntoView({ block: 'nearest' })
+    }
+
+    function moveMark(node, step) {
+        const rows = rowsOf(node)
+        if (!rows.length) return false
+
+        let index = rows.indexOf(markedRow(node))
+
+        // Sin resaltado todavia, el punto de entrada es la fila ELEGIDA.
+        //
+        // Es la que ya lleva el visto bueno, asi que la primera flecha tiene que
+        // salir DE ELLA y no volver a pasar por ella: quien abre un desplegable
+        // con valor y pulsa abajo espera CAMBIAR la eleccion. Es lo que hace un
+        // `<select>` nativo y lo que dice el patron de listbox. Medido antes de
+        // esto: con `Opcion 1` elegida, tres flechas abajo dejaban el resaltado
+        // en la tercera -- la primera se gastaba re-senalando lo ya elegido.
+        //
+        // Sin valor elegido no hay de donde salir, y ahi si entra por el borde:
+        // bajar por el primero, subir por el ultimo. Entrar por el medio segun
+        // donde estuviera el raton seria impredecible.
+        if (index < 0) {
+            const chosen = rows.findIndex((row) => row.classList.contains('is-selected'))
+            if (chosen >= 0) index = chosen
+        }
+
+        // Con resaltado, da la vuelta en los extremos.
+        const next =
+            index < 0
+                ? step > 0
+                    ? 0
+                    : rows.length - 1
+                : (index + step + rows.length) % rows.length
+
+        mark(node, rows[next])
+        return true
     }
 
     function onKeyDown(event) {
-        if (event.key !== 'Escape') return
-        const top = [...store.getItems()].reverse().find((item) => !item.closing)
-        if (!top || !top.dismissible) return
-        event.preventDefault()
+        if (isEditable(event.target)) return
+
+        const key = event.key
+        const top = topLive()
+        const node = top ? nodes.get(top.id) : null
+
+        if (key === 'Escape') {
+            if (!top || !top.dismissible) return
+            event.preventDefault()
+            console.log('onScroll CALLING store.close', top.id); store.close(top.id)
+            return
+        }
+
+        // Cerrado: las flechas abren, que es lo que hace cualquiera que lleve un
+        // `<select>` de verdad. Abrir es del componente, asi que lo unico que
+        // puede hacer el host es pulsar el trigger.
+        if (!top) {
+            if (key !== 'ArrowDown' && key !== 'ArrowUp') return
+
+            const active = document.activeElement
+            const slot =
+                active instanceof Element ? active.closest('.slt-trigger-slot') : null
+
+            if (!slot) return
+
+            event.preventDefault()
+            slot.querySelector('button, [tabindex]')?.click()
+            return
+        }
+
+        const rows = rowsOf(node)
+        if (!rows.length) return
+
+        // Dentro de una fila el navegador ya sabe: el `<button>` recibe el foco
+        // por tabulacion y Enter o Espacio lo pulsan solos. Interceptarlo aqui
+        // seria elegir dos veces.
+        if (event.target instanceof Element && event.target.closest('.slt-option')) return
+
+        switch (key) {
+            case 'ArrowDown':
+            case 'ArrowUp':
+                event.preventDefault()
+                moveMark(node, key === 'ArrowDown' ? 1 : -1)
+                return
+
+            case 'Home':
+                event.preventDefault()
+                mark(node, rows[0])
+                return
+
+            case 'End':
+                event.preventDefault()
+                mark(node, rows[rows.length - 1])
+                return
+
+            case 'Enter':
+            case ' ':
+            case 'Spacebar': {
+                const current = markedRow(node)
+                if (!current) return
+                event.preventDefault()
+                current.click()
+                return
+            }
+
+            default:
+        }
+    }
+
+    /**
+     * Clic fuera, que cierra pero NO se come el clic.
+     *
+     * El overlay del select no puede encargarse: es `pointer-events: none` y esta
+     * vacio, asi que cualquier listener suyo es inalcanzable (medido: el select se
+     * quedaba abierto). Darle `pointer-events: auto` lo arreglaria al precio de
+     * bloquear la pagina entera, que es justo lo que un select no puede hacer.
+     *
+     * Asi que se escucha en `document` y en fase de CAPTURA, y no se llama ni a
+     * `preventDefault()` ni a `stopPropagation()`: el evento sigue su camino y el
+     * elemento de abajo tambien se activa. Con el select abierto, picar en
+     * "Abrir Modal" cierra el select y abre el modal, en ese orden.
+     *
+     * `pointerdown` y no `click` porque asi el cierre arranca antes de que el otro
+     * handler reaccione y porque tambien cubre el arrastre de scroll que empieza
+     * fuera.
+     */
+    function onPointerDown(event) {
+        if (event.button > 0) return
+        const top = topLive()
+        if (!top?.dismissible) return
+
+        const node = nodes.get(top.id)
+        if (!node) return
+
+        const target = event.target
+        if (target instanceof Element) {
+            // 1. Dentro del dialogo: arrastrar, scrollear la lista o pulsar una
+            //    opcion son cosas de dentro.
+            if (node.dialog.contains(target)) return
+            // 2. El propio trigger decide. Si no, un toggle se cerraria aqui y
+            //    volveria a abrirse en el mismo gesto.
+            if (top.origin instanceof Element && top.origin.contains(target)) return
+            // 3. El dialogo de OTRO select apilado por debajo: ese sabe que hacer
+            //    con lo que le tocan (normalmente, cerrarse el).
+            const otherItem = target.closest('.slt-item')
+            if (otherItem && otherItem !== node.itemEl) return
+        }
+
+        store.close(top.id)
+    }
+
+    // Con el desplegable abierto, el scroll de la PAGINA lo cierra.
+    //
+    // Antes la caja perseguia al trigger mientras se scrolleaba, y esa
+    // persecucion costaba dos cosas: el alto se recalculaba contra el viewport
+    // en cada frame -- el desplegable cambiaba de tamano, que es el defecto que
+    // reporto el dueno -- y hacia falta mantener viva una fisica para un gesto
+    // que dura un suspiro. Cerrar en el primer frame de scroll borra las dos: no
+    // hay nada que perseguir.
+    //
+    // Y el cierre sale bien por construccion. El fantasma vuela hacia el
+    // trigger, asi que cuanto antes empiece el vuelo, menos se ha movido el
+    // destino: en el primer frame de scroll la pagina se ha movido un pixel, o
+    // sea que el trigger esta EXACTAMENTE donde el fantasma cree que esta.
+    //
+    // `scroll` no burbujea -- por eso no vale un listener normal -- pero si se
+    // puede escuchar en captura sobre `document`, que es donde caen todos los
+    // scrollers de la pagina sin tener que enumerarlos.
+    function onScroll(event) {
+        const top = topLive()
+        if (!top?.dismissible || !top.closeOnScroll) return
+
+        const node = nodes.get(top.id)
+        if (!node || node.leaving) return
+
+        const target = event.target
+
+        if (target.nodeType === Node.DOCUMENT_NODE) {
+            // Scroll de ventana.
+        } else if (
+            target !== node.dialog &&
+            !node.dialog.contains(target) &&
+            document.documentElement.contains(target)
+        ) {
+            // Scroll paralelo
+        } else {
+            return
+        }
+
+
+        store.close(top.id)
+    }
+
+    function onWheel(event) {
+        const top = topLive()
+        if (!top?.dismissible || !top.closeOnScroll) return
+
+        const node = nodes.get(top.id)
+        if (!node || node.leaving) return
+
+        const target = event.target
+
+        if (
+            target === node.dialog ||
+            node.dialog.contains(target)
+        ) {
+            // Scroll is inside the select, allow it.
+            return
+        }
+
+        // Scroll is outside. Prevent it from moving the page!
+        if (event.cancelable) {
+            event.preventDefault()
+        }
+
+
         store.close(top.id)
     }
 
@@ -199,45 +470,17 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         })
     }
 
-    function place(node, item, { smooth = false } = {}) {
-        const placement = resolvePlacement(item.placement, item.origin)
+    function place(node, item) {
+        const placement = resolvePlacement(item.placement, item.origin, item.mode)
         node.placement = placement
         applySize(node.dialog, item.size)
         if (placement === 'bottom' && item.size == null) {
-            node.dialog.style.setProperty('--apr-max-width', 'min(480px, calc(100vw - 24px))')
+            node.dialog.style.setProperty('--slt-max-width', 'min(480px, calc(100vw - 24px))')
         }
-
-        // `smooth` es para las re-colocaciones con el modal YA pintado (un
-        // `refresh`: cambio de rev con el vuelo terminado). El slot nuevo se le
-        // pide al seguidor y llega deslizandose, en vez de escribirse de golpe.
-        // Lo discreto --la rama, el dataset, las clases-- lo aplica `aim` en el
-        // acto: lo unico que se mueve es la posicion. Sin seguidor (sin origin, o
-        // center) se escribe igual que siempre.
-        if (smooth && node.follow) {
-            node.follow.setTarget(originBox(item.origin))
-            return
-        }
-
         layoutSlot(node.dialog, node.itemEl, item.origin, placement, {
             gap: config.placementGap,
             padding: config.placementPadding,
         })
-
-        // La caja que el vuelo va a congelar: la medida del montaje, que es la que
-        // el motor devuelve al soltar el pin al final del vuelo. Se guarda en el
-        // unico `place` que corre antes de volar (el del montaje), y es lo que le
-        // permite a `finish` saber de que tamano viene la caja para no pintar el
-        // salto cuando el contenido crecio por el camino.
-        if (!smooth) {
-            const box = node.dialog.getBoundingClientRect()
-            const base = node.itemEl.getBoundingClientRect()
-            node.flightBox = {
-                width: box.width,
-                height: box.height,
-                left: box.left - base.left,
-                top: box.top - base.top,
-            }
-        }
     }
 
     function bindAria(dialog, body, item) {
@@ -247,7 +490,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
             dialog.setAttribute('aria-labelledby', item.labelledBy)
             return
         }
-        const title = body.querySelector('.apr-title')
+        const title = body.querySelector('.slt-title')
         if (title?.id) dialog.setAttribute('aria-labelledby', title.id)
         else if (item.ariaLabel) dialog.setAttribute('aria-label', item.ariaLabel)
         else if (item.title) dialog.setAttribute('aria-label', item.title)
@@ -278,15 +521,11 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         })
         node.follow = follow
 
-        // `suave` dice de donde viene el cambio de rect: un scroll se suaviza
-        // (el modal acompaña al trigger mientras se scrollea), un escalon de
-        // layout aterriza en el frame. Sin esta distincion el polo convierte
-        // cualquier desfase de apertura en un deslizamiento de 1 a 3 s.
-        node.untrack = trackOrigin(item.origin, (rect, suave) => {
+        node.untrack = trackOrigin(item.origin, () => {
             if (node.leaving) {
                 if (node.closeTarget) {
-                    const parentEl = node.closeTarget.closest('.apr-item')
-                    if (parentEl && store.get(Number(parentEl.dataset.aprId))?.closing) {
+                    const parentEl = node.closeTarget.closest('.slt-item')
+                    if (parentEl && store.get(Number(parentEl.dataset.mdlId))?.closing) {
                         node.untrack?.()
                         node.untrack = null
                         // El vuelo se aborta: no queda destino que perseguir.
@@ -307,7 +546,8 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
             // La medida se hace aqui y no dentro de `layoutSlot` para que el
             // seguidor reciba el rect vivo. Con `placementFollow: 0` el
             // resultado es exactamente la escritura directa de siempre.
-            follow.setTarget(originBox(current.origin), { smooth: suave })
+            // Sin escala: un boton pulsado no es un origin mas pequeno.
+            follow.setTarget(unscaledRect(current.origin))
         })
     }
 
@@ -327,7 +567,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         })
     }
 
-    const LAYOUT_KEYS = ['apr-title', 'apr-description', 'apr-input', 'apr-actions']
+    const LAYOUT_KEYS = ['slt-title', 'slt-description', 'slt-input', 'slt-actions']
     const SIZE_SPRING = { stiffness: 180, damping: 22, velocity: 0, restDelta: 0.5, restSpeed: 4 }
 
     function rectOf(el, shellRect) {
@@ -348,7 +588,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
             if (el) shot[key] = rectOf(el, shellRect)
         }
         if (Object.keys(shot).length > 0) return shot
-        const card = body.querySelector('.apr-card') ?? body
+        const card = body.querySelector('.slt-card') ?? body
             ;[...card.children].forEach((el, i) => {
                 shot[`n${i}`] = rectOf(el, shellRect)
             })
@@ -357,7 +597,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
 
     function findLayoutEl(body, key) {
         if (!key.startsWith('n')) return body.querySelector(`.${key}`)
-        const card = body.querySelector('.apr-card') ?? body
+        const card = body.querySelector('.slt-card') ?? body
         return card.children[Number(key.slice(1))] ?? null
     }
 
@@ -621,13 +861,8 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         }
 
         node.origin = item.origin
-        node.itemEl.className = `apr-item${item.color ? ` color-${item.color}` : ''}`
-        // Suave: aqui la caja ya esta pintada y el seguidor vivo. Escribir el slot
-        // de golpe la teletransportaba al sitio nuevo en un frame mientras el
-        // tamano todavia era el viejo (`from`), que es el mismo salto que el final
-        // del vuelo: el slot se desliza, y quien lo re-apunta frame a frame durante
-        // el spring de tamano es `relayout`.
-        place(node, item, { smooth: true })
+        node.itemEl.className = `slt-item${item.color ? ` color-${item.color}` : ''}`
+        place(node, item)
         startTracking(node, item)
         attachGesture(node, item)
         springHeight(node, from, fromLayout)
@@ -647,7 +882,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         if (!(item.content instanceof HTMLElement)) return
         if (contentOwner.get(item.content) !== item.id) return
 
-        const card = node.body.querySelector('.apr-card')
+        const card = node.body.querySelector('.slt-card')
 
         if (card && item.content.parentNode === card) {
             if (node.snapshot && node.snapshot.parentNode !== card) {
@@ -683,7 +918,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         }
 
         if (owner.snapshot && !owner.snapshot.parentNode) {
-            const card = owner.body.querySelector('.apr-card')
+            const card = owner.body.querySelector('.slt-card')
 
             if (card) card.append(owner.snapshot)
         }
@@ -705,38 +940,40 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         takeContent(item)
 
         const itemEl = document.createElement('div')
-        itemEl.className = 'apr-item'
-        itemEl.dataset.aprId = String(item.id)
+        itemEl.className = 'slt-item'
+        itemEl.dataset.mdlId = String(item.id)
+
+        // El overlay del select NO bloquea. Es un fantasma: `pointer-events:
+        // none`, vacio, y no tiene listener. El del modal si bloquea y si cierra;
+        // este no puede, porque un desplegable que se traga el primer clic le
+        // esta quitando a la pagina algo que no es suyo. El cierre por clic fuera
+        // vive en `onPointerDown`, que no consume el evento.
+        const overlay = document.createElement('div')
+        overlay.className = 'slt-overlay'
+        overlay.dataset.mdlOverlay = ''
+
+        const dialog = document.createElement('div')
+        dialog.className = 'slt-dialog'
+        dialog.setAttribute('role', 'dialog')
+        // SIN `aria-modal`. Es una promesa de que todo lo de fuera esta inerte, y
+        // el select ya no lo esta: la pagina sigue viva, el scroll funciona y el
+        // tabulador se sale del dialogo. Dejarlo puesto hace que un lector de
+        // pantalla lea la pagina como si no estuviera, y con ella desaparecen
+        // justo las cosas que el usuario tiene que poder seguir tocando.
+        dialog.tabIndex = -1
+
+
+        const shell = document.createElement('div')
+        shell.className = 'slt-shell'
+        shell.dataset.mdlShell = ''
         if (item.color) {
             itemEl.classList.add(`color-${item.color}`)
         }
 
-        const overlay = document.createElement('div')
-        overlay.className = 'apr-overlay'
-        overlay.dataset.aprOverlay = ''
-
-        // El overlay SIEMPRE bloquea y SIEMPRE cierra al picar fuera. Antes, con
-        // `blocking: false`, se le ponia `pointer-events: none` y su propio
-        // listener de abajo no podia dispararse nunca: el modal se quedaba sin
-        // forma de cerrarse con el raton.
-        //
-        // Para abrir otro modal hay que cerrar este primero; con el lock
-        // suelto al empezar el cierre y el trigger aun picable, el doble clic
-        // de memoria muscular (fuera -> trigger) sigue funcionando.
-
-        const dialog = document.createElement('div')
-        dialog.className = 'apr-dialog'
-        dialog.setAttribute('role', 'dialog')
-        dialog.setAttribute('aria-modal', 'true')
-        dialog.tabIndex = -1
-
-        const shell = document.createElement('div')
-        shell.className = 'apr-shell'
-        shell.dataset.aprShell = ''
 
         const body = document.createElement('div')
-        body.className = 'apr-body'
-        body.dataset.aprBody = ''
+        body.className = 'slt-body'
+        body.dataset.mdlBody = ''
 
         const close = (result) => store.close(item.id, result)
         const cleanupContent = fillBody(body, item, { close, id: item.id })
@@ -751,12 +988,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         itemEl.append(overlay, dialog)
         layer.append(itemEl)
 
-        overlay.addEventListener('click', (event) => {
-            if (event.target !== overlay) return
-            const current = store.get(item.id)
-            if (current?.dismissible) store.close(item.id)
-        })
-
+        // Sin listener en el overlay. Ver `onPointerDown` para el por que.
         const node = {
             itemEl,
             overlay,
@@ -809,46 +1041,11 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         const finish = () => {
             node.morphing = false
             node.morph = null
-
-            // El motor suelta el pin del shell aqui: la caja pasa a su tamano
-            // natural. Normalmente es el mismo al que volo (medido: 276.5 contra
-            // 276.4, ruido de spring) y soltarlo no se ve. Pero si el contenido
-            // cambio de tamano durante el vuelo --una fuente que cambia las
-            // metricas, una imagen que decodifica, un hijo que monta tarde-- el
-            // tamano al que volo NO es el natural: la caja da el estiron en este
-            // frame y el slot se recalcula con el tamano nuevo, asi que el modal
-            // entero salta. Medido agrandando la card 200px a mitad de vuelo:
-            // `top` pasa de 394.288 a 178.288 (216px) en un frame, error de
-            // interpolacion 108px = local/2, y las tres unicas escrituras de
-            // host.js de toda la apertura caen en ese frame. Con `center` no pasa:
-            // su slot no se escribe nunca.
-            const natural = node.shell.getBoundingClientRect()
-            node.lastWidth = natural.width
-            node.lastHeight = natural.height
-
-            const box = node.flightBox
-            const grew = !node.leaving && box && node.origin && node.placement !== 'center'
-                && (Math.abs(natural.width - box.width) >= 1 || Math.abs(natural.height - box.height) >= 1)
-
-            if (grew) {
-                // Se repinta el ultimo frame del vuelo --caja y slot, que es lo que
-                // el ojo acaba de ver-- y se suelta el tamano con spring. El spring
-                // re-apunta el slot en CADA frame (`relayout`), asi que el modal
-                // crece y se desliza a su sitio de forma continua: ningun frame
-                // salta, y al asentarse la geometria es la correcta. `lastWidth`/
-                // `lastHeight` ya quedaron en el tamano natural, que es el que el
-                // ResizeObserver tiene que tomar como referencia.
-                node.dialog.style.position = 'absolute'
-                node.dialog.style.left = `${box.left}px`
-                node.dialog.style.top = `${box.top}px`
-                node.shell.style.width = `${box.width}px`
-                node.shell.style.height = `${box.height}px`
-                void node.body.offsetHeight
-                springHeight(node, { width: box.width, height: box.height }, snapshotLayout(node.body, node.shell))
-            }
-
             startTracking(node, item)
             attachGesture(node, item)
+
+            node.lastWidth = shell.getBoundingClientRect().width
+            node.lastHeight = shell.getBoundingClientRect().height
 
             if (!node.resizeObserver && typeof ResizeObserver !== 'undefined') {
                 node.resizeObserver = new ResizeObserver(() => {
@@ -910,7 +1107,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
             // tapando la pagina entera. Medido con un `ReferenceError` dentro de
             // `morphFromOrigin`: el modal nacia congelado a los 150 ms, seguia
             // identico a los 1150, el clic fuera no llegaba a nada y el
-            // `elementsFromPoint` del centro devolvia `apr-dialog`/`apr-overlay`
+            // `elementsFromPoint` del centro devolvia `slt-dialog`/`slt-overlay`
             // por encima del BODY. Eso es el raton muerto: la pagina entera deja
             // de responder y el modal no se puede ni cerrar.
             //
@@ -921,7 +1118,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
             // sin animacion, pero la pagina vuelve a responder.
             try {
                 if (mode === 'gsap') {
-                    node.morph = gsapMorphFromOrigin(morphArgs)
+                    node.morph = gsapSelectFromOrigin(morphArgs)
                 } else {
                     node.morph = morphFromOrigin(morphArgs)
                 }
@@ -958,6 +1155,12 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         const node = nodes.get(item.id)
         if (!node || node.leaving) return
         node.leaving = true
+
+        // El resaltado del teclado se va con el cierre. Los elementos de las
+        // filas no se destruyen: el contenido vuelve a su sitio al terminar
+        // (`releaseContent`), asi que una clase que no se limpie aqui reaparece
+        // pintada en la apertura siguiente.
+        mark(node, null)
 
         if (liveNodes().length === 0) lock.release()
 
@@ -997,9 +1200,9 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         let reverse = mode !== 'simple' && originHidden && canMorphFrom(closeTarget)
 
         if (reverse) {
-            const parentEl = closeTarget.closest('.apr-item')
+            const parentEl = closeTarget.closest('.slt-item')
             if (parentEl) {
-                const parentId = Number(parentEl.dataset.aprId)
+                const parentId = Number(parentEl.dataset.mdlId)
                 const parentState = store.get(parentId)
                 if (parentState?.closing) {
                     reverse = false
@@ -1060,7 +1263,13 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
                 bodyEl: body,
                 origin: closeTarget,
                 originStyle: closeTarget === origin ? item.originStyle : null,
-                options: { ...morphOptions, mode },
+                // Las de este cierre MANDAN sobre las del item: `closeOptions`
+                // es lo que solo se supo al elegir (`morph.exitSource`, la fila
+                // que tiene que volar al trigger), y el item se creo al abrir,
+                // cuando no habia ninguna eleccion. Los cierres que no pasan
+                // nada -- Escape, clic fuera, abort, el gesto -- no traen
+                // `closeOptions` y se quedan con lo de siempre.
+                options: { ...morphOptions, mode, ...(item.closeOptions?.morph ?? {}) },
                 onSettle: () => {
                     if (closeTarget !== origin) releaseOrigin(closeTarget, node)
                     finish()
@@ -1071,7 +1280,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
             }
 
             if (mode === 'gsap') {
-                node.morph = gsapMorphToOrigin(morphArgs)
+                node.morph = gsapSelectToOrigin(morphArgs)
             } else {
                 node.morph = morphToOrigin(morphArgs)
             }
@@ -1118,7 +1327,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
     // Teardown terminal de un nodo: suelta todo lo que el host le presto
     // (motor, tracking, gesto, observers, contenido) y quita el item del store.
     //
-    // Es el UNICO camino que garantiza que no queda un `.apr-item` cubriendo la
+    // Es el UNICO camino que garantiza que no queda un `.slt-item` cubriendo la
     // pagina, asi que lo usan tanto el cierre normal como la red de `sync()`.
     // Su orden importa: `dispose()` va primero (el motor todavia tiene el vuelo
     // y el slot congelado), y el `itemEl.remove()` se lleva por delante lo que
@@ -1263,8 +1472,8 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
             // nada responde y el modal no se puede ni cerrar. Medido: un throw
             // en `canMorphFrom` (antes incluso de que el motor midiera el
             // origin) dejaba el modal visible pero sin gesto de cierre, con el
-            // `elementsFromPoint` del centro devolviendo `apr-dialog` /
-            // `apr-overlay` por encima del BODY. Eso es el raton muerto. Aqui se
+            // `elementsFromPoint` del centro devolviendo `slt-dialog` /
+            // `slt-overlay` por encima del BODY. Eso es el raton muerto. Aqui se
             // retira el modal entero -- sin animacion, pero la pagina revive.
             try {
                 if (!item.closing && !nodes.has(item.id)) enter(item)
@@ -1279,7 +1488,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
                 } else {
                     // Ni nodo llego a tener: el item pudo quedarse en el DOM a
                     // medias. Quitarlo es idempotente.
-                    document.querySelector(`.apr-item[data-apr-id="${item.id}"]`)?.remove()
+                    document.querySelector(`.slt-item[data-mdl-id="${item.id}"]`)?.remove()
                     store.remove(item.id)
                     restack()
                 }
@@ -1321,6 +1530,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         nodes.clear()
         contentOwner.clear()
         document.removeEventListener('keydown', onKeyDown)
+        document.removeEventListener('pointerdown', onPointerDown, true)
         lock.destroy()
         layer?.remove()
         layer = null

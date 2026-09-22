@@ -35,7 +35,8 @@ const playground = ref({
   mode: 'single' as 'single' | 'range' | 'multiple',
   independentThumbs: false,
   coloredTrack: false,
-  sound: true
+  sound: true,
+  thumbRadius: 8
 });
 
 watch(() => playground.value.mode, (newMode) => {
@@ -81,16 +82,16 @@ const colorsList: ColorType[] = ['orange', 'blue', 'red', 'yellow', 'black', 'gr
 
 // Mapeo visual de dots de color para el selector
 const colorDotMap: Record<ColorType, string> = {
-  orange: '#f97316',
-  blue: '#3b82f6',
-  red: '#ef4444',
-  yellow: '#facc15',
-  black: '#ffffff',
+  orange: '#ff4d00',
+  blue: '#4259f6',
+  red: '#ff0b0a',
+  yellow: '#ffb830',
+  black: isDark.value ? '#ffffff' : '#000000',
   green: '#22c55e',
   cyan: '#06b6d4',
-  lime: '#84cc16',
-  violet: '#a855f7',
-  pink: '#ec4899'
+  lime: '#a3e635',
+  violet: '#9333ea',
+  pink: '#ff1493'
 };
 
 // Generador de código Vue en tiempo real
@@ -110,6 +111,7 @@ const generatedPlaygroundCode = computed(() => {
   if (playground.value.independentThumbs && playground.value.mode !== 'single') parts.push(`independentThumbs`);
   if (playground.value.coloredTrack) parts.push(`coloredTrack`);
   if (playground.value.sound) parts.push(`sound`);
+  if (playground.value.thumbRadius !== 8) parts.push(`:thumbRadius="${Math.round(playground.value.thumbRadius)}"`);
   
   return parts.join(' ') + ' />';
 });
@@ -140,18 +142,6 @@ const selectedMatrixColor = ref<string>('all');
           <span>v0.1.0</span>
           <span class="meta-divider">·</span>
           <span>Slider</span>
-        </div>
-        
-        <div class="theme-toggle">
-          <Button 
-            variant="ghost" 
-            color="black" 
-            shape="round" 
-            size="small"
-            @click="toggleTheme"
-          >
-            {{ isDark ? 'Light' : 'Dark' }}
-          </Button>
         </div>
       </header>
 
@@ -209,6 +199,7 @@ const selectedMatrixColor = ref<string>('all');
                 :independentThumbs="playground.independentThumbs"
                 :coloredTrack="playground.coloredTrack"
                 :sound="playground.sound"
+                :thumbRadius="playground.thumbRadius"
               />
             </div>
           </div>
@@ -229,6 +220,7 @@ const selectedMatrixColor = ref<string>('all');
                 :independentThumbs="playground.independentThumbs"
                 :coloredTrack="playground.coloredTrack"
                 :sound="playground.sound"
+                :thumbRadius="playground.thumbRadius"
               />
             </div>
           </div>
@@ -423,6 +415,24 @@ const selectedMatrixColor = ref<string>('all');
             </div>
           </div>
 
+          <!-- PROP: THUMB RADIUS -->
+          <div class="prop-control-row">
+            <div class="prop-info-col">
+              <span class="prop-name">thumbRadius</span>
+              <span class="prop-type-signature">number (4 - 32)</span>
+            </div>
+            <div class="prop-input-col">
+              <div style="width: 280px; display: flex; flex-direction: column; gap: 12px;">
+                <Slider v-model="playground.thumbRadius" :min="4" :max="32" color="green" style="width: 60%; align-self: flex-end;" />
+                <div style=" width: 60%; align-self: flex-end; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-secondary);">
+                  <span style="flex: 1; text-align: left;">4</span>
+                  <span style="flex: 1; text-align: center; font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; font-size: 12px;">{{ Math.round(playground.thumbRadius) }}</span>
+                  <span style="flex: 1; text-align: right;">32</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <!-- GENERADOR DE CÓDIGO VUE DINÁMICO -->
@@ -532,7 +542,7 @@ const selectedMatrixColor = ref<string>('all');
               title="Todos los colores"
               @click="selectedMatrixColor = 'all'"
             >
-              <span class="dot-circle" style="background: linear-gradient(135deg, #f97316, #3b82f6, #ec4899);"></span>
+              <span class="dot-circle" style="background: linear-gradient(135deg, #ff4d00, #4259f6, #ff1493);"></span>
             </button>
             <button
               v-for="c in colorsList"

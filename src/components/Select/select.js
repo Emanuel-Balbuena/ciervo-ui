@@ -467,11 +467,86 @@ function clearFrozen(
             'filter',
             'opacity',
             'width',
+            'height',
             'flex',
             'transition',
         ]) {
             bodyEl.style[property] = ''
         }
+    }
+}
+
+
+// -----------------------------------------------------------------------------
+// LABEL OFFSET
+// -----------------------------------------------------------------------------
+
+/**
+ * Donde cae la TINTA de la etiqueta `key` dentro de la caja `box` de `root`.
+ *
+ * Desplazamiento, no posicion: es lo que hace falta para comparar dos copias del
+ * mismo texto que estan en sitios distintos de la pantalla -- la etiqueta del
+ * trigger contra la del encabezado del dialogo --, y es invariante al scroll y
+ * al vuelo de la caja, asi que no hay que volver a medir nada.
+ *
+ * Se mide la tinta y no la caja del elemento, y con el MISMO instrumento con el
+ * que el fantasma mide su origen y su destino (`measureWords` + `snapRows`).
+ * Esto no es un detalle: medido en el aterrizaje de esta demo, la caja del
+ * `<span>` de la etiqueta del trigger mide 20px (es inline, y su caja es la de
+ * los glifos) mientras la del item flex de la fila mide 16 (su caja es la de la
+ * linea). Alineando cajas, la tinta de la fila quedaba 1px por debajo de la del
+ * trigger -- y de la del fantasma, que si mide tinta. Con tinta, los tres
+ * coinciden.
+ *
+ * Sin marca en `root`, cero: mas vale aterrizar en la esquina que no aterrizar.
+ *
+ * `root` CUENTA. El encabezado del dialogo se pasa a si mismo como raiz -- es el
+ * que lleva la marca --, y `querySelector` busca solo en los descendientes, asi
+ * que sin el `matches` no encontraba nada, devolvia cero y el desplazamiento
+ * salia con el error entero del offset (medido: 9.00px donde son 1.50).
+ */
+export function labelOffsetOf(root, box, key) {
+    const selector = `[data-morph-split="${key}"]`
+
+    const label =
+        root.matches?.(selector)
+            ? root
+            : root.querySelector(selector)
+
+    if (!label) {
+        return { x: 0, y: 0 }
+    }
+
+    return inkOffsetOf(label, box)
+}
+
+
+/**
+ * El mismo desplazamiento, pero de un elemento cualquiera. Lo usa el lado de la
+ * FILA, que no lleva marca: el elemento lo elige el consumidor y llega por
+ * `config.exitSource`.
+ */
+export function inkOffsetOf(element, box) {
+    const words =
+        snapRows(
+            measureWords(element),
+        )
+
+    if (!words.length) {
+        return { x: 0, y: 0 }
+    }
+
+    let left = Infinity
+    let top = Infinity
+
+    for (const word of words) {
+        left = Math.min(left, word.box.left)
+        top = Math.min(top, word.box.top)
+    }
+
+    return {
+        x: left - box.left,
+        y: top - box.top,
     }
 }
 
@@ -835,7 +910,7 @@ function measureAscents(specs) {
         document.createElement('div')
 
     host.className =
-        'apr-ghost-metrics'
+        'slt-ghost-metrics'
 
     host.style.position =
         'fixed'
@@ -1029,8 +1104,8 @@ function makeGhost(
 
 // Capa de vuelo de UN modal.
 //
-// Vive dentro del `.apr-item` de su propio modal, no colgada de `document.body`.
-// `.apr-item` tiene `isolation: isolate`, asi que el z-index de aqui adentro
+// Vive dentro del `.slt-item` de su propio modal, no colgada de `document.body`.
+// `.slt-item` tiene `isolation: isolate`, asi que el z-index de aqui adentro
 // queda confinado a su contexto de apilado: el item que se cierra va antes en
 // el DOM que el que entra, de modo que su texto e icono terminan la animacion
 // POR DEBAJO del modal nuevo. Colgada de `body` con z-index 999999 volaba por
@@ -1045,7 +1120,7 @@ function makeFlightHost(container) {
     const host = document.createElement('div')
 
     host.className =
-        'apr-ghost-flight'
+        'slt-ghost-flight'
 
     host.style.position =
         'fixed'
@@ -1059,7 +1134,7 @@ function makeFlightHost(container) {
     host.style.pointerEvents =
         'none'
 
-    ;(container ?? document.body).appendChild(host)
+        ; (container ?? document.body).appendChild(host)
 
     return host
 }
@@ -1396,6 +1471,12 @@ function flyGhosts(
 
     let completed = false
 
+    // El ultimo pintado fue el aterrizaje (t = 1) y no un frame de vuelo. Lo
+    // lee el traspaso de la apertura para decidir si puede cortar en el mismo
+    // frame en vez de fundir: fundir solo tiene sentido para tapar un corte que
+    // no es exacto.
+    let landed = false
+
     // Ultima clave pintada. En modo pegado la posicion del texto es funcion
     // EXACTA de (esquina de la caja, t): si los dos coinciden no hay nada nuevo
     // que escribir. Importa porque el bucle del motor y el ticker de gsap no
@@ -1408,6 +1489,9 @@ function flyGhosts(
     let lastKey = null
 
     const place = (entry, t, box) => {
+        const wasLanded = landed
+        landed = t === 1
+
         // Con `boxAt` el fantasma cuelga de la caja viva y el polo no participa:
         // la caja se lleva su propio resorte tambien en el reapuntado, asi que
         // texto y caja son el MISMO movimiento por construccion, no dos curvas
@@ -1442,8 +1526,73 @@ function flyGhosts(
             const style =
                 entry.ghost.style
 
-            style.transform =
-                `translate3d(${x}px, ${y}px, 0) scale(${scale})`
+            // -----------------------------------------------------------------
+            // EL ATERRIZAJE DEJA DE SER UNA CAPA.
+            //
+            // Medido con captura de pantalla y diff pixel a pixel en el frame
+            // del traspaso (jump6), en DPR 1 / 1.1 / 1.25 / 1.5 / 2: mientras el
+            // fantasma viaja con un `translate3d` FRACCIONARIO el compositor lo
+            // redondea hacia abajo a la rejilla de pixel de dispositivo al
+            // terminar la animacion, y su tinta queda hasta 1 px de dispositivo
+            // a la izquierda/arriba de la del elemento real -- que no se
+            // redondea, porque lo pinta el pintor del documento con antialias de
+            // subpixel. Desplazamiento del centro de tinta medido: -0.08 px de
+            // dispositivo a DPR 1, -0.23 a 1.1, -0.12 a 1.25, -0.15 a 1.5, -0.29
+            // a 2. Siempre negativo y siempre dentro de 1/dpr: eso es un
+            // redondeo, no un error de calculo.
+            //
+            // Y no le pega igual a los dos: en el MISMO vuelo, a DPR 1.1 el
+            // texto cambia el 2.1% de sus pixeles (picos de 74/255) y el icono
+            // el 0.3%; a DPR 1.25 el texto cambia el 0.0% y el icono el 0.6%.
+            // Cada elemento tiene su parte fraccionaria, y la rejilla la fija el
+            // zoom. Eso es, literalmente, "a veces el icono, a veces el texto, a
+            // veces los dos, y tantito cambio el zoom".
+            //
+            // En t = 1 la escala es exactamente 1, y a escala 1 `translate3d(x,
+            // y, 0)` y `left: x; top: y` son el MISMO pixel: lo unico que cambia
+            // es el camino de pintado. Con left/top lo pinta el pintor normal,
+            // en la misma posicion fraccionaria y con el mismo antialias que el
+            // elemento real, asi que el fundido de traspaso cruza dos tintas
+            // identicas en vez de dos casi identicas. En vuelo (escala != 1) se
+            // mantiene la capa, que es lo que hace barato el movimiento.
+            //
+            // La condicion es `t === 1`, no `scale === 1`: la escala se calcula
+            // como `startScale + (1 - startScale) * t` y en t = 1 eso no vale
+            // exactamente 1 en coma flotante, mientras que un par de origen y
+            // destino del MISMO tamano da escala 1 durante todo el vuelo -- y
+            // ahi la capa es lo que hace barato el movimiento. El aterrizaje es
+            // t = 1 por construccion: `finish()` pinta con 1 exacto.
+            //
+            // Sin estado: la decision se toma del `t` de cada frame. Un flag se
+            // quedaria pegado si el vuelo se re-apunta despues (el motor sigue
+            // repintando con `roundT` ya asentado mientras los canales de caja
+            // se mueven).
+            // -----------------------------------------------------------------
+            if (t === 1) {
+                style.transform =
+                    'none'
+
+                style.left =
+                    `${x}px`
+
+                style.top =
+                    `${y}px`
+            } else {
+                // Solo se devuelve left/top a 0 si el frame anterior fue el
+                // aterrizaje: escribirlos en cada frame de vuelo seria pedir
+                // layout en cada frame para nada (el fantasma nace en 0 y solo
+                // los mueve el aterrizaje).
+                if (wasLanded) {
+                    style.left =
+                        '0px'
+
+                    style.top =
+                        '0px'
+                }
+
+                style.transform =
+                    `translate3d(${x}px, ${y}px, 0) scale(${scale})`
+            }
 
             if (entry.colorBlend) {
                 style.color =
@@ -1668,6 +1817,12 @@ function flyGhosts(
 
         isComplete() {
             return completed
+        },
+
+        // Verdadero si el fantasma esta pintado EN el destino, que es lo que
+        // hace seguro cortar el traspaso en el mismo frame.
+        isLanded() {
+            return landed
         },
     }
 }
@@ -1947,6 +2102,23 @@ function fontScale(fromBox, toBox) {
 function collectGhostSpecs(
     fromRoot,
     toRoot,
+
+    // clave -> elemento del que sale la TINTA, cuando no es el que lleva el
+    // atributo dentro de `fromRoot`.
+    //
+    // Hace falta para el cierre de un select: la etiqueta que tiene que volar
+    // es la de la FILA elegida, y esa fila no lleva `data-morph-split`. Ponerle
+    // el atributo no vale -- habria dos specs de la misma clave (el encabezado
+    // del dialogo y la fila) y por tanto dos fantasmas aterrizando en el mismo
+    // objetivo; y ademas envenenaria la APERTURA, que colecciona al reves
+    // (`collectGhostSpecs(origin, dialogEl)`) y encontraria los dos. Y pasar la
+    // fila como `fromRoot` tampoco: se perderian los specs de iconos, que se
+    // recolectan del arbol entero.
+    //
+    // Con esto, `toEl` se sigue resolviendo por clave en `toRoot` y el resto del
+    // spec (caja destino viva, emparejamiento por indice de palabra, escala de
+    // fuente) no cambia.
+    sourceOverrides = null,
 ) {
     const specs = []
 
@@ -1977,10 +2149,21 @@ function collectGhostSpecs(
 
             if (!toEl) return
 
+            // De donde sale la tinta. Por defecto el propio elemento con el
+            // atributo; con override, el que diga el consumidor (la fila).
+            const srcEl =
+                sourceOverrides?.[key]
+                    instanceof HTMLElement &&
+                    sourceOverrides[key].isConnected
+                    ? sourceOverrides[key]
+                    : fromEl
+
+            if (!srcEl.isConnected) return
+
             const sources =
                 snapRows(
                     measureWords(
-                        fromEl,
+                        srcEl,
                     ),
                 )
 
@@ -2013,7 +2196,7 @@ function collectGhostSpecs(
                     index: i,
 
                     sourceContainer:
-                        fromEl,
+                        srcEl,
 
                     revealContainer:
                         toEl,
@@ -2344,31 +2527,25 @@ function createContentController(
             )
 
         if (opening) {
-            fadingElements.forEach(
-                (el) => {
-                    el.style.filter =
-                        `blur(${config.contentBlur}px)`
-
-                    el.style.opacity =
-                        '0'
-
-                    el.style.transform =
-                        `scale(${config.contentScale})`
-                },
-            )
+            bodyEl.style.transition = 'none'
+            bodyEl.style.WebkitMaskImage = 'linear-gradient(to bottom right, black 40%, transparent 60%)'
+            bodyEl.style.WebkitMaskSize = '300% 300%'
+            bodyEl.style.WebkitMaskPosition = '100% 100%'
+            bodyEl.style.maskImage = 'linear-gradient(to bottom right, black 40%, transparent 60%)'
+            bodyEl.style.maskSize = '300% 300%'
+            bodyEl.style.maskPosition = '100% 100%'
+            bodyEl.style.filter = `blur(${config.contentBlur}px)`
+            bodyEl.style.opacity = '1'
         } else {
-            fadingElements.forEach(
-                (el) => {
-                    el.style.filter =
-                        'none'
-
-                    el.style.opacity =
-                        '1'
-
-                    el.style.transform =
-                        'scale(1)'
-                },
-            )
+            bodyEl.style.transition = 'none'
+            bodyEl.style.WebkitMaskImage = 'linear-gradient(to bottom left, transparent 40%, black 60%)'
+            bodyEl.style.WebkitMaskSize = '300% 300%'
+            bodyEl.style.WebkitMaskPosition = '0% 100%'
+            bodyEl.style.maskImage = 'linear-gradient(to bottom left, transparent 40%, black 60%)'
+            bodyEl.style.maskSize = '300% 300%'
+            bodyEl.style.maskPosition = '0% 100%'
+            bodyEl.style.filter = 'blur(0px)'
+            bodyEl.style.opacity = '1'
         }
     }
 
@@ -2399,15 +2576,15 @@ function createContentController(
             if (config.mode === 'gsap') {
                 if (detached) return
 
-                fadingElements.forEach(
-                    (el) => {
-                        el.style.transition =
-                            `opacity ${config.contentDuration}s ease-out ${config.colorDelay}s`
+                const dur = config.contentDuration + 0.4
+                bodyEl.style.transition = `mask-position ${dur}s ease-out ${config.colorDelay}s, -webkit-mask-position ${dur}s ease-out ${config.colorDelay}s, filter ${dur}s ease-out ${config.colorDelay}s`
 
-                        el.style.opacity =
-                            '1'
-                    },
-                )
+                // Force reflow
+                bodyEl.offsetHeight
+
+                bodyEl.style.WebkitMaskPosition = '0% 0%'
+                bodyEl.style.maskPosition = '0% 0%'
+                bodyEl.style.filter = 'blur(0px)'
 
                 return
             }
@@ -2423,15 +2600,15 @@ function createContentController(
             if (config.mode === 'gsap') {
                 if (detached) return
 
-                fadingElements.forEach(
-                    (el) => {
-                        el.style.transition =
-                            `opacity ${config.closeContentDuration}s ease-in`
+                const dur = config.closeContentDuration + 0.1
+                bodyEl.style.transition = `mask-position ${dur}s ease-in, -webkit-mask-position ${dur}s ease-in, filter ${dur}s ease-in`
 
-                        el.style.opacity =
-                            '0'
-                    },
-                )
+                // Force reflow
+                bodyEl.offsetHeight
+
+                bodyEl.style.WebkitMaskPosition = '100% 0%'
+                bodyEl.style.maskPosition = '100% 0%'
+                bodyEl.style.filter = `blur(${config.contentBlur || 12}px)`
 
                 return
             }
@@ -2447,12 +2624,7 @@ function createContentController(
             if (config.mode === 'gsap') {
                 if (detached) return
 
-                fadingElements.forEach(
-                    (el) => {
-                        el.style.transform =
-                            `scale(${value})`
-                    },
-                )
+                // Scale eliminado para no pisar las transiciones CSS nativas
 
                 return
             }
@@ -2465,12 +2637,7 @@ function createContentController(
             if (config.mode === 'gsap') {
                 if (detached) return
 
-                fadingElements.forEach(
-                    (el) => {
-                        el.style.filter =
-                            `blur(${value}px)`
-                    },
-                )
+                // Blur eliminado para no pisar las transiciones CSS nativas
 
                 return
             }
@@ -2497,6 +2664,15 @@ function createContentController(
                     el.style.transition = ''
                 },
             )
+            bodyEl.style.transition = ''
+            bodyEl.style.WebkitMaskImage = ''
+            bodyEl.style.WebkitMaskSize = ''
+            bodyEl.style.WebkitMaskPosition = ''
+            bodyEl.style.maskImage = ''
+            bodyEl.style.maskSize = ''
+            bodyEl.style.maskPosition = ''
+            bodyEl.style.filter = ''
+            bodyEl.style.opacity = ''
         },
 
         reset() {
@@ -2518,6 +2694,155 @@ function createContentController(
             bodyEl.style.filter = ''
             bodyEl.style.opacity = ''
             bodyEl.style.transition = ''
+            bodyEl.style.WebkitMaskImage = ''
+            bodyEl.style.WebkitMaskSize = ''
+            bodyEl.style.WebkitMaskPosition = ''
+            bodyEl.style.maskImage = ''
+            bodyEl.style.maskSize = ''
+            bodyEl.style.maskPosition = ''
+        },
+    }
+}
+
+
+// -----------------------------------------------------------------------------
+// EXIT RIG
+// -----------------------------------------------------------------------------
+
+/**
+ * La fila elegida viajando dentro de la caja, en los dos sentidos.
+ *
+ * El rig es UNO y va de `from` a `to`: en el cierre `(0, d)` -- la fila sale de
+ * su sitio en la caja y aterriza en el trigger -- y en el modo sticky `(d, 0)`,
+ * que es el mismo recorrido leido del reves, con el reloj del morph girando en
+ * el otro sentido. El `d` es el mismo numero en los dos casos.
+ *
+ * El cierre colapsa el shell entero al rect del trigger en un solo muelle: ese
+ * es el borde EXTERNO, y ya funcionaba. Lo que faltaba es el interno -- que lo
+ * que se vea viajar sea la fila elegida, y que aterrice exactamente cuando el
+ * shell aterriza, sin que el texto parpadee al final.
+ *
+ * No es una segunda fase ni un segundo reloj. Con `u = state.roundT` el
+ * translate que deja la fila encima del trigger es
+ *
+ *     dx = (L.left - T.left) - (R.left - S.left)
+ *     dy = (L.top  - T.top ) - (R.top  - S.top )
+ *
+ * con S = rect del shell al empezar el cierre, R = caja de tinta de la etiqueta
+ * elegida, T = rect del trigger y L = caja de tinta de la etiqueta del trigger.
+ *
+ * Y ese translate NO se parece al camino del fantasma: ES el camino del
+ * fantasma. `flyGhosts` pinta la tinta del fantasma en
+ *
+ *     box(u).left + glue.x0 + (glue.x1 - glue.x0) * u
+ *
+ * donde `glue.x0` sale de la caja de ORIGEN medida contra `boxStart` y
+ * `glue.x1` de la de DESTINO medida contra `boxEnd`. Con `boxStart` = esquina del
+ * shell y `boxEnd` = esquina del trigger, eso es exactamente `R - S` y `L - T`.
+ * La fila real, traducida por `u * (dx, dy)`, cae entonces en
+ *
+ *     box(u) + (R - S) + u * [(L - T) - (R - S)]
+ *
+ * que es termino a termino la misma expresion. Fila y fantasma vuelan identicos
+ * pixel a pixel para todo `u`; en `u = 1` los dos estan en `L`, que es donde el
+ * shell se clava, asi que el revelado del trigger real es coincidente y no hay
+ * ningun frame con dos tintas distintas.
+ *
+ * En sticky la caja NO se mueve de sitio: su colocacion impone `S + R = T + L`
+ * desde el primer frame (`placement.js` clava la fila anclada sobre la tinta del
+ * trigger), asi que el rig tiene que valer `(L-R) - (box(u) - S)`, y con
+ * `box(u) = T + u*(S-T)` eso es exactamente
+ *
+ *     g(u) = (L - R) * (1 - u) = d * (1 - u)
+ *
+ * o sea el mismo `d` recorrido al reves y anulado en `u = 1`, que es donde la
+ * caja ya esta en su sitio y el handoff tiene que ser coincidente. El cierre lo
+ * recorre de `0` a `d`; el sticky, de `d` a `0`.
+ *
+ * Por eso esto se escribe desde `state.roundT`, en el MISMO volcado que pinta el
+ * shell y el fantasma (`createMorphMotion.flush`): con un solo reloj no hay
+ * sincronizacion que mantener.
+ *
+ * Requisito que no se ve aqui y sin el cual no funciona: el alto del body tiene
+ * que estar CLAVADO durante el cierre. La cadena de la demo cede a proposito
+ * (`flex: 1 1 auto; min-height: 0` en cada eslabon), asi que al encogerse el
+ * shell la lista se encoge con el y su propio `overflow-y: auto` recorta la fila
+ * elegida hacia `u = 0.9`, antes de que pueda aterrizar. Lo clava
+ * `gsapSelectToOrigin`; ver alli.
+ */
+function createExitRig(bodyEl, from, to) {
+    if (!bodyEl) {
+        return {
+            prepare() { },
+            paint() { },
+            finish() { },
+            reset() { },
+        }
+    }
+
+    let x = from.x
+    let y = from.y
+
+    // El cierre ya termino y solto el cuerpo. El volcado del motion se agenda en
+    // un microtask, asi que uno ya encolado puede caer DESPUES de `cleanup` y
+    // volver a escribir el translate sobre un body que `clearFrozen` acaba de
+    // limpiar: quedaria desplazado para la apertura siguiente. Una vez muerto el
+    // rig no escribe mas.
+    let dead = false
+
+    const write = () => {
+        if (dead) return
+
+        bodyEl.style.transform =
+            x === 0 && y === 0
+                ? ''
+                : `translate3d(${x}px, ${y}px, 0)`
+    }
+
+    return {
+        prepare() {
+            // Para un translate PURO el origen es indiferente: el transform
+            // usado es `T(o) . M . T(-o)` y las traslaciones conmutan, asi que
+            // con `M = translate(t)` el resultado es `translate(t)` con
+            // cualquier origen. Se escribe `0 0` igual porque es el origen con
+            // el que se lee la cuenta de `dx`/`dy` (desplazamiento desde la
+            // ESQUINA de la caja) y porque deja el rig correcto si algun dia
+            // compone algo que si dependa del origen, como una escala.
+            //
+            // Dicho esto, el valor que sobrevive en el camino real es el
+            // `center center` que escribe `createContentController` al
+            // construirse, despues de esto. Da el mismo pixel: ver arriba.
+            bodyEl.style.transformOrigin =
+                '0 0'
+        },
+
+        paint(u) {
+            x = from.x + (to.x - from.x) * u
+            y = from.y + (to.y - from.y) * u
+            write()
+        },
+
+        // Clavado en el destino exacto. Lo llama `tryFinish`, y es lo que salva
+        // los caminos FORZADOS (`settle()`, el temporizador de seguridad): los
+        // dos paran la motion y saltan al handoff, asi que sin esto el shell se
+        // clavaria en el trigger con el contenido congelado a medio vuelo debajo.
+        //
+        // En el cierre `to` es `d`, la fila en el trigger; en el sticky es `0`,
+        // la fila en su sitio dentro de la caja.
+        finish() {
+            x = to.x
+            y = to.y
+            write()
+        },
+
+        reset() {
+            dead = true
+
+            x = 0
+            y = 0
+
+            bodyEl.style.transform = ''
+            bodyEl.style.transformOrigin = ''
         },
     }
 }
@@ -2542,6 +2867,11 @@ function createMorphMotion(
     // vuelo del texto (hay que medir la caja destino antes de saber que vuela),
     // asi que aqui todavia no existe nada que pasar. Se resuelve en cada frame.
     getGhosts = () => null,
+
+    // La fila elegida viajando al trigger. Se pinta en el MISMO volcado que el
+    // shell y el fantasma, y desde el MISMO `roundT`, que es lo que hace que los
+    // tres sean un solo movimiento y no tres parecidos. Ver `createExitRig`.
+    exitRig = null,
 ) {
     const pending = new Set([
         'x',
@@ -2596,6 +2926,8 @@ function createMorphMotion(
         // en el reapuntado del scroll: 53.3 px de escape.
         getGhosts()
             ?.paint(state.roundT)
+
+        exitRig?.paint(state.roundT)
     }
 
     const scheduleFlush = () => {
@@ -2697,7 +3029,7 @@ function createMorphMotion(
 // MORPH FROM ORIGIN
 // -----------------------------------------------------------------------------
 
-export function gsapMorphFromOrigin({
+export function gsapSelectFromOrigin({
     dialogEl,
     shellEl,
     bodyEl,
@@ -2711,7 +3043,7 @@ export function gsapMorphFromOrigin({
         ...options,
     }
 
-    const controller =
+        const controller =
         createTransitionController(
             shellEl,
         )
@@ -2728,6 +3060,11 @@ export function gsapMorphFromOrigin({
 
     let motionController = null
 
+    // La fila ANCLADA viajando desde el trigger en el modo sticky. Es el mismo
+    // rig del cierre leido al reves -- ver `createExitRig` -- y sin fila que
+    // anclar se queda en `null`, sin coste y sin rama.
+    let entryRig = null
+
     let ghostFinished = false
     let motionFinished = false
 
@@ -2738,7 +3075,7 @@ export function gsapMorphFromOrigin({
     // El DESTINO del dialogo no lo escribe este motor: lo escribe el host en
     // `layoutSlot` (position/left/top inline) antes de que empecemos a volar.
     // `clearFrozen` los borra igual, y el dialogo cae entonces al `flex-start`
-    // de `.apr-item`, que es la esquina (0,0) del viewport. Medido en
+    // de `.slt-item`, que es la esquina (0,0) del viewport. Medido en
     // `#/gsap-morph`, apertura de `.trigger-card`, un frame por sample a 60 fps:
     //
     //   t=23539  pos="" top="" left=""   rect [0,0 373x367]   <- EL FRAME MALO
@@ -2786,13 +3123,51 @@ export function gsapMorphFromOrigin({
         motionController?.motion?.stop()
 
         ghostFlight?.kill()
-        ghostFlight?.cleanup()
 
-        ghostFlight = null
+        if (flightHost && !settled) { // Wait, settled is true at the start of cleanup.
+            // We just let it execute.
+        }
 
+        // Traspaso del fantasma al elemento real.
+        //
+        // Si el vuelo ATERRIZO, el corte es en el mismo frame: el fantasma esta
+        // exactamente sobre el destino (medido con captura y diff de pixeles, la
+        // caja de la palabra coincide a 0.012 px = 1/64, el cuanto del layout, y
+        // la tinta del icono es identica pixel a pixel), asi que no hay nada que
+        // fundir. Y fundir tiene un costo: mientras el fundido dura estan las DOS
+        // tintas en pantalla, y la del fantasma la rasteriza el compositor dentro
+        // de la capa del host de vuelo mientras que la real la pinta el pintor
+        // del documento, asi que sus bordes de glifo no son identicos (medido a
+        // DPR 1.1: 2.1% de los pixeles de tinta con diferencias de hasta 74/255,
+        // sin desplazamiento). El fundido de 150 ms es justo lo que mantiene esa
+        // diferencia a la vista durante 9 frames; cortando, el elemento real
+        // aparece en un frame y no hay ventana de dos tintas.
+        //
+        // Si NO aterrizo (un cierre nos releva, un abort, un settle forzado) no
+        // se corta: ahi el fantasma esta a medio camino y el fundido es lo unico
+        // que tapa el salto.
         if (flightHost) {
-            flightHost.remove()
+            const host = flightHost
+            const gFlight = ghostFlight
+
+            if (gFlight?.isLanded?.()) {
+                gFlight.cleanup()
+                host.remove()
+            } else {
+                host.style.transition = 'opacity 0.15s ease-out'
+                host.style.opacity = '0'
+
+                setTimeout(() => {
+                    gFlight?.cleanup()
+                    host.remove()
+                }, 150)
+            }
+
             flightHost = null
+            ghostFlight = null
+        } else {
+            ghostFlight?.cleanup()
+            ghostFlight = null
         }
 
         visibilityController?.show()
@@ -2811,6 +3186,17 @@ export function gsapMorphFromOrigin({
         // Si el cierre nos releva a media apertura, el slot congelado se
         // queda: soltarlo aqui haria que su freezeSlot midiera la geometria
         // natural y el modal saltaria a tamano completo antes de cerrarse.
+        // Antes de `clearFrozen`, que tambien suelta el transform del body: da
+        // igual cual de los dos lo limpie, pero el rig tiene que quedar MUERTO
+        // antes de que el ultimo volcado agendado pueda volver a escribirlo.
+        //
+        // Y aqui soltarlo no se ve: en `u = 1` el rig ya vale cero, asi que el
+        // asentado normal no mueve nada. En un settle FORZADO a media apertura
+        // tampoco: la fila esta clavada en la tinta del trigger para todo `u`
+        // (esa es la identidad del sticky), asi que el salto al destino
+        // coincide con donde ya estaba.
+        entryRig?.reset()
+
         if (!keepFrozen) {
             clearFrozen(
                 dialogEl,
@@ -2925,6 +3311,69 @@ export function gsapMorphFromOrigin({
 
 
     // -------------------------------------------------------------------------
+    // LA ENTRADA: la fila anclada viniendo del trigger (modo sticky)
+    //
+    // El cierre hace viajar la fila elegida hasta la tinta del trigger con
+    // `d = (L - T) - (R - S)`. El sticky es ESE MISMO viaje al reves: la
+    // colocacion (`placement.js`) clava la fila anclada sobre la tinta del
+    // trigger en la caja final, o sea que impone `S - T = (L - T) - (R - S) =
+    // d`, y entonces el rig que mantiene la fila clavada en el trigger mientras
+    // la caja crece es
+    //
+    //     g(u) = (T + L) - (box(u) + R) = d * (1 - u)
+    //
+    // que es el mismo `d` recorrido al reves y anulado justo en `u = 1`, donde
+    // el handoff tiene que ser coincidente (allí la fila ya esta en su sitio
+    // natural dentro de la caja, asi que soltar el rig no mueve un pixel).
+    //
+    // El rig es el mismo objeto en los dos sentidos -- ver `createExitRig` -- y
+    // se monta aqui porque aqui es donde `shellRect` y `originRect` ya estan
+    // medidos y donde todavia no se ha escrito ni un canal.
+    //
+    // Y se mide contra la caja FINAL (`shellRect`, la que dejo `layoutSlot`
+    // despues de escribir el scroll de la lista): la identidad `S = T + d` esta
+    // escrita contra ESA caja, y el `R` del cierre sale de la misma, que es lo
+    // que hace que el viaje de ida y el de vuelta compartan numero.
+    // -------------------------------------------------------------------------
+
+    if (dialogEl.dataset.aprPlacement === 'sticky') {
+        const anchor =
+            dialogEl.querySelector(
+                '[data-morph-split="title"]',
+            )
+
+        if (anchor) {
+            // Tinta en los dos lados, y por las mismas funciones que usa el
+            // cierre: es lo que hace que los dos sentidos midan lo mismo.
+            const target =
+                labelOffsetOf(
+                    origin,
+                    originRect,
+                    'title',
+                )
+
+            const source =
+                inkOffsetOf(
+                    anchor,
+                    shellRect,
+                )
+
+            entryRig =
+                createExitRig(
+                    bodyEl,
+                    {
+                        x: target.x - source.x,
+                        y: target.y - source.y,
+                    },
+                    { x: 0, y: 0 },
+                )
+
+            entryRig.prepare()
+        }
+    }
+
+
+    // -------------------------------------------------------------------------
     // COLORS / RADIUS
     // -------------------------------------------------------------------------
 
@@ -3033,6 +3482,23 @@ export function gsapMorphFromOrigin({
         fromRound,
         toRound,
     )
+
+    // El contenido en el frame CERO, y en el mismo bloque que la caja.
+    //
+    // Sin esto la caja se pinta sola en su primer frame -- ya encima del trigger
+    // -- y el cuerpo se queda sin traducir hasta el primer volcado del motion,
+    // que llega en el frame SIGUIENTE. Medido con el muestreador de
+    // `scratch/verify-sticky.cjs`, con la fila anclada en la 5a: el primer frame
+    // salio con `filaInk.top - triggerInk.top = 158.13` -- la fila en su sitio
+    // natural, 158 px por debajo --, o sea un frame con el contenido desplazado
+    // y, como la caja mide 36 px y recorta, el frame se ve como una caja del
+    // tamano del trigger con las PRIMERAS filas dentro. Los 23 frames siguientes
+    // de la serie valen 0 clavado.
+    //
+    // El cierre no tiene este hueco porque su frame cero ya esta en su sitio (el
+    // rig empieza en 0 y la fila no se mueve): el que lo tiene es el unico que
+    // mueve la caja al arrancar.
+    entryRig?.paint(state.roundT)
 
     shellStyle.background =
         fromBackground
@@ -3166,6 +3632,10 @@ export function gsapMorphFromOrigin({
             // El vuelo del texto, resuelto en cada frame: aqui todavia no
             // existe (se construye mas abajo, despues de medir el destino).
             () => ghostFlight,
+
+            // La fila anclada viniendo del trigger, en modo sticky. `null` en
+            // todos los demas: no hay fila que anclar y no hay coste.
+            entryRig,
         )
 
 
@@ -3476,7 +3946,7 @@ export function gsapMorphFromOrigin({
 // MORPH TO ORIGIN
 // -----------------------------------------------------------------------------
 
-export function gsapMorphToOrigin({
+export function gsapSelectToOrigin({
     dialogEl,
     shellEl,
     bodyEl,
@@ -3491,10 +3961,39 @@ export function gsapMorphToOrigin({
         ...options,
     }
 
-    const controller =
+    // El elemento cuya tinta tiene que viajar al trigger en ESTE cierre. Lo manda
+    // el consumidor -- `select.close(id, result, { morph: { exitSource } })` -- y
+    // es la ETIQUETA de la fila elegida, no la fila: el destino se deriva de su
+    // caja de tinta.
+    //
+    // Es por CIERRE, no por item. `closeOrigin` es lo otro: ese se fija al abrir y
+    // dice a donde vuelve el shell. Este solo existe en el instante en que alguien
+    // elige, asi que no puede vivir en el item.
+    //
+    // Sin el (Escape, clic fuera, abort, el gesto) `dx = dy = 0`, el rig no
+    // escribe nada y el cierre es exactamente el de antes. El respaldo es gratis
+    // por construccion, no por una rama.
+    const exitSource =
+        config.exitSource instanceof Element &&
+            config.exitSource.isConnected
+            ? config.exitSource
+            : null
+
+    // Con que clave se empareja la etiqueta del trigger. `data-morph-split` es el
+    // contrato que ya tenia el motor (`collectGhostSpecs`); esto solo lo hace
+    // configurable para que el nombre no quede enterrado aqui.
+    const exitKey =
+        config.exitKey ?? 'title'
+
+    // La fila elegida viajando al trigger. Ver `createExitRig`.
+    let exitRig = null
+
+        const controller =
         createTransitionController(
             shellEl,
         )
+
+    shellEl.dataset.closing = 'true'
 
     let settled = false
     let safetyTimer = null
@@ -3538,6 +4037,8 @@ export function gsapMorphToOrigin({
         hideShell = false,
         notify = false,
     } = {}) => {
+        delete shellEl.dataset.closing
+
         if (settled) return
 
         settled = true
@@ -3586,6 +4087,11 @@ export function gsapMorphToOrigin({
         visibilityController?.show()
 
         contentController?.reset()
+
+        // Antes de `clearFrozen`, que tambien suelta el transform del body: da
+        // igual cual de los dos lo limpie, pero el rig tiene que quedar MUERTO
+        // antes de que el ultimo volcado agendado pueda volver a escribirlo.
+        exitRig?.reset()
 
         if (restoreOriginElement) {
             restoreOrigin(
@@ -3692,6 +4198,14 @@ export function gsapMorphToOrigin({
             fromRound,
             toRound,
         )
+
+        // La fila elegida, clavada en su destino exacto. Va AQUI y no solo en el
+        // volcado del motion porque `tryFinish` tambien lo llaman los caminos
+        // forzados -- `settle()` y el temporizador de seguridad --, que paran el
+        // motion en seco: sin esto el contenido se quedaria congelado a medio
+        // vuelo debajo de un shell ya pegado al trigger. Idempotente: si el
+        // ultimo volcado ya pinto `u = 1`, esto escribe lo mismo.
+        exitRig?.finish()
 
         // ---------------------------------------------------------------------
         // RELEVO DEL ORIGIN
@@ -3870,31 +4384,17 @@ export function gsapMorphToOrigin({
 
     // Keep the dialog anchored to the exact unrotated viewport position while
     // the source boxes are measured.
-    //
-    // El traspaso puede entrar dos veces sobre el MISMO dialogo (el cierre lo
-    // re-dispara al emitir el store). La segunda vez ya esta anclado y el valor
-    // medido coincide con el escrito salvo ruido sub-pixel: re-escribirlo re-
-    // snap-ea la posicion y eso se ve como un paso/temblor de ~0.1px al
-    // aterrizar. Si ya esta anclado dentro de medio pixel, no hay nada que
-    // anclar y la escritura solo puede moverlo.
-    const yaAnclado =
-        dialogEl.style.position === 'absolute'
-        && Math.abs(parseFloat(dialogEl.style.left) - unrotatedRect.left) < 0.5
-        && Math.abs(parseFloat(dialogEl.style.top) - unrotatedRect.top) < 0.5
+    dialogEl.style.position =
+        'absolute'
 
-    if (!yaAnclado) {
-        dialogEl.style.position =
-            'absolute'
+    dialogEl.style.left =
+        `${unrotatedRect.left}px`
 
-        dialogEl.style.left =
-            `${unrotatedRect.left}px`
+    dialogEl.style.top =
+        `${unrotatedRect.top}px`
 
-        dialogEl.style.top =
-            `${unrotatedRect.top}px`
-
-        dialogEl.style.margin =
-            '0'
-    }
+    dialogEl.style.margin =
+        '0'
 
 
     // -------------------------------------------------------------------------
@@ -3964,10 +4464,26 @@ export function gsapMorphToOrigin({
     let ghostSpecs = []
 
     if (config.mode === 'gsap') {
+        // El fantasma sale de LA FILA elegida, no del encabezado del dialogo.
+        //
+        // No vale pasar otro `fromRoot`: el colector escanea
+        // `[data-morph-split]` de ese root y la fila no lleva el atributo; y
+        // ponerselo produciria DOS specs de la misma clave -- el encabezado y la
+        // fila --, o sea dos fantasmas aterrizando en el mismo objetivo, y
+        // envenenaria tambien la APERTURA, cuya coleccion es
+        // `collectGhostSpecs(origin, dialogEl)`. Por eso el override es por
+        // clave y solo en esta llamada.
+        //
+        // Sin `exitSource` no hay override y la coleccion es la de siempre: el
+        // fantasma del encabezado, que es el que cierra bien los cierres sin
+        // eleccion (Escape, clic fuera).
         const collection =
             collectGhostSpecs(
                 dialogEl,
                 origin,
+                exitSource
+                    ? { [exitKey]: exitSource }
+                    : null,
             )
 
         ghostSpecs =
@@ -4050,6 +4566,157 @@ export function gsapMorphToOrigin({
     const toY =
         originRect.top -
         shellBaseRect.top
+
+
+    // -------------------------------------------------------------------------
+    // LA SALIDA: la fila elegida viajando al trigger
+    //
+    // `S` = shellRect (el shell VIVO, con su translate dentro; la fila vive
+    //       dentro de el, asi que la resta lo cancela y queda un desplazamiento
+    //       local a la caja, que es el espacio donde el rig escribe),
+    // `R` = caja de tinta de la etiqueta de la fila elegida,
+    // `T` = originRect, `L` = caja de tinta de la etiqueta del trigger.
+    //
+    //     dx = (L.left - T.left) - (R.left - S.left)
+    //
+    // y es EXACTAMENTE lo que `flyGhosts` ya pinta, termino a termino: su
+    // `glue.x0` sale de la caja de origen medida contra `boxStart` -- o sea
+    // `R - S` -- y su `glue.x1` de la de destino contra `boxEnd` -- o sea
+    // `L - T` --, y `place` lo pinta en `box(t) + glue.x0 + (glue.x1-glue.x0)*t`.
+    // La fila real traducida por `u*(dx,dy)` cae en
+    // `box(u) + (R-S) + u*[(L-T)-(R-S)]`: la misma expresion. Por eso los dos
+    // vuelan identicos pixel a pixel para todo `u` sin tocar `flyGhosts`.
+    //
+    // Verificado contra el codigo, no de memoria: `glue.x0` en 1368-1372 se
+    // deriva de `startX`, que es `fromBox.left - own.left - inkLeft*startScale`
+    // (1296-1297), y el `own.left + inkLeft*startScale` se vuelve a sumar y se
+    // resta `boxStart.left`. Queda `fromBox.left - boxStart.left`.
+    // -------------------------------------------------------------------------
+
+    let exitDx = 0
+    let exitDy = 0
+
+    if (exitSource) {
+        // Donde cae la tinta de la etiqueta del trigger DENTRO de la caja del
+        // trigger. En `u = 1` la caja del shell es exactamente esa, asi que este
+        // desplazamiento -- y no la posicion en pantalla -- es el destino.
+        //
+        // Si el trigger no llevara la marca, el respaldo es el trigger entero:
+        // el desplazamiento vale 0 y la fila aterriza en su esquina en vez de
+        // sobre su texto. Peor alineado, no roto.
+        const target =
+            labelOffsetOf(
+                origin,
+                originRect,
+                exitKey,
+            )
+
+        // Y donde cae la tinta de la fila dentro de la caja del shell AHORA.
+        // Tinta en los dos lados: es lo que hace que la fila aterrice en el
+        // mismo pixel que el fantasma, que ya mide tinta.
+        const source =
+            inkOffsetOf(
+                exitSource,
+                shellRect,
+            )
+
+        exitDx =
+            target.x - source.x
+
+        exitDy =
+            target.y - source.y
+    }
+
+    // -------------------------------------------------------------------------
+    // EL ENCABEZADO, CLAVADO AL TRIGGER
+    //
+    // El encabezado del dialogo es la otra copia del trigger, asi que tambien
+    // tiene que caer exactamente donde el: al revelar el trigger de verdad, un
+    // par de pixeles de diferencia se ven como un salto.
+    //
+    // El horizontal ya lo clava el componente cuando abre
+    // (`--slt-head-inset`), pero el vertical no PUEDE: hasta que el motor muda
+    // el contenido, el encabezado vive en un contenedor `display: none` y no hay
+    // maquetacion que medir. Aqui si la hay -- el encabezado ya esta en el
+    // dialogo, y el trigger sigue maquetado aunque este oculto (se oculta por
+    // opacidad, no por `display`).
+    //
+    // En `u = 1` la caja del shell es la del trigger, y el encabezado es su
+    // primer hijo con el alto clavado al del trigger, asi que su caja tambien es
+    // la del trigger. Por eso basta comparar los dos desplazamientos DENTRO de
+    // su propia caja. Se escribe como variable en el dialogo para que el
+    // `translateY` lo aplique la hoja y no quede estilo suelto en el nodo.
+    // -------------------------------------------------------------------------
+
+    if (exitSource) {
+        const headLabel =
+            dialogEl.querySelector(`[data-morph-split="${exitKey}"]`)
+
+        const headBox =
+            headLabel?.parentElement?.getBoundingClientRect()
+
+        if (headLabel && headBox) {
+            // El lado del encabezado va por `inkOffsetOf` y no por
+            // `labelOffsetOf`: aqui el elemento ya se tiene, y buscarlo por la
+            // marca seria pedirle a `querySelector` que encuentre algo que en
+            // realidad es el mismo nodo. Menos ceremonia, mismo numero.
+            const shift =
+                labelOffsetOf(origin, originRect, exitKey).y -
+                inkOffsetOf(headLabel, headBox).y
+
+            dialogEl.style.setProperty(
+                '--slt-head-shift',
+                `${shift.toFixed(2)}px`,
+            )
+        }
+    }
+
+    exitRig =
+        createExitRig(
+            bodyEl,
+            { x: 0, y: 0 },
+            { x: exitDx, y: exitDy },
+        )
+
+    exitRig.prepare()
+
+
+    // -------------------------------------------------------------------------
+    // EL ALTO DEL BODY, CLAVADO
+    //
+    // Medido con el select abierto y asentado, en esta misma demo: el body mide
+    // 465 y el shell 465 -- el body SE ESTIRA al shell. La cadena de alturas de
+    // la demo (`flex: 1 1 auto; min-height: 0` en el shell, el body, el card y
+    // la lista) cede a proposito, asi que en cuanto el shell empieza a encogerse
+    // el body se encoge con el, la lista se encoge con el body y su propio
+    // `overflow-y: auto` recorta las filas por abajo. La fila elegida desaparece
+    // antes de aterrizar, y el translate de arriba NO lo arregla: la fila y la
+    // lista se mueven juntas, asi que queda igual de recortada.
+    //
+    // El valor sale del pin del DIALOGO si lo hay, porque es el alto de REPOSO
+    // aunque la apertura se haya cortado a medias. Medido: en esta demo el pin
+    // del dialogo lleva SOLO el ancho (`dialogEl.style.width` = "250px") y el
+    // alto lo suelta `clearFrozen` al asentar la apertura, asi que el camino
+    // normal cae en la medida viva -- que a esta altura del cierre todavia es la
+    // de reposo, porque `paintShell` no ha corrido ni una vez.
+    //
+    // Clavarlo es ademas lo que hace CONSTANTE el desplazamiento de la fila
+    // respecto a la esquina del shell, que es la premisa de todo lo de arriba.
+    // -------------------------------------------------------------------------
+
+    if (exitSource && bodyEl) {
+        const pinnedHeight =
+            parseFloat(dialogEl.style.height)
+
+        const restHeight =
+            Number.isFinite(pinnedHeight) && pinnedHeight > 0
+                ? pinnedHeight
+                : bodyEl.getBoundingClientRect().height
+
+        if (Number.isFinite(restHeight) && restHeight > 0) {
+            bodyEl.style.height = `${restHeight}px`
+        }
+    }
 
 
     // -------------------------------------------------------------------------
@@ -4300,7 +4967,35 @@ export function gsapMorphToOrigin({
     shellStyle.boxShadow =
         toShadow
 
-    contentController.animateOut()
+    // Con fila elegida NO va el barrido de mascara ni el blur.
+    //
+    // `animateOut` barre un `mask-position` en `closeContentDuration + 0.1` y
+    // ademas mete `blur(12px)`: las dos cosas emborronan y borran justo la fila
+    // que tiene que quedarse nitida y entera hasta `u = 1`. Lo que hace
+    // desaparecer lo no elegido en este camino es el `overflow: hidden` del
+    // shell, que ya esta puesto y encoge con la caja.
+    //
+    // El `transition: none` es porque el controlador deja una transicion de
+    // mascara armada: sin esto, el barrido que se acaba de limpiar volveria solo
+    // al primer cambio de `mask-position`.
+    if (exitSource) {
+        bodyEl.style.transition =
+            'none'
+
+        for (const property of [
+            'maskImage',
+            'maskSize',
+            'maskPosition',
+            'WebkitMaskImage',
+            'WebkitMaskSize',
+            'WebkitMaskPosition',
+            'filter',
+        ]) {
+            bodyEl.style[property] = ''
+        }
+    } else {
+        contentController.animateOut()
+    }
 
 
     // -------------------------------------------------------------------------
@@ -4340,6 +5035,8 @@ export function gsapMorphToOrigin({
             // El vuelo del texto, resuelto en cada frame: aqui todavia no
             // existe (se construye mas abajo, despues de medir el destino).
             () => ghostFlight,
+
+            exitRig,
         )
 
 
@@ -4700,7 +5397,7 @@ export function gsapMorphToOrigin({
     // -------------------------------------------------------------------------
 
     // Este settle NO lleva `keepGeometry`: quien lo lleva es el de la apertura
-    // (`gsapMorphFromOrigin`), que es a quien el host se lo pide al empezar el
+    // (`gsapSelectFromOrigin`), que es a quien el host se lo pide al empezar el
     // cierre. Antes habia aqui una bandera `preserveFrozen` que se escribia y
     // no se leia en ningun sitio.
     const settle = () => {

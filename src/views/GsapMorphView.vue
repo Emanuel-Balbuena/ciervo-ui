@@ -3,6 +3,7 @@ import { ref, computed, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import Button from '../components/Button/Button.vue';
 import Modal from '../components/Modal/Modal.vue';
+import Select from '../components/Select/Select.vue';
 import { useTheme } from '../composables/useTheme';
 
 const router = useRouter();
@@ -31,10 +32,11 @@ const playground = ref({
   placement: 'center' as string,
   physics: 'both' as 'both' | '2d' | '3d' | 'none',
   size: 'md' as 'sm' | 'md' | 'lg' | 'xl' | 'full',
-  activeTrigger: 'solid' as 'solid' | 'framed' | 'ghost' | 'soft' | 'outline'
+  color: 'orange' as ColorType,
+  activeTrigger: 'solid' as 'solid' | 'framed' | 'ghost' | 'soft' | 'outline' | 'matrix'
 });
 
-const openMorphModal = async (event: MouseEvent, triggerType: 'solid' | 'framed' | 'ghost' | 'soft' | 'outline' = 'solid') => {
+const openMorphModal = async (event: MouseEvent, triggerType: 'solid' | 'framed' | 'ghost' | 'soft' | 'outline' | 'matrix' = 'solid') => {
   activeOrigin.value = event.currentTarget as HTMLElement;
   playground.value.activeTrigger = triggerType;
   
@@ -56,16 +58,56 @@ const generatedPlaygroundCode = computed(() => {
   if (playground.value.placement !== 'center') parts.push(`  placement="${playground.value.placement}"`);
   if (playground.value.physics !== 'both') parts.push(`  physics="${playground.value.physics}"`);
   if (playground.value.size !== 'md') parts.push(`  size="${playground.value.size}"`);
+  if (playground.value.color) parts.push(`  color="${playground.value.color}"`);
   
   return parts.join('\n') + '\n>\n  <!-- Contenido del modal -->\n</Modal>';
 });
 
+// 2. Colores del sistema (mismo orden que la demo de Select)
+type ColorType = 'black' | 'red' | 'orange' | 'yellow' | 'lime' | 'green' | 'cyan' | 'blue' | 'violet' | 'pink';
+const colorsList: ColorType[] = ['orange', 'blue', 'red', 'yellow', 'black', 'green', 'cyan', 'lime', 'violet', 'pink'];
+
+// Dots del selector de color
+const colorDotMap: Record<ColorType, string> = {
+  orange: '#ff4d00',
+  blue: '#4259f6',
+  red: '#ff0b0a',
+  yellow: '#ffb830',
+  black: isDark.value ? '#ffffff' : '#000000',
+  green: '#22c55e',
+  cyan: '#06b6d4',
+  lime: '#a3e635',
+  violet: '#9333ea',
+  pink: '#ff1493'
+};
+
+const selectedMatrixColor = ref<string>('all');
+
+const openMatrixModal = async (event: MouseEvent, c: ColorType) => {
+  playground.value.color = c;
+  playground.value.mode = 'gsap';
+  await openMorphModal(event, 'matrix');
+};
+
 const placements = [
-  'center', 'anchor', 'bottom', 'inplace', 
-  'inplace-tl', 'inplace-t', 'inplace-tr', 
-  'inplace-l', 'inplace-r', 
-  'inplace-bl', 'inplace-b', 'inplace-br'
+  { label: 'center', value: 'center' },
+  { label: 'anchor', value: 'anchor' },
+  { label: 'bottom', value: 'bottom' },
+  { label: 'inplace', value: 'inplace' },
+  { label: 'inplace-tl', value: 'inplace-tl' },
+  { label: 'inplace-t', value: 'inplace-t' },
+  { label: 'inplace-tr', value: 'inplace-tr' },
+  { label: 'inplace-l', value: 'inplace-l' },
+  { label: 'inplace-r', value: 'inplace-r' },
+  { label: 'inplace-bl', value: 'inplace-bl' },
+  { label: 'inplace-b', value: 'inplace-b' },
+  { label: 'inplace-br', value: 'inplace-br' }
 ];
+
+const placementSelectDemo = ref({
+  open: false,
+  origin: null as HTMLElement | null
+});
 </script>
 
 <template>
@@ -214,9 +256,15 @@ const placements = [
               <span class="prop-type-signature">Posición final del modal</span>
             </div>
             <div class="prop-input-col" style="justify-content: flex-end;">
-               <select v-model="playground.placement" class="sleek-select">
-                  <option v-for="p in placements" :key="p" :value="p">{{ p }}</option>
-               </select>
+              <Select class="trigger-select"
+                v-model:open="placementSelectDemo.open"
+                v-model="playground.placement"
+                :options="placements"
+                :origin="placementSelectDemo.origin"
+                mode="gsap"
+                placement="inplace-b"
+              >
+              </Select>
             </div>
           </div>
 
@@ -234,6 +282,27 @@ const placements = [
                 <button :class="['segment-pill-btn', { active: playground.physics === '2d' }]" @click="playground.physics = '2d'">2d</button>
                 <button :class="['segment-pill-btn', { active: playground.physics === '3d' }]" @click="playground.physics = '3d'">3d</button>
                 <button :class="['segment-pill-btn', { active: playground.physics === 'none' }]" @click="playground.physics = 'none'">none</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PROP: COLOR -->
+          <div class="prop-control-row">
+            <div class="prop-info-col">
+              <span class="prop-name">color</span>
+              <span class="prop-type-signature">10 temas cromáticos</span>
+            </div>
+            <div class="prop-input-col">
+              <div class="segmented-pill-group color-dots-pill-group">
+                <button
+                  v-for="c in colorsList"
+                  :key="c"
+                  :class="['color-dot-item', { active: playground.color === c }]"
+                  :title="c"
+                  @click="playground.color = c"
+                >
+                  <span class="dot-circle" :style="{ backgroundColor: colorDotMap[c] }"></span>
+                </button>
               </div>
             </div>
           </div>
@@ -271,9 +340,60 @@ const placements = [
       </section>
 
       <!-- =========================================
-           4. DISEÑO E INGENIERÍA
+           5. DISEÑO E INGENIERÍA
            ========================================= -->
       
+      <!-- =========================================
+           4. MATRIZ VISUAL DE COLOR
+           ========================================= -->
+      <section class="matrix-section">
+        <div class="section-header-wrap">
+          <h2 class="section-title">Matriz Visual de Color</h2>
+          <p class="section-text">
+            El modal habla los 10 colores del sistema. La caja hereda el acento sin perder
+            legibilidad en claro ni en oscuro.
+          </p>
+        </div>
+
+        <div class="matrix-filter-bar">
+          <span class="matrix-filter-label">Filtrar Color:</span>
+          <div class="color-dots-pill-group">
+            <button
+              :class="['color-dot-item', { active: selectedMatrixColor === 'all' }]"
+              title="Todos los colores"
+              @click="selectedMatrixColor = 'all'"
+            >
+              <span class="dot-circle" style="background: linear-gradient(135deg, #ff4d00, #4259f6, #ff1493);"></span>
+            </button>
+            <button
+              v-for="c in colorsList"
+              :key="c"
+              :class="['color-dot-item', { active: selectedMatrixColor === c }]"
+              :title="c"
+              @click="selectedMatrixColor = c"
+            >
+              <span class="dot-circle" :style="{ backgroundColor: colorDotMap[c] }"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="matrix-grid-container">
+          <template v-for="c in colorsList" :key="c">
+            <div v-if="selectedMatrixColor === 'all' || selectedMatrixColor === c" class="color-system-card">
+              <div class="color-card-header" style="margin-bottom: 24px;">
+                <span class="color-dot" :style="{ backgroundColor: colorDotMap[c] }"></span>
+                <span class="color-title">{{ c.toUpperCase() }}</span>
+              </div>
+              <div style="width: 100%; display: flex; align-items: center; justify-content: center; padding: 20px 0 32px;">
+                <Button variant="solid" :color="c" @click="(e) => openMatrixModal(e, c)">
+                  <span data-morph-split="matrix-title">Modal {{ c }}</span>
+                </Button>
+              </div>
+            </div>
+          </template>
+        </div>
+      </section>
+
       <section class="story-section">
         <h2 class="section-title">Shapes & Morphing</h2>
         <p class="section-text">
@@ -324,6 +444,7 @@ const placements = [
       :placement="playground.placement"
       :physics="playground.physics"
       :size="playground.size"
+      :color="playground.color"
     >
       <div class="morph-modal-content">
         
@@ -382,6 +503,17 @@ const placements = [
           </div>
         </template>
         
+        <!-- Trigger matriz: contenido generico con el acento activo -->
+        <template v-if="playground.activeTrigger === 'matrix'">
+          <div class="modal-header">
+            <span class="color-dot" data-morph-icon="matrix-icon" :style="{ backgroundColor: colorDotMap[playground.color] }"></span>
+            <h2 class="modal-title" data-morph-split="matrix-title">Modal {{ playground.color }}</h2>
+          </div>
+          <div class="modal-body">
+            <p>La caja usa el fondo neutro del tema; solo los detalles (borde y botones) llevan el acento {{ playground.color }}.</p>
+          </div>
+        </template>
+
         <div class="modal-actions">
           <Button color="black" @click="isModalOpen = false">Close</Button>
         </div>
@@ -471,5 +603,16 @@ const placements = [
 }
 .sleek-select:focus {
   border-color: var(--text-primary, #000);
+}
+
+:deep(.trigger-select) {
+  width: 180px;
+  gap: 8px;
+}
+</style>
+
+<style>
+html body .slt-shell {
+  --slt-radius: 12px;
 }
 </style>

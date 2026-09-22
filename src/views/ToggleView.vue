@@ -69,16 +69,16 @@ const shapesList: ShapeType[] = ['square', 'round'];
 const colorsList: ColorType[] = ['orange', 'blue', 'red', 'yellow', 'black', 'green', 'cyan', 'lime', 'violet', 'pink'];
 
 const colorDotMap: Record<ColorType, string> = {
-  orange: '#f97316',
-  blue: '#3b82f6',
-  red: '#ef4444',
-  yellow: '#facc15',
-  black: '#ffffff',
+  orange: '#ff4d00',
+  blue: '#4259f6',
+  red: '#ff0b0a',
+  yellow: '#ffb830',
+  black: isDark.value ? '#ffffff' : '#000000',
   green: '#22c55e',
   cyan: '#06b6d4',
-  lime: '#84cc16',
-  violet: '#a855f7',
-  pink: '#ec4899'
+  lime: '#a3e635',
+  violet: '#9333ea',
+  pink: '#ff1493'
 };
 
 // Vue Code Generator for Toggle
@@ -125,18 +125,6 @@ const selectedMatrixColor = ref<string>('all');
           <span>v0.1.0</span>
           <span class="meta-divider">·</span>
           <span>Toggle</span>
-        </div>
-        
-        <div class="theme-toggle">
-          <Button 
-            variant="ghost" 
-            color="black" 
-            shape="round" 
-            size="small"
-            @click="toggleTheme"
-          >
-            {{ isDark ? 'Light' : 'Dark' }}
-          </Button>
         </div>
       </header>
 
@@ -556,7 +544,7 @@ const selectedMatrixColor = ref<string>('all');
               title="Todos los colores"
               @click="selectedMatrixColor = 'all'"
             >
-              <span class="dot-circle" style="background: linear-gradient(135deg, #f97316, #3b82f6, #ec4899);"></span>
+              <span class="dot-circle" style="background: linear-gradient(135deg, #ff4d00, #4259f6, #ff1493);"></span>
             </button>
             <button
               v-for="c in colorsList"

@@ -119,6 +119,49 @@ export function slotFor(originRect, size, placement, {
     return { left, top, placement: actualPlacement }
 }
 
+/**
+ * La caja de LAYOUT del disparador, en coordenadas de viewport.
+ *
+ * `getBoundingClientRect` devuelve la caja PINTADA: incluye el transform del
+ * propio elemento. Un `.btn` esta en `scale(0.96)` mientras se mantiene pulsado
+ * (button.css), asi que un click real --press, soltar-- deja al disparador
+ * midiendose prensado justo cuando el modal se coloca. Medido: el modal
+ * aterrizaba atado a esa caja (left 363.405, w 83.965) y al soltar el boton la
+ * caja real volvia a (361.837, 87.3): 1.83 px de desfase que el seguidor
+ * recorria despues, en escalones. En las diagonales entra por los DOS ejes
+ * (`originRect.left` y `originRect.top`), que es donde mas se ve; en las
+ * alineadas a un solo borde, por uno.
+ *
+ * La escala del propio elemento no mueve su caja de layout: se deshace
+ * alrededor del centro pintado, que es su origen por defecto
+ * (`transform-origin: center`). Con rotacion o skew no se toca: ahi `a`/`d` no
+ * son escalas y deshacerlas inventaria una caja.
+ */
+export function originBox(origin) {
+    if (!(origin instanceof HTMLElement)) return origin
+    const rect = origin.getBoundingClientRect()
+    const tf = getComputedStyle(origin).transform
+    if (!tf || tf === 'none') return rect
+    // `matrix` o `matrix3d`: una capa promovida (el `.btn` lleva
+    // `will-change: transform`) se serializa en 3d, y con dpr/zoom es lo que
+    // aparece. Sin esta rama el deshacer no se aplicaria justo donde el bug
+    // cambia de tamano.
+    let n
+    if (/^matrix\(/.test(tf)) n = tf.slice(7, -1).split(',').map(Number).concat([0, 0])
+    else if (/^matrix3d\(/.test(tf)) {
+        const v = tf.slice(9, -1).split(',').map(Number)
+        n = [v[0], v[1], v[4], v[5], v[12], v[13]]
+    } else return rect
+    const [a, b, c, d, e, f] = n
+    if (!(a > 0) || !(d > 0) || Math.abs(b) > 1e-3 || Math.abs(c) > 1e-3) return rect
+    if (a === 1 && d === 1 && e === 0 && f === 0) return rect
+    const width = rect.width / a
+    const height = rect.height / d
+    const left = rect.left - e - (width - rect.width) / 2
+    const top = rect.top - f - (height - rect.height) / 2
+    return { left, top, right: left + width, bottom: top + height, width, height }
+}
+
 export function layoutSlot(dialog, itemEl, origin, placement, {
     gap = 8,
     padding = 16,
@@ -140,7 +183,7 @@ export function layoutSlot(dialog, itemEl, origin, placement, {
     // `origin` es el elemento del trigger, o un rect ya medido. El seguidor del
     // scroll NO pasa por aqui: persigue la salida de `slotFor`.
     const originRect = origin instanceof HTMLElement
-        ? origin.getBoundingClientRect()
+        ? originBox(origin)
         : origin
     const rect = dialog.getBoundingClientRect()
     const slot = slotFor(originRect, { width: rect.width, height: rect.height }, placement, {
@@ -158,29 +201,73 @@ export function trackOrigin(origin, onMove) {
 
     let frame = 0
     let last = ''
+    let ultimo = null
+    let suave = false
+    let forzar = false
+
+    /**
+     * Un escalon de LAYOUT mas pequeno que esto no se persigue.
+     *
+     * No es una tolerancia de comodidad: el seguidor tiene un polo, y el polo
+     * convierte cualquier escalon en un deslizamiento. Medido con el disparador
+     * desplazado 15 px y el modal abierto: 1.25 s en seis escalones (5 / 3.7 /
+     * 1.2 / 0.5 / 0.25 px). El disparador se mueve solo al abrir (la
+     * compensacion del scrollbar: +0.10 px medidos), asi que perseguir eso es lo
+     * que se ve como "pequenos pasos" en las posiciones que siguen al
+     * disparador -- anchor, inplace -- y no en center ni bottom, que no leen su
+     * rect. Un desfase por debajo de medio pixel no lo ve nadie: no se persigue.
+     */
+    const DEADBAND = 0.5
 
     const tick = () => {
         frame = requestAnimationFrame(tick)
         if (!origin.isConnected) return
-        const rect = origin.getBoundingClientRect()
+        // La caja de layout, no la pintada: si el disparador esta a mitad de una
+        // animacion propia (el muelle de `.btn:active`, por ejemplo) su caja
+        // pintada no es su sitio, y perseguirla arrastra al modal.
+        const rect = originBox(origin)
         const key = `${rect.left.toFixed(1)}|${rect.top.toFixed(1)}|${rect.width.toFixed(1)}|${rect.height.toFixed(1)}`
-        if (key === last) return
+        // El estado de este frame se consume aqui, no al final: un scroll que
+        // no mueve el rect (un scroller anidado) no debe contagiar al siguiente.
+        const lasuave = suave
+        const laforzar = forzar
+        suave = false
+        forzar = false
+        if (key === last && !laforzar) return
+        if (!lasuave && !laforzar && ultimo) {
+            const d = Math.max(
+                Math.abs(rect.left - ultimo.left),
+                Math.abs(rect.top - ultimo.top),
+                Math.abs(rect.width - ultimo.width),
+                Math.abs(rect.height - ultimo.height),
+            )
+            if (d < DEADBAND) return
+        }
         last = key
-        onMove(rect)
+        ultimo = { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
+        onMove(rect, lasuave)
     }
 
-    const nudge = () => {
+    // El scroll se suaviza; el resize no (el viewport ya no es el de antes: el
+    // slot cambia aunque el rect del origin no se mueva, asi que re-apunta
+    // siempre y sin banda muerta).
+    const alScroll = () => {
+        suave = true
+        last = ''
+    }
+    const alResize = () => {
+        forzar = true
         last = ''
     }
 
     frame = requestAnimationFrame(tick)
-    window.addEventListener('scroll', nudge, true)
-    window.addEventListener('resize', nudge)
+    window.addEventListener('scroll', alScroll, true)
+    window.addEventListener('resize', alResize)
 
     return () => {
         cancelAnimationFrame(frame)
-        window.removeEventListener('scroll', nudge, true)
-        window.removeEventListener('resize', nudge)
+        window.removeEventListener('scroll', alScroll, true)
+        window.removeEventListener('resize', alResize)
     }
 }
 
@@ -229,10 +316,44 @@ export function createSlotFollow({
     let cur = null
     let frame = 0
     let lastT = 0
+    let wasBusy = false
+    let originRect = null
 
     const writePos = () => {
         dialog.style.left = `${cur.left}px`
         dialog.style.top = `${cur.top}px`
+    }
+
+    /**
+     * Donde esta la caja AHORA, en el mismo espacio que `target`: el slot se
+     * escribe como left/top del dialogo dentro del item, y el item (inset 0) es
+     * el origen de ese espacio.
+     */
+    const livePos = () => {
+        const r = dialog.getBoundingClientRect()
+        const base = itemEl.getBoundingClientRect()
+        return { left: r.left - base.left, top: r.top - base.top }
+    }
+
+    /**
+     * ¿La caja lleva un transform puesto? `getBoundingClientRect` lo incluye, asi
+     * que con uno vivo `livePos` devuelve la posicion PINTADA, no la de layout.
+     *
+     * Importa en un sitio concreto: `gesture.js` suelta `dragging` en el
+     * pointerup y DESPUES arranca el muelle que devuelve el transform a cero, o
+     * sea que el seguidor retoma el mando con el transform todavia vivo. Escribir
+     * un left/top leido de ahi mueve el layout por el desplazamiento del arrastre
+     * -- ~140 px en un frame con un arrastre de 150 -- que se suma al transform
+     * que queda: el mismo salto que este arreglo quita en el traspaso del vuelo,
+     * pero en el snap-back. Con transform vivo no se re-lee: el layout no se movio
+     * durante el arrastre (el arrastre escribe transform), asi que el `cur` que ya
+     * habia sigue siendo el bueno.
+     */
+    const transformed = () => {
+        const t = getComputedStyle(dialog).transform
+        return !!t && t !== 'none'
+            && t !== 'matrix(1, 0, 0, 1, 0, 0)'
+            && t !== 'matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1)'
     }
 
     /**
@@ -241,6 +362,7 @@ export function createSlotFollow({
      */
     const aim = (next) => {
         const { placement, gap, padding } = read()
+        originRect = next
 
         // Las clases primero: `apr-sheet` cambia el tamano de la caja y el
         // tamano entra en el clamp. Mismo orden que `layoutSlot`.
@@ -274,7 +396,27 @@ export function createSlotFollow({
         // En arrastre, en vuelo o en un spring de tamano manda el otro dueno:
         // se espera sin escribir, para poder retomar la persecucion despues.
         if (isBusy()) {
+            // ...pero la caja se mueve igual mientras tanto (un spring de tamano
+            // la re-apunta en CADA frame con `relayout`), asi que `cur` se queda
+            // viejo. Sin re-leerlo al salir del turno ajeno, el primer frame de
+            // vuelta escribiria desde la posicion anterior al spring: un tiron
+            // hacia atras. Una lectura por transicion, no por frame.
+            wasBusy = true
             frame = requestAnimationFrame(step)
+            return
+        }
+        if (wasBusy) {
+            wasBusy = false
+            // Y el destino tambien quedo viejo: se calculo con el tamano que la
+            // caja tenia entonces (en el vuelo, el del montaje), no con el que
+            // tiene ahora. Medido sin este re-apunte: terminado el spring, el polo
+            // deslizaba la caja 216px de vuelta a la posicion del tamano viejo.
+            // (El destino no depende del transform: se recalcula siempre.)
+            if (originRect) aim(originRect)
+            if (!transformed()) cur = livePos()
+        }
+        if (!target) {
+            frame = 0
             return
         }
 
@@ -315,19 +457,48 @@ export function createSlotFollow({
          * y se persigue ESA posicion. Con `tau = 0` es la escritura directa de
          * siempre, en el mismo frame.
          */
-        setTarget(next) {
+        setTarget(next, { smooth = true } = {}) {
             aim(next)
             if (!target) return
 
-            if (!cur) {
-                // Primer destino: se escribe donde toca, sin animacion. Si no,
-                // el modal arrancaria deslizandose desde (0,0).
+            // Primer destino: se nace en la posicion VIVA, no en el destino.
+            //
+            // Escribir el destino de una era correcto cuando este seguidor se
+            // creaba antes del primer pintado. Ya no: `startTracking` corre al
+            // terminar el vuelo (host.js) y en cada `refresh`, o sea SIEMPRE con
+            // la caja ya pintada. Medido con la card creciendo 200px a mitad de
+            // vuelo: el motor suelta el pin del shell y, en la misma tarea, este
+            // primer destino escribia el slot recalculado con el tamano nuevo.
+            // `top` pasaba de 394.288 a 178.288 -- 216px en un frame, error de
+            // interpolacion 108px = local/2 -- y eran las tres unicas escrituras
+            // de host.js de toda la apertura. Naciendo vivo, esa escritura no
+            // mueve nada cuando el destino ya es el actual, y cuando no lo es el
+            // desplazamiento lo hace el polo. Con un transform vivo no hay
+            // posicion de layout que leer (ver `transformed`), asi que se cae al
+            // comportamiento de siempre.
+            const primero = !cur
+            if (primero) cur = transformed() ? { left: target.left, top: target.top } : livePos()
+
+            if (read().tau <= 0) {
+                // Sin polo (`placementFollow: 0`) la posicion se escribe directa,
+                // como siempre: es la unica configuracion que sigue colocando en
+                // el frame en vez de deslizar.
                 cur = { left: target.left, top: target.top }
                 writePos()
                 return
             }
 
-            if (read().tau <= 0) {
+            // Un cambio de rect que NO viene de un scroll no se desliza:
+            // aterriza en este frame. El polo esta para suavizar el scroll --"un
+            // modal que rebota alrededor del trigger mientras se scrollea se lee
+            // como error"-- pero aplicado a un escalon de layout convierte el
+            // desfase de la apertura en un deslizamiento visible de 1 a 3 s, que
+            // es exactamente lo que se reporta. El primer destino no entra aqui:
+            // nace vivo a proposito (ver arriba) y su distancia al slot la
+            // resuelve el polo.
+            if (!smooth && !primero) {
+                if (frame) cancelAnimationFrame(frame)
+                frame = 0
                 cur = { left: target.left, top: target.top }
                 writePos()
                 return

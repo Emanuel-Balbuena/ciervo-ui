@@ -257,18 +257,6 @@ const onPointerUp = (e: PointerEvent) => {
           <span class="meta-divider">·</span>
           <span>Modal</span>
         </div>
-        
-        <div class="theme-toggle">
-          <Button 
-            variant="ghost" 
-            color="black" 
-            shape="round" 
-            size="small"
-            @click="toggleTheme"
-          >
-            {{ isDark ? 'Light' : 'Dark' }}
-          </Button>
-        </div>
       </header>
 
       <!-- =========================================

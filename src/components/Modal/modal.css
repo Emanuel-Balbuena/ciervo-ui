@@ -1,3 +1,14 @@
+@import "../../styles/themes/colors/black.css";
+@import "../../styles/themes/colors/red.css";
+@import "../../styles/themes/colors/orange.css";
+@import "../../styles/themes/colors/yellow.css";
+@import "../../styles/themes/colors/lime.css";
+@import "../../styles/themes/colors/green.css";
+@import "../../styles/themes/colors/cyan.css";
+@import "../../styles/themes/colors/blue.css";
+@import "../../styles/themes/colors/violet.css";
+@import "../../styles/themes/colors/pink.css";
+
 /**
  * apertura. Styles.
  *
@@ -59,6 +70,48 @@
         --apr-warning-fg: #1a0f02;
         --apr-inplace-overlay: color-mix(in srgb, #000000 36%, transparent);
     }
+}
+
+/* El tema de la app lo pone `useTheme` como clase en `<html>` (`html.dark`),
+   no el SO: sin este bloque el modal seguia claro con la pagina a
+   oscuras (el portal vive en `body`, pero las variables se heredan de la
+   raiz, asi que llegan igual). Mismos valores que el bloque de arriba. */
+html.dark {
+    --apr-bg: #1c1b1f;
+    --apr-fg: #e6e1e5;
+    --apr-muted: #adaaae;
+    --apr-shadow: 0 12px 48px rgba(0, 0, 0, 0.55), 0 0 1px rgba(255, 255, 255, 0.16);
+    --apr-overlay: color-mix(in srgb, #000000 56%, transparent);
+    --apr-btn-bg: #ececef;
+    --apr-btn-fg: #0e0e10;
+    --apr-danger-bg: #ef6a5e;
+    --apr-danger-fg: #1a0605;
+    --apr-success-bg: #5dcea0;
+    --apr-success-fg: #052016;
+    --apr-warning-bg: #f0b45a;
+    --apr-warning-fg: #1a0f02;
+    --apr-inplace-overlay: color-mix(in srgb, #000000 36%, transparent);
+}
+
+/* La app tambien marca el claro explicito (`theme-light`): sin este bloque,
+   con el SO a oscuras el `prefers-color-scheme` de arriba pintaba el
+   modal oscuro sobre la pagina clara. Sin ninguna clase, el SO sigue
+   decidiendo (consumidores de la libreria sin `useTheme`). */
+html.theme-light {
+    --apr-bg: #ffffff;
+    --apr-fg: #1b1b1f;
+    --apr-muted: #5c5c66;
+    --apr-shadow: 0 8px 40px rgba(0, 0, 0, 0.18), 0 0 1px rgba(0, 0, 0, 0.22);
+    --apr-overlay: color-mix(in srgb, #0c0c10 42%, transparent);
+    --apr-btn-bg: #1b1b1f;
+    --apr-btn-fg: #ffffff;
+    --apr-danger-bg: #b3261e;
+    --apr-danger-fg: #ffffff;
+    --apr-success-bg: #0f7b4c;
+    --apr-success-fg: #ffffff;
+    --apr-warning-bg: #9a5b00;
+    --apr-warning-fg: #ffffff;
+    --apr-inplace-overlay: color-mix(in srgb, #0c0c10 22%, transparent);
 }
 
 .apr-layer {
@@ -232,3 +285,93 @@
         -webkit-backdrop-filter: none;
     }
 }
+
+/* =========================================
+   COLOR SYSTEM
+   Mismo contrato que el Select: fondo y texto neutros e iguales
+   para los 10 colores (`--canvas-bg` / `--text-primary`: gris unico
+   en oscuro, casi blanco en luz); solo los detalles usan el color
+   base (`border`, boton solido y overlay inplace).
+   Los tokens `--<color>-*` los resuelven `.theme-dark` / `.theme-light`,
+   asi que el tinte sigue al modo claro/oscuro de la app sin mas codigo.
+   ========================================= */
+.apr-item.color-black {
+    --apr-bg: var(--canvas-bg, #f4f4f5);
+    --apr-fg: var(--text-primary, #1b1b1f);
+    --apr-border: var(--black-border-base);
+    --apr-btn-bg: var(--black-solid-base);
+    --apr-btn-fg: var(--black-text-base);
+}
+
+.apr-item.color-red {
+    --apr-bg: var(--canvas-bg, #f4f4f5);
+    --apr-fg: var(--text-primary, #1b1b1f);
+    --apr-border: var(--red-border-base);
+    --apr-btn-bg: var(--red-solid-base);
+    --apr-btn-fg: var(--red-text-base);
+}
+
+.apr-item.color-orange {
+    --apr-bg: var(--canvas-bg, #f4f4f5);
+    --apr-fg: var(--text-primary, #1b1b1f);
+    --apr-border: var(--orange-border-base);
+    --apr-btn-bg: var(--orange-solid-base);
+    --apr-btn-fg: var(--orange-text-base);
+}
+
+.apr-item.color-yellow {
+    --apr-bg: var(--canvas-bg, #f4f4f5);
+    --apr-fg: var(--text-primary, #1b1b1f);
+    --apr-border: var(--yellow-border-base);
+    --apr-btn-bg: var(--yellow-solid-base);
+    --apr-btn-fg: var(--yellow-text-base);
+}
+
+.apr-item.color-lime {
+    --apr-bg: var(--canvas-bg, #f4f4f5);
+    --apr-fg: var(--text-primary, #1b1b1f);
+    --apr-border: var(--lime-border-base);
+    --apr-btn-bg: var(--lime-solid-base);
+    --apr-btn-fg: var(--lime-text-base);
+}
+
+.apr-item.color-green {
+    --apr-bg: var(--canvas-bg, #f4f4f5);
+    --apr-fg: var(--text-primary, #1b1b1f);
+    --apr-border: var(--green-border-base);
+    --apr-btn-bg: var(--green-solid-base);
+    --apr-btn-fg: var(--green-text-base);
+}
+
+.apr-item.color-cyan {
+    --apr-bg: var(--canvas-bg, #f4f4f5);
+    --apr-fg: var(--text-primary, #1b1b1f);
+    --apr-border: var(--cyan-border-base);
+    --apr-btn-bg: var(--cyan-solid-base);
+    --apr-btn-fg: var(--cyan-text-base);
+}
+
+.apr-item.color-blue {
+    --apr-bg: var(--canvas-bg, #f4f4f5);
+    --apr-fg: var(--text-primary, #1b1b1f);
+    --apr-border: var(--blue-border-base);
+    --apr-btn-bg: var(--blue-solid-base);
+    --apr-btn-fg: var(--blue-text-base);
+}
+
+.apr-item.color-violet {
+    --apr-bg: var(--canvas-bg, #f4f4f5);
+    --apr-fg: var(--text-primary, #1b1b1f);
+    --apr-border: var(--violet-border-base);
+    --apr-btn-bg: var(--violet-solid-base);
+    --apr-btn-fg: var(--violet-text-base);
+}
+
+.apr-item.color-pink {
+    --apr-bg: var(--canvas-bg, #f4f4f5);
+    --apr-fg: var(--text-primary, #1b1b1f);
+    --apr-border: var(--pink-border-base);
+    --apr-btn-bg: var(--pink-solid-base);
+    --apr-btn-fg: var(--pink-text-base);
+}
+
