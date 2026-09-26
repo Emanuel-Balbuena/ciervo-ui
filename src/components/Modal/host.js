@@ -1033,7 +1033,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         // se queda colgado. El motor cierra a los `closeMaxDuration` (y ahora
         // tambien con su propio timeout de handoff), asi que aqui se le deja
         // margen de sobra.
-        const safetyDuration = (morphOptions.closeMaxDuration ?? 480)
+        const safetyDuration = (morphOptions.closeMaxDuration ?? MORPH_DEFAULTS.closeMaxDuration ?? 1400)
             + handoffDuration * 1000
             + 200;
 

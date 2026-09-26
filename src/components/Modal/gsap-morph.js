@@ -59,7 +59,7 @@ export const MORPH_DEFAULTS = {
     closeVelocity: 1400,
 
     closeContentDuration: 0.16,
-    closeHandoffDuration: 0.15,
+    closeHandoffDuration: 0,
 
     // De donde cuelga el texto que vuela:
     //
@@ -94,9 +94,9 @@ export const MORPH_DEFAULTS = {
 
     ghostTargets: 'all',
 
-    closeMaxDuration: 900,
-    closeRestDelta: 0.8,
-    closeRestSpeed: 8,
+    closeMaxDuration: 2500,
+    closeRestDelta: 0.04,
+    closeRestSpeed: 0.5,
 }
 
 
@@ -189,6 +189,9 @@ function createTransitionController(shellEl) {
 const originTransitions =
     new WeakMap()
 
+const originTransforms =
+    new WeakMap()
+
 
 export function hideOrigin(
     element,
@@ -209,7 +212,15 @@ export function hideOrigin(
         )
     }
 
+    if (!originTransforms.has(element)) {
+        originTransforms.set(
+            element,
+            element.style.transform,
+        )
+    }
+
     element.style.transition = 'none'
+    element.style.transform = 'none'
     element.style.opacity = '0'
 
     // `clickable` tiene que PODER el clic, no solo no quitarselo: el trigger
@@ -232,6 +243,8 @@ export function restoreOrigin(
 
     const savedTransition =
         originTransitions.get(element)
+    const savedTransform =
+        originTransforms.get(element)
 
     if (instant) {
         // Lo que hay puesto ahora: es lo que hay que devolver si nadie lo
@@ -242,6 +255,13 @@ export function restoreOrigin(
         element.style.transition = 'none'
         element.style.opacity = ''
         element.style.pointerEvents = ''
+
+        if (savedTransform !== undefined) {
+            originTransforms.delete(element)
+            element.style.transform = savedTransform
+        } else {
+            element.style.transform = ''
+        }
 
         if (savedTransition !== undefined) {
             originTransitions.delete(element)
@@ -270,6 +290,13 @@ export function restoreOrigin(
     element.style.transition = `opacity ${durationMs}ms ease`
     element.style.opacity = ''
     element.style.pointerEvents = ''
+
+    if (savedTransform !== undefined) {
+        originTransforms.delete(element)
+        element.style.transform = savedTransform
+    } else {
+        element.style.transform = ''
+    }
 
     window.setTimeout(() => {
         if (savedTransition === undefined) {
@@ -532,13 +559,11 @@ function paintShell(
 // cola solo se alarga los ~4 frames que el resorte tarda en cerrar ese resto
 // (a 0.08 px/frame y acelerando: ~60 ms mas de vuelo, invisible porque el
 // movimiento que queda esta por debajo de 0.1 px/frame).
-const GEOMETRY_REST_DELTA = 0.1
+const GEOMETRY_REST_DELTA = 0.04
 
-// La velocidad se queda en 4 px/s (0.067 px/frame, ya imperceptible): con el
-// `restDelta` afinado la condicion que manda es la del error, y esta no
-// retrasa el asentado. Se conserva porque un canal que asienta a 4 px/s esta
-// llegando, no cruzando.
-const GEOMETRY_REST_SPEED = 4
+// La velocidad se afina a 0.5 px/s para que el resorte no se quede congelado
+// gateando los ultimos 120ms por debajo de 0.01px/frame.
+const GEOMETRY_REST_SPEED = 0.5
 
 // `restDelta` y `restSpeed` de `sizeSpring` son ABSOLUTOS, pero ese spring
 // alimenta canales de dos escalas muy distintas: x/y/width/height en pixeles y
@@ -598,6 +623,59 @@ function sizeSpring(
 }
 
 
+function synchronizedGeometrySprings(
+    config,
+    state,
+    targetState,
+    { close = false } = {},
+) {
+    const dx = Math.abs(targetState.x - state.x)
+    const dy = Math.abs(targetState.y - state.y)
+    const dw = Math.abs(targetState.width - state.width)
+    const dh = Math.abs(targetState.height - state.height)
+    const maxTravel = Math.max(dx, dy, dw, dh, 1)
+
+    const baseDelta = close
+        ? (config.closeRestDelta ?? GEOMETRY_REST_DELTA)
+        : GEOMETRY_REST_DELTA
+    const baseSpeed = close
+        ? (config.closeRestSpeed ?? GEOMETRY_REST_SPEED)
+        : GEOMETRY_REST_SPEED
+
+    const damping = close
+        ? (
+            config.closeSizeDamping ??
+            config.closeDamping
+        )
+        : config.sizeDamping
+
+    const createChSpring = (travel) => {
+        const factor = Math.max(travel / maxTravel, 0.005)
+        return spring({
+            stiffness: config.sizeStiffness,
+            damping,
+            velocity: 0,
+            restDelta: baseDelta * factor,
+            restSpeed: baseSpeed * factor,
+        })
+    }
+
+    return {
+        x: createChSpring(dx),
+        y: createChSpring(dy),
+        width: createChSpring(dw),
+        height: createChSpring(dh),
+        roundSize: spring({
+            stiffness: config.sizeStiffness,
+            damping,
+            velocity: 0,
+            restDelta: baseDelta / maxTravel,
+            restSpeed: baseSpeed / maxTravel,
+        }),
+    }
+}
+
+
 function roundnessEase(close) {
     return close
         ? Easing.bezier(0.5, 0.2, 0.2, 1)
@@ -616,7 +694,7 @@ function getFadingElements(bodyEl) {
 
     const sharedEls = Array.from(
         bodyEl.querySelectorAll(
-            '[data-morph-split], [data-morph-icon]',
+            '[data-morph-split], [data-morph-icon], [data-apr-id]',
         ),
     )
 
@@ -640,8 +718,28 @@ function getFadingElements(bodyEl) {
         if (containsShared(el)) {
             Array.from(el.children)
                 .forEach(traverse)
-        } else {
+            return
+        }
+
+        const isInteractiveLeaf =
+            el.tagName === 'BUTTON' ||
+            el.tagName === 'INPUT' ||
+            el.tagName === 'TEXTAREA' ||
+            el.tagName === 'SELECT' ||
+            el.tagName === 'A' ||
+            el.tagName === 'IMG' ||
+            el.tagName === 'SVG' ||
+            el.matches?.('.btn, .apr-btn, [class*="btn"]')
+
+        const isTextLeaf =
+            el.tagName === 'P' ||
+            el.tagName === 'LABEL' ||
+            /^H[1-6]$/.test(el.tagName)
+
+        if (isInteractiveLeaf || isTextLeaf || el.children.length === 0) {
             fading.push(el)
+        } else {
+            Array.from(el.children).forEach(traverse)
         }
     }
 
@@ -714,6 +812,9 @@ const TEXT_PROPS = [
     'textTransform',
     'textShadow',
     'textRendering',
+    'textAlign',
+    'webkitFontSmoothing',
+    'mozOsxFontSmoothing',
 ]
 
 
@@ -1003,8 +1104,10 @@ function makeGhost(
 
         TEXT_PROPS.forEach(
             (prop) => {
-                ghost.style[prop] =
-                    computed[prop]
+                if (computed[prop] !== undefined) {
+                    ghost.style[prop] =
+                        computed[prop]
+                }
             },
         )
 
@@ -1418,14 +1521,14 @@ function flyGhosts(
                 entry.startScale +
                 (1 - entry.startScale) * t
 
-            const x =
+            let x =
                 box.left +
                 entry.glue.x0 +
                 (entry.glue.x1 - entry.glue.x0) * t -
                 entry.ownLeft -
                 entry.inkLeft * scale
 
-            const y =
+            let y =
                 box.top +
                 entry.glue.y0 +
                 (entry.glue.y1 - entry.glue.y0) * t -
@@ -1439,11 +1542,21 @@ function flyGhosts(
             // `gsap.set(x, y, scale)` asume, asi que la cadena es equivalente y
             // no una aproximacion: `translate3d` conserva ademas el mismo camino
             // de composicion que usaba gsap.
+            if (t >= 1) {
+                const dpr = window.devicePixelRatio || 1
+                x = Math.round(entry.endX * dpr) / dpr
+                y = Math.round(entry.endY * dpr) / dpr
+            } else if (t <= 0) {
+                const dpr = window.devicePixelRatio || 1
+                x = Math.round(entry.startX * dpr) / dpr
+                y = Math.round(entry.startY * dpr) / dpr
+            }
+
             const style =
                 entry.ghost.style
 
             style.transform =
-                `translate3d(${x}px, ${y}px, 0) scale(${scale})`
+                `translate3d(${x}px, ${y}px, 0) scale(${t >= 1 ? 1 : scale})`
 
             if (entry.colorBlend) {
                 style.color =
@@ -1468,18 +1581,32 @@ function flyGhosts(
             entry.aimY += (entry.wantY - entry.aimY) * aimSmooth
         }
 
+        let px =
+            entry.startX +
+            (entry.aimX - entry.startX) * t
+
+        let py =
+            entry.startY +
+            (entry.aimY - entry.startY) * t
+
+        if (t >= 1) {
+            const dpr = window.devicePixelRatio || 1
+            px = Math.round(entry.endX * dpr) / dpr
+            py = Math.round(entry.endY * dpr) / dpr
+        } else if (t <= 0) {
+            const dpr = window.devicePixelRatio || 1
+            px = Math.round(entry.startX * dpr) / dpr
+            py = Math.round(entry.startY * dpr) / dpr
+        }
+
         const props = {
-            x:
-                entry.startX +
-                (entry.aimX - entry.startX) * t,
-
-            y:
-                entry.startY +
-                (entry.aimY - entry.startY) * t,
-
+            x: px,
+            y: py,
             scale:
-                entry.startScale +
-                (1 - entry.startScale) * t,
+                t >= 1
+                    ? 1
+                    : entry.startScale +
+                      (1 - entry.startScale) * t,
         }
 
         // Colour is not a metric, it is the visible continuity of the flying
@@ -1609,6 +1736,7 @@ function flyGhosts(
          * un `paint(1)` exacto. En 'timeline' no hace nada.
          */
         finish() {
+            lastKey = null
             paint(1)
         },
 
@@ -1940,6 +2068,59 @@ function fontScale(fromBox, toBox) {
 }
 
 
+function snapBoxToChassis(box, el, root) {
+    if (!box || !el || !root || typeof window === 'undefined') return box
+    const dpr = window.devicePixelRatio || 1
+    if (dpr <= 0) return box
+
+    // Only apply button-chassis snapping if root is a button or el is inside a button (.btn-text)
+    const chassis = el.closest?.('.btn-text')
+    const isButton = Boolean(
+        chassis ||
+        root.matches?.('.btn, .apr-btn, [class*="btn"], button') ||
+        root.tagName === 'BUTTON'
+    )
+
+    if (!isButton) {
+        return box
+    }
+
+    const container =
+        chassis ||
+        (el.parentElement && el.parentElement !== root && root.contains(el.parentElement) ? el.parentElement : null)
+
+    if (!container) {
+        return box
+    }
+
+    const rRoot = root.getBoundingClientRect()
+    const rChassis = container.getBoundingClientRect()
+
+    const rootTopDev = Math.round(rRoot.top * dpr)
+    const rootLeftDev = Math.round(rRoot.left * dpr)
+    const rootHDev = Math.round(rRoot.height * dpr)
+    const rootWDev = Math.round(rRoot.width * dpr)
+
+    const chassisHDev = Math.round(rChassis.height * dpr)
+    const chassisWDev = Math.round(rChassis.width * dpr)
+
+    const chassisTopDev = rootTopDev + Math.round((rootHDev - chassisHDev) / 2)
+    const chassisLeftDev = rootLeftDev + Math.round((rootWDev - chassisWDev) / 2)
+
+    const snappedChassisTop = chassisTopDev / dpr
+    const snappedChassisLeft = chassisLeftDev / dpr
+
+    const relTop = box.top - rChassis.top
+    const relLeft = box.left - rChassis.left
+
+    return {
+        ...box,
+        top: snappedChassisTop + relTop,
+        left: snappedChassisLeft + relLeft,
+    }
+}
+
+
 // -----------------------------------------------------------------------------
 // GHOST SPEC COLLECTION
 // -----------------------------------------------------------------------------
@@ -1960,7 +2141,7 @@ function collectGhostSpecs(
 
     const fromWords =
         fromRoot.querySelectorAll(
-            '[data-morph-split]',
+            '[data-morph-split], [data-apr-id="shared-text"]',
         )
 
     fromWords.forEach(
@@ -1968,11 +2149,13 @@ function collectGhostSpecs(
             const key =
                 fromEl.getAttribute(
                     'data-morph-split',
+                ) || fromEl.getAttribute(
+                    'data-apr-id',
                 )
 
             const toEl =
                 toRoot.querySelector(
-                    `[data-morph-split="${key}"]`,
+                    `[data-morph-split="${key}"], [data-apr-id="${key}"]`,
                 )
 
             if (!toEl) return
@@ -1985,10 +2168,8 @@ function collectGhostSpecs(
                 )
 
             const targets =
-                snapRows(
-                    measureWords(
-                        toEl,
-                    ),
+                measureWords(
+                    toEl,
                 )
 
             const count =
@@ -2019,10 +2200,18 @@ function collectGhostSpecs(
                         toEl,
 
                     fromBox:
-                        sources[i].box,
+                        snapBoxToChassis(
+                            sources[i].box,
+                            fromEl,
+                            fromRoot,
+                        ),
 
                     toBox:
-                        targets[i].box,
+                        snapBoxToChassis(
+                            targets[i].box,
+                            toEl,
+                            toRoot,
+                        ),
 
                     scale:
                         fontScale(
@@ -2035,17 +2224,24 @@ function collectGhostSpecs(
                     // reapuntado del cierre: si el trigger se movio con el
                     // scroll, el texto tiene que aterrizar donde esta AHORA.
                     measureToBox:
-                        () =>
-                            toEl.isConnected
-                                ? (
-                                    snapRows(
-                                        measureWords(
-                                            toEl,
-                                        ),
-                                    )[i]?.box ??
-                                    null
+                        () => {
+                            if (!toEl.isConnected) {
+                                return null
+                            }
+
+                            const box =
+                                measureWords(
+                                    toEl,
+                                )[i]?.box
+
+                            return box
+                                ? snapBoxToChassis(
+                                    box,
+                                    toEl,
+                                    toRoot,
                                 )
-                                : null,
+                                : null
+                        },
                 })
             }
         },
@@ -2058,7 +2254,7 @@ function collectGhostSpecs(
 
     const fromIcons =
         fromRoot.querySelectorAll(
-            '[data-morph-icon]',
+            '[data-morph-icon], [data-apr-id="shared-icon"]',
         )
 
     fromIcons.forEach(
@@ -2066,11 +2262,13 @@ function collectGhostSpecs(
             const key =
                 fromEl.getAttribute(
                     'data-morph-icon',
+                ) || fromEl.getAttribute(
+                    'data-apr-id',
                 )
 
             const toEl =
                 toRoot.querySelector(
-                    `[data-morph-icon="${key}"]`,
+                    `[data-morph-icon="${key}"], [data-apr-id="${key}"]`,
                 )
 
             if (!toEl) return
@@ -2098,7 +2296,11 @@ function collectGhostSpecs(
             specs.push({
                 type: 'icon',
 
-                sourceEl: fromEl,
+                sourceEl:
+                    glyph
+                        ? null
+                        : fromEl,
+
                 revealEl: toEl,
 
                 sourceContainer:
@@ -2107,19 +2309,31 @@ function collectGhostSpecs(
                 revealContainer:
                     toEl,
 
+                index: 0,
+
+                glyph,
+
                 fromBox:
-                    glyph
-                        ? sources[0].box
-                        : snapshotBox(
-                            fromEl,
-                        ),
+                    snapBoxToChassis(
+                        glyph
+                            ? sources[0].box
+                            : snapshotBox(
+                                fromEl,
+                            ),
+                        fromEl,
+                        fromRoot,
+                    ),
 
                 toBox:
-                    glyph
-                        ? targets[0].box
-                        : snapshotBox(
-                            toEl,
-                        ),
+                    snapBoxToChassis(
+                        glyph
+                            ? targets[0].box
+                            : snapshotBox(
+                                toEl,
+                            ),
+                        toEl,
+                        toRoot,
+                    ),
 
                 scale:
                     glyph
@@ -2136,7 +2350,7 @@ function collectGhostSpecs(
                             return null
                         }
 
-                        return glyph
+                        const box = glyph
                             ? (
                                 measureWords(
                                     toEl,
@@ -2146,6 +2360,14 @@ function collectGhostSpecs(
                             : snapshotBox(
                                 toEl,
                             )
+
+                        return box
+                            ? snapBoxToChassis(
+                                box,
+                                toEl,
+                                toRoot,
+                            )
+                            : null
                     },
             })
         },
@@ -2337,6 +2559,9 @@ function createContentController(
     bodyEl.style.transformOrigin =
         'center center'
 
+    const blurPx = Number(config.contentBlur) || 12
+    const scaleVal = Number(config.contentScale) || 0.96
+
     if (config.mode === 'gsap') {
         fadingElements =
             getFadingElements(
@@ -2346,27 +2571,19 @@ function createContentController(
         if (opening) {
             fadingElements.forEach(
                 (el) => {
-                    el.style.filter =
-                        `blur(${config.contentBlur}px)`
-
-                    el.style.opacity =
-                        '0'
-
-                    el.style.transform =
-                        `scale(${config.contentScale})`
+                    el.style.transition = 'none'
+                    el.style.filter = `blur(${blurPx}px)`
+                    el.style.opacity = '0'
+                    el.style.transform = `translate(-10px, -10px) scale(${scaleVal})`
                 },
             )
         } else {
             fadingElements.forEach(
                 (el) => {
-                    el.style.filter =
-                        'none'
-
-                    el.style.opacity =
-                        '1'
-
-                    el.style.transform =
-                        'scale(1)'
+                    el.style.transition = 'none'
+                    el.style.filter = 'none'
+                    el.style.opacity = '1'
+                    el.style.transform = 'none'
                 },
             )
         }
@@ -2397,15 +2614,40 @@ function createContentController(
 
         animateIn() {
             if (config.mode === 'gsap') {
-                if (detached) return
+                if (detached || !fadingElements.length) return
+
+                const bodyRect = bodyEl.getBoundingClientRect()
+                const diags = fadingElements.map((el) => {
+                    const r = el.getBoundingClientRect()
+                    return (r.top - bodyRect.top) + (r.left - bodyRect.left)
+                })
+
+                const minDiag = Math.min(...diags)
+                const maxDiag = Math.max(...diags)
+                const range = Math.max(maxDiag - minDiag, 1)
+
+                const baseDelay = Number(config.colorDelay) || 0.12
+                const sweepSpread = 0.18
+                const duration = Number(config.contentDuration) || 0.35
+                const ease = 'cubic-bezier(0.16, 1, 0.3, 1)'
+
+                // Force reflow before applying transitions
+                void bodyEl.offsetWidth
 
                 fadingElements.forEach(
-                    (el) => {
-                        el.style.transition =
-                            `opacity ${config.contentDuration}s ease-out ${config.colorDelay}s`
+                    (el, i) => {
+                        const norm = (diags[i] - minDiag) / range
+                        const delay = baseDelay + norm * sweepSpread
 
-                        el.style.opacity =
-                            '1'
+                        el.style.transition = [
+                            `opacity ${duration}s ${ease} ${delay.toFixed(3)}s`,
+                            `filter ${duration}s ${ease} ${delay.toFixed(3)}s`,
+                            `transform ${duration}s ${ease} ${delay.toFixed(3)}s`
+                        ].join(', ')
+
+                        el.style.opacity = '1'
+                        el.style.filter = 'blur(0px)'
+                        el.style.transform = 'translate(0px, 0px) scale(1)'
                     },
                 )
 
@@ -2421,15 +2663,35 @@ function createContentController(
 
         animateOut() {
             if (config.mode === 'gsap') {
-                if (detached) return
+                if (detached || !fadingElements.length) return
+
+                const bodyRect = bodyEl.getBoundingClientRect()
+                const diags = fadingElements.map((el) => {
+                    const r = el.getBoundingClientRect()
+                    return (r.top - bodyRect.top) + (r.left - bodyRect.left)
+                })
+
+                const minDiag = Math.min(...diags)
+                const maxDiag = Math.max(...diags)
+                const range = Math.max(maxDiag - minDiag, 1)
+
+                const closeDuration = Number(config.closeContentDuration) || 0.18
+                const closeEase = 'cubic-bezier(0.4, 0, 1, 1)'
 
                 fadingElements.forEach(
-                    (el) => {
-                        el.style.transition =
-                            `opacity ${config.closeContentDuration}s ease-in`
+                    (el, i) => {
+                        const norm = (diags[i] - minDiag) / range
+                        const delay = (1 - norm) * 0.08
 
-                        el.style.opacity =
-                            '0'
+                        el.style.transition = [
+                            `opacity ${closeDuration}s ${closeEase} ${delay.toFixed(3)}s`,
+                            `filter ${closeDuration}s ${closeEase} ${delay.toFixed(3)}s`,
+                            `transform ${closeDuration}s ${closeEase} ${delay.toFixed(3)}s`
+                        ].join(', ')
+
+                        el.style.opacity = '0'
+                        el.style.filter = `blur(${blurPx}px)`
+                        el.style.transform = `translate(-10px, -10px) scale(${scaleVal})`
                     },
                 )
 
@@ -2445,15 +2707,6 @@ function createContentController(
 
         setScale(value) {
             if (config.mode === 'gsap') {
-                if (detached) return
-
-                fadingElements.forEach(
-                    (el) => {
-                        el.style.transform =
-                            `scale(${value})`
-                    },
-                )
-
                 return
             }
 
@@ -2463,15 +2716,6 @@ function createContentController(
 
         setBlur(value) {
             if (config.mode === 'gsap') {
-                if (detached) return
-
-                fadingElements.forEach(
-                    (el) => {
-                        el.style.filter =
-                            `blur(${value}px)`
-                    },
-                )
-
                 return
             }
 
@@ -2658,17 +2902,12 @@ function createMorphMotion(
 
                 pending.delete(key)
 
-                // El texto aterriza cuando aterriza el reloj del que cuelga,
-                // sin depender de haber recibido un `paint(1)` exacto.
-                if (key === 'roundT') {
-                    getGhosts()
-                        ?.finish()
-                }
-
                 if (
                     pending.size === 0 &&
                     !finished
                 ) {
+                    getGhosts()
+                        ?.finish()
                     finished = true
                     onComplete?.()
                 }
@@ -2892,6 +3131,21 @@ export function gsapMorphFromOrigin({
     // -------------------------------------------------------------------------
 
     let ghostSpecs = []
+
+    // Neutralizar cualquier resorte activo (:active o transicion de clic) antes
+    // de medir para que tanto los fantasmas como el originRect nazcan en la
+    // geometria de reposo natural al 100%.
+    if (origin instanceof HTMLElement && getComputedStyle(origin).transform !== 'none') {
+        if (!originTransitions.has(origin)) {
+            originTransitions.set(origin, origin.style.transition)
+        }
+        if (!originTransforms.has(origin)) {
+            originTransforms.set(origin, origin.style.transform)
+        }
+        origin.style.transition = 'none'
+        origin.style.transform = 'none'
+        void origin.offsetWidth
+    }
 
     if (config.mode === 'gsap') {
         const collection =
@@ -3206,21 +3460,18 @@ export function gsapMorphFromOrigin({
         contentBlur: 0,
     }
 
-    // Mismos numeros de spring que `size` y los umbrales de la caja traducidos
-    // a unidades de `roundT`: la MISMA curva que width/height, frame a frame, y
-    // el MISMO frame de asentado. Necesita `targetState` para saber cuanto
-    // recorre la caja.
-    const roundSize =
-        sizeSpring(
+    const geomSprings =
+        synchronizedGeometrySprings(
             config,
-            normalizedRest(state, targetState),
+            state,
+            targetState,
+            { close: false },
         )
-
 
     const springs = {
         x:
             isTransform
-                ? size
+                ? geomSprings.x
                 : spring({
                     ...travel,
                     direction: launchX,
@@ -3228,18 +3479,21 @@ export function gsapMorphFromOrigin({
 
         y:
             isTransform
-                ? size
+                ? geomSprings.y
                 : spring({
                     ...travel,
                     direction: launchY,
                 }),
 
-        width: size,
-        height: size,
+        width:
+            geomSprings.width,
+
+        height:
+            geomSprings.height,
 
         roundT:
             isTransform
-                ? roundSize
+                ? geomSprings.roundSize
                 : easing({
                     duration:
                         config.radiusDuration,
@@ -3675,14 +3929,30 @@ export function gsapMorphToOrigin({
         // geometry, then the real origin is revealed underneath it.
         // ---------------------------------------------------------------------
 
-        state.x = toX
-        state.y = toY
+        const liveOriginRect =
+            origin.getBoundingClientRect()
+
+        const liveToX =
+            liveOriginRect.left -
+            shellBaseRect.left
+
+        const liveToY =
+            liveOriginRect.top -
+            shellBaseRect.top
+
+        pageCorr.x = 0
+        pageCorr.y = 0
+        pageCorr.scrollX = window.scrollX
+        pageCorr.scrollY = window.scrollY
+
+        pure.x = liveToX
+        pure.y = liveToY
 
         state.width =
-            originRect.width
+            liveOriginRect.width
 
         state.height =
-            originRect.height
+            liveOriginRect.height
 
         state.roundT = 1
 
@@ -3695,26 +3965,10 @@ export function gsapMorphToOrigin({
 
         // ---------------------------------------------------------------------
         // RELEVO DEL ORIGIN
-        //
-        // El shell ya esta clavado a la geometria exacta del trigger (medido:
-        // mismo rect `145,104 278x56` y mismo radio 28px) y su fondo ya llego
-        // al negro del trigger. A partir de aqui el fundido SOLO es invisible
-        // si el trigger esta debajo: negro sobre negro. Si el trigger se queda
-        // oculto, en su lugar queda el azul de la pagina y el shell se ve.
-        //
-        // Medido por frame (rAF a 60 fps) en un cierre limpio, con el trigger
-        // oculto durante el fundido: 185 ms a la vista, el shell en
-        // `145,104 278x56 bg=rgb(0,0,0)` bajando de `op=1.00` a `op=0.10`. En su
-        // pico (`op=0.36`) el pixel compuesto sobre el fondo de la pagina es
-        // `rgb(0,0,116)` sobre `rgb(0,0,176)` -- el mismo numero medido pixel a
-        // pixel en la captura del dueño. La ventana es de 185 ms: en clic
-        // rapido y repetitivo esta siempre encendida, y eso es "ese shell del
-        // modal que llego... en el origin" que reporto.
-        //
-        // El caso en el que el trigger NO se puede destapar (una rafaga: el
-        // modal nuevo ya tiene tomado ese origin) no tiene relevo que hacer. Se
-        // apaga el shell en el mismo frame y no queda nada pintado encima.
         // ---------------------------------------------------------------------
+
+        ghostFlight?.finish()
+        visibilityController?.show()
 
         const canRevealOrigin =
             typeof shouldRestoreOrigin !== 'function' ||
@@ -3728,10 +3982,6 @@ export function gsapMorphToOrigin({
                 },
             )
         } else {
-            // El origin es de otro modal: se queda oculto, pero PICABLE
-            // (`hideOrigin(..., { clickable: true })`). Eso es lo que sostiene
-            // el doble clic de memoria muscular: cerrar y volver a picar el
-            // mismo sitio sigue abriendo.
             hideOrigin(
                 origin,
                 {
@@ -3740,26 +3990,12 @@ export function gsapMorphToOrigin({
             )
         }
 
-        const handoffDuration =
-            Math.max(
-                0,
-                Number(
-                    config.closeHandoffDuration,
-                ) || 0,
-            )
+        cleanup({
+            hideShell: true,
+            notify: true,
+        })
 
-
-        // Sin fundido, o sin trigger debajo que lo absorba, no hay relevo que
-        // hacer: el shell se apaga y el trigger (si vuelve) vuelve en el mismo
-        // frame.
-        if (handoffDuration <= 0 || !canRevealOrigin) {
-            cleanup({
-                hideShell: true,
-                notify: true,
-            })
-
-            return
-        }
+        return
 
 
         // ---------------------------------------------------------------------
@@ -4033,9 +4269,6 @@ export function gsapMorphToOrigin({
 
 
     // -------------------------------------------------------------------------
-    // ORIGIN TARGET GEOMETRY
-    // -------------------------------------------------------------------------
-
     const originRect =
         origin.getBoundingClientRect()
 
@@ -4366,14 +4599,6 @@ export function gsapMorphToOrigin({
     }
 
 
-    const size =
-        sizeSpring(
-            config,
-            {
-                close: true,
-            },
-        )
-
     const targetState = {
         x: toX,
         y: toY,
@@ -4403,23 +4628,19 @@ export function gsapMorphToOrigin({
             config.contentBlur,
     }
 
-    // Ver `normalizedRest`: los umbrales de la caja traducidos a unidades de
-    // `roundT`, para que los radios asienten en el frame en que asienta la caja
-    // y no antes.
-    const roundSize =
-        sizeSpring(
+    const geomSprings =
+        synchronizedGeometrySprings(
             config,
-            {
-                close: true,
-                ...normalizedRest(state, targetState),
-            },
+            state,
+            targetState,
+            { close: true },
         )
 
 
     const springs = {
         x:
             isTransform
-                ? size
+                ? geomSprings.x
                 : spring({
                     ...travel,
                     direction: launchX,
@@ -4427,21 +4648,21 @@ export function gsapMorphToOrigin({
 
         y:
             isTransform
-                ? size
+                ? geomSprings.y
                 : spring({
                     ...travel,
                     direction: launchY,
                 }),
 
         width:
-            size,
+            geomSprings.width,
 
         height:
-            size,
+            geomSprings.height,
 
         roundT:
             isTransform
-                ? roundSize
+                ? geomSprings.roundSize
                 : easing({
                     duration:
                         config.radiusDuration,
@@ -4579,7 +4800,7 @@ export function gsapMorphToOrigin({
         {
             spring:
                 isTransform
-                    ? size
+                    ? geomSprings.x
                     : travel,
         },
     )

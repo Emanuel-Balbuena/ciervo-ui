@@ -44,14 +44,14 @@ export const MORPH_DEFAULTS = {
     closeSizeDamping: 26,
     closeVelocity: 1400,
     closeContentDuration: 0.16,
-    closeHandoffDuration: 0.18,
+    closeHandoffDuration: 0,
 
     // Lo que dura el apagon de una copia que se va sin viaje de vuelta (el
     // MISMO modal volviendo a abrirse encima). Ver `vanish` mas abajo.
     closeVanishDuration: 0.14,
-    closeMaxDuration: 900,
-    closeRestDelta: 0.8,
-    closeRestSpeed: 8,
+    closeMaxDuration: 2500,
+    closeRestDelta: 0.04,
+    closeRestSpeed: 0.5,
 }
 
 // El par del origin vive en un solo sitio (`gsap-morph.js`): ahi guarda el

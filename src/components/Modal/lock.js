@@ -22,7 +22,7 @@ export function createPageLock() {
             previousFocus = restoreTo ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null)
             overflow = document.body.style.overflow
             paddingRight = document.body.style.paddingRight
-            const gap = window.innerWidth - document.documentElement.clientWidth
+            const gap = window.innerWidth - document.documentElement.getBoundingClientRect().width
             
             document.documentElement.style.setProperty('--apr-scrollbar-compensation', `${gap}px`)
             document.body.style.overflow = 'hidden'
