@@ -1126,6 +1126,13 @@ function makeGhost(
     ghost.style.color =
         box.color
 
+    const innerSvg = ghost.querySelector ? ghost.querySelector('svg') : null
+    if (innerSvg) {
+        innerSvg.style.width = '100%'
+        innerSvg.style.height = '100%'
+        innerSvg.style.display = 'block'
+    }
+
     return ghost
 }
 
@@ -1535,21 +1542,13 @@ function flyGhosts(
                 entry.ownTop -
                 entry.inkTop * scale
 
-            // Escritura directa, no `gsap.set`. El valor ya esta calculado aqui:
-            // `gsap.set` solo anadia construir un tween (y consultar la matriz
-            // viva del elemento) para volver a escribirlo. El fantasma tiene
-            // `transform-origin: 0 0` y `left/top: 0`, que es exactamente lo que
-            // `gsap.set(x, y, scale)` asume, asi que la cadena es equivalente y
-            // no una aproximacion: `translate3d` conserva ademas el mismo camino
-            // de composicion que usaba gsap.
-            if (t >= 1) {
-                const dpr = window.devicePixelRatio || 1
-                x = Math.round(entry.endX * dpr) / dpr
-                y = Math.round(entry.endY * dpr) / dpr
-            } else if (t <= 0) {
-                const dpr = window.devicePixelRatio || 1
+            const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1
+            if (t <= 0) {
                 x = Math.round(entry.startX * dpr) / dpr
                 y = Math.round(entry.startY * dpr) / dpr
+            } else if (t >= 1) {
+                x = Math.round(x * dpr) / dpr
+                y = Math.round(y * dpr) / dpr
             }
 
             const style =
@@ -1589,12 +1588,11 @@ function flyGhosts(
             entry.startY +
             (entry.aimY - entry.startY) * t
 
+        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1
         if (t >= 1) {
-            const dpr = window.devicePixelRatio || 1
-            px = Math.round(entry.endX * dpr) / dpr
-            py = Math.round(entry.endY * dpr) / dpr
+            px = Math.round(entry.wantX * dpr) / dpr
+            py = Math.round(entry.wantY * dpr) / dpr
         } else if (t <= 0) {
-            const dpr = window.devicePixelRatio || 1
             px = Math.round(entry.startX * dpr) / dpr
             py = Math.round(entry.startY * dpr) / dpr
         }
@@ -2073,48 +2071,25 @@ function snapBoxToChassis(box, el, root) {
     const dpr = window.devicePixelRatio || 1
     if (dpr <= 0) return box
 
-    // Only apply button-chassis snapping if root is a button or el is inside a button (.btn-text)
-    const chassis = el.closest?.('.btn-text')
-    const isButton = Boolean(
-        chassis ||
-        root.matches?.('.btn, .apr-btn, [class*="btn"], button') ||
-        root.tagName === 'BUTTON'
-    )
-
-    if (!isButton) {
-        return box
-    }
-
-    const container =
-        chassis ||
-        (el.parentElement && el.parentElement !== root && root.contains(el.parentElement) ? el.parentElement : el)
-
-    if (!container) {
-        return box
-    }
-
     const rRoot = root.getBoundingClientRect()
-    const rChassis = container.getBoundingClientRect()
+    const snappedOriginLeft = Math.round(rRoot.left * dpr) / dpr
+    const snappedOriginTop = Math.round(rRoot.top * dpr) / dpr
 
-    const rootTopDev = Math.round(rRoot.top * dpr)
-    const rootLeftDev = Math.round(rRoot.left * dpr)
+    // Check if el is an SVG or contains an SVG
+    const isSvg = el.tagName?.toLowerCase() === 'svg' || Boolean(el.querySelector?.('svg'))
 
-    const offsetLeftDev = Math.round((rChassis.left - rRoot.left) * dpr)
-    const offsetTopDev = Math.round((rChassis.top - rRoot.top) * dpr)
-
-    const chassisTopDev = rootTopDev + offsetTopDev
-    const chassisLeftDev = rootLeftDev + offsetLeftDev
-
-    const snappedChassisTop = chassisTopDev / dpr
-    const snappedChassisLeft = chassisLeftDev / dpr
-
-    const relTop = box.top - rChassis.top
-    const relLeft = box.left - rChassis.left
+    if (isSvg) {
+        return {
+            ...box,
+            left: (Math.round(rRoot.left * dpr) + Math.round((box.left - rRoot.left) * dpr)) / dpr,
+            top: (Math.round(rRoot.top * dpr) + Math.round((box.top - rRoot.top) * dpr)) / dpr,
+        }
+    }
 
     return {
         ...box,
-        top: snappedChassisTop + relTop,
-        left: snappedChassisLeft + relLeft,
+        left: snappedOriginLeft + (box.left - rRoot.left),
+        top: snappedOriginTop + (box.top - rRoot.top),
     }
 }
 
@@ -2572,7 +2547,7 @@ function createContentController(
                     el.style.transition = 'none'
                     el.style.filter = `blur(${blurPx}px)`
                     el.style.opacity = '0'
-                    el.style.transform = `translate(-10px, -10px) scale(${scaleVal})`
+                    el.style.transform = `scale(${scaleVal})`
                 },
             )
         } else {
@@ -2645,7 +2620,7 @@ function createContentController(
 
                         el.style.opacity = '1'
                         el.style.filter = 'blur(0px)'
-                        el.style.transform = 'translate(0px, 0px) scale(1)'
+                        el.style.transform = 'scale(1)'
                     },
                 )
 
@@ -3780,6 +3755,7 @@ export function gsapMorphToOrigin({
 
     let handoffHandler = null
     let handoffTimer = null
+    let handoffRaf = null
 
     let vanishTimer = null
 
@@ -3812,6 +3788,11 @@ export function gsapMorphToOrigin({
         if (safetyTimer) {
             clearTimeout(safetyTimer)
             safetyTimer = null
+        }
+
+        if (handoffRaf) {
+            cancelAnimationFrame(handoffRaf)
+            handoffRaf = null
         }
 
         // El cierre ya termino: ni el listener ni su respaldo tienen nada que
@@ -3981,6 +3962,8 @@ export function gsapMorphToOrigin({
 
         pure.x = liveToX
         pure.y = liveToY
+        state.x = liveToX
+        state.y = liveToY
 
         state.width =
             snappedLiveWidth
@@ -4024,115 +4007,13 @@ export function gsapMorphToOrigin({
             )
         }
 
-        const handoffDuration =
-            Math.max(
-                0,
-                Number(
-                    config.closeHandoffDuration,
-                ) || 0,
-            )
-
-        // Sin fundido, o sin trigger debajo que lo absorba, no hay relevo que
-        // hacer: el shell se apaga y el trigger (si vuelve) vuelve en el mismo
-        // frame.
-        if (handoffDuration <= 0 || !canRevealOrigin) {
+        handoffRaf = requestAnimationFrame(() => {
+            handoffRaf = null
             cleanup({
                 hideShell: true,
                 notify: true,
             })
-
-            return
-        }
-
-
-        // ---------------------------------------------------------------------
-        // HANDOFF
-        //
-        // The origin is already revealed underneath (see the block above), so
-        // this fade happens black over black: invisible. It only runs when
-        // there IS a revealed origin to absorb it.
-        // ---------------------------------------------------------------------
-
-        shellStyle.transition =
-            'none'
-
-        shellStyle.opacity =
-            '1'
-
-        void shellEl.offsetWidth
-
-        shellStyle.transition =
-            `opacity ${handoffDuration}s ease-out`
-
-        shellStyle.opacity =
-            '0'
-
-
-        // ---------------------------------------------------------------------
-        // FIN DEL CIERRE
-        //
-        // El transitionend es el camino normal, pero NO se puede confiar en el:
-        // una ventana oculta/throttleada, un cambio de estilo coalescido o una
-        // transicion interrumpida lo dejan sin llegar. Sin un respaldo, este
-        // cierre no terminaria jamas: ni store.remove, ni el item fuera, ni el
-        // vuelo de fantasmas fuera (fuga permanente).
-        //
-        // El motor viejo ya lo hacia asi (morph.js): un setTimeout con el
-        // mismo trabajo. Aqui van los dos, y el primero que llegue cierra.
-        // ---------------------------------------------------------------------
-
-        const finishHandoff = () => {
-            if (handoffDone) {
-                return
-            }
-
-            handoffDone = true
-
-            if (handoffTimer) {
-                clearTimeout(handoffTimer)
-                handoffTimer = null
-            }
-
-            if (handoffHandler) {
-                shellEl.removeEventListener(
-                    'transitionend',
-                    handoffHandler,
-                )
-                handoffHandler = null
-            }
-
-            if (!controller.isCurrent() || settled) {
-                return
-            }
-
-            cleanup({
-                hideShell: true,
-                notify: true,
-            })
-        }
-
-        handoffHandler = (event) => {
-            if (event.target !== shellEl) {
-                return
-            }
-
-            if (event.propertyName !== 'opacity') {
-                return
-            }
-
-            finishHandoff()
-        }
-
-        shellEl.addEventListener(
-            'transitionend',
-            handoffHandler,
-        )
-
-        handoffTimer =
-            window.setTimeout(
-                finishHandoff,
-                handoffDuration * 1000 + 20,
-            )
+        })
     }
 
 

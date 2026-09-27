@@ -104,6 +104,8 @@ const updateLayout = () => {
   // revertimos la escala matemáticamente:
   const scale = wRect.width / modalWrapper.value.offsetWidth;
   
+  if (scale === 0 || !Number.isFinite(scale)) return;
+  
   const cLeft = (cRect.left - wRect.left) / scale;
   const cTop = (cRect.top - wRect.top) / scale;
   const cWidth = physicsCanvas.value.offsetWidth;
