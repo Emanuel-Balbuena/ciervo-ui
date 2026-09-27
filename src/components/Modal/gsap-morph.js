@@ -59,7 +59,7 @@ export const MORPH_DEFAULTS = {
     closeVelocity: 1400,
 
     closeContentDuration: 0.16,
-    closeHandoffDuration: 0,
+    closeHandoffDuration: 0.05,
 
     // De donde cuelga el texto que vuela:
     //
@@ -203,7 +203,7 @@ export function hideOrigin(
         clickable = false,
     } = {},
 ) {
-    if (!(element instanceof HTMLElement)) return
+    if (!(element instanceof Element)) return
 
     if (!originTransitions.has(element)) {
         originTransitions.set(
@@ -239,7 +239,7 @@ export function restoreOrigin(
         duration = 300,
     } = {},
 ) {
-    if (!(element instanceof HTMLElement)) return
+    if (!(element instanceof Element)) return
 
     const savedTransition =
         originTransitions.get(element)
@@ -1346,7 +1346,7 @@ function flyGhosts(
                     toBox,
                     {
                         clone:
-                            spec.revealEl instanceof HTMLElement,
+                            spec.revealEl instanceof Element,
                     },
                 )
 
@@ -2087,7 +2087,7 @@ function snapBoxToChassis(box, el, root) {
 
     const container =
         chassis ||
-        (el.parentElement && el.parentElement !== root && root.contains(el.parentElement) ? el.parentElement : null)
+        (el.parentElement && el.parentElement !== root && root.contains(el.parentElement) ? el.parentElement : el)
 
     if (!container) {
         return box
@@ -2098,14 +2098,12 @@ function snapBoxToChassis(box, el, root) {
 
     const rootTopDev = Math.round(rRoot.top * dpr)
     const rootLeftDev = Math.round(rRoot.left * dpr)
-    const rootHDev = Math.round(rRoot.height * dpr)
-    const rootWDev = Math.round(rRoot.width * dpr)
 
-    const chassisHDev = Math.round(rChassis.height * dpr)
-    const chassisWDev = Math.round(rChassis.width * dpr)
+    const offsetLeftDev = Math.round((rChassis.left - rRoot.left) * dpr)
+    const offsetTopDev = Math.round((rChassis.top - rRoot.top) * dpr)
 
-    const chassisTopDev = rootTopDev + Math.round((rootHDev - chassisHDev) / 2)
-    const chassisLeftDev = rootLeftDev + Math.round((rootWDev - chassisWDev) / 2)
+    const chassisTopDev = rootTopDev + offsetTopDev
+    const chassisLeftDev = rootLeftDev + offsetLeftDev
 
     const snappedChassisTop = chassisTopDev / dpr
     const snappedChassisLeft = chassisLeftDev / dpr
@@ -3135,7 +3133,7 @@ export function gsapMorphFromOrigin({
     // Neutralizar cualquier resorte activo (:active o transicion de clic) antes
     // de medir para que tanto los fantasmas como el originRect nazcan en la
     // geometria de reposo natural al 100%.
-    if (origin instanceof HTMLElement && getComputedStyle(origin).transform !== 'none') {
+    if (origin instanceof Element && getComputedStyle(origin).transform !== 'none') {
         if (!originTransitions.has(origin)) {
             originTransitions.set(origin, origin.style.transition)
         }
@@ -3169,12 +3167,27 @@ export function gsapMorphFromOrigin({
     const originRect =
         origin.getBoundingClientRect()
 
+    const dpr =
+        (typeof window !== 'undefined' && window.devicePixelRatio) || 1
+
+    const snappedOriginLeft =
+        Math.round(originRect.left * dpr) / dpr
+
+    const snappedOriginTop =
+        Math.round(originRect.top * dpr) / dpr
+
+    const snappedOriginWidth =
+        Math.round(originRect.width * dpr) / dpr
+
+    const snappedOriginHeight =
+        Math.round(originRect.height * dpr) / dpr
+
     const fromX =
-        originRect.left -
+        snappedOriginLeft -
         shellRect.left
 
     const fromY =
-        originRect.top -
+        snappedOriginTop -
         shellRect.top
 
 
@@ -3196,8 +3209,8 @@ export function gsapMorphFromOrigin({
     const fromRound =
         cornerRoundness(
             originComputed,
-            originRect.width,
-            originRect.height,
+            snappedOriginWidth,
+            snappedOriginHeight,
             originStyle?.borderRadius,
         )
 
@@ -3257,10 +3270,10 @@ export function gsapMorphFromOrigin({
         y: fromY,
 
         width:
-            originRect.width,
+            snappedOriginWidth,
 
         height:
-            originRect.height,
+            snappedOriginHeight,
 
         roundT: 0,
     }
@@ -3555,10 +3568,10 @@ export function gsapMorphFromOrigin({
 
                     boxStart: {
                         left:
-                            originRect.left,
+                            snappedOriginLeft,
 
                         top:
-                            originRect.top,
+                            snappedOriginTop,
                     },
 
                     boxEnd: {
@@ -3932,13 +3945,34 @@ export function gsapMorphToOrigin({
         const liveOriginRect =
             origin.getBoundingClientRect()
 
+        const dpr =
+            (typeof window !== 'undefined' && window.devicePixelRatio) || 1
+
+        const snappedLiveLeft =
+            Math.round(liveOriginRect.left * dpr) / dpr
+
+        const snappedLiveTop =
+            Math.round(liveOriginRect.top * dpr) / dpr
+
+        const snappedLiveWidth =
+            Math.round(liveOriginRect.width * dpr) / dpr
+
+        const snappedLiveHeight =
+            Math.round(liveOriginRect.height * dpr) / dpr
+
+        const snappedShellBaseLeft =
+            Math.round(shellBaseRect.left * dpr) / dpr
+
+        const snappedShellBaseTop =
+            Math.round(shellBaseRect.top * dpr) / dpr
+
         const liveToX =
-            liveOriginRect.left -
-            shellBaseRect.left
+            snappedLiveLeft -
+            snappedShellBaseLeft
 
         const liveToY =
-            liveOriginRect.top -
-            shellBaseRect.top
+            snappedLiveTop -
+            snappedShellBaseTop
 
         pageCorr.x = 0
         pageCorr.y = 0
@@ -3949,10 +3983,10 @@ export function gsapMorphToOrigin({
         pure.y = liveToY
 
         state.width =
-            liveOriginRect.width
+            snappedLiveWidth
 
         state.height =
-            liveOriginRect.height
+            snappedLiveHeight
 
         state.roundT = 1
 
@@ -3990,12 +4024,25 @@ export function gsapMorphToOrigin({
             )
         }
 
-        cleanup({
-            hideShell: true,
-            notify: true,
-        })
+        const handoffDuration =
+            Math.max(
+                0,
+                Number(
+                    config.closeHandoffDuration,
+                ) || 0,
+            )
 
-        return
+        // Sin fundido, o sin trigger debajo que lo absorba, no hay relevo que
+        // hacer: el shell se apaga y el trigger (si vuelve) vuelve en el mismo
+        // frame.
+        if (handoffDuration <= 0 || !canRevealOrigin) {
+            cleanup({
+                hideShell: true,
+                notify: true,
+            })
+
+            return
+        }
 
 
         // ---------------------------------------------------------------------
@@ -4119,14 +4166,23 @@ export function gsapMorphToOrigin({
         && Math.abs(parseFloat(dialogEl.style.top) - unrotatedRect.top) < 0.5
 
     if (!yaAnclado) {
+        const dpr =
+            (typeof window !== 'undefined' && window.devicePixelRatio) || 1
+
+        const snappedLeft =
+            Math.round(unrotatedRect.left * dpr) / dpr
+
+        const snappedTop =
+            Math.round(unrotatedRect.top * dpr) / dpr
+
         dialogEl.style.position =
             'absolute'
 
         dialogEl.style.left =
-            `${unrotatedRect.left}px`
+            `${snappedLeft}px`
 
         dialogEl.style.top =
-            `${unrotatedRect.top}px`
+            `${snappedTop}px`
 
         dialogEl.style.margin =
             '0'
@@ -4248,7 +4304,7 @@ export function gsapMorphToOrigin({
         ghostSpecs.forEach(
             (spec) => {
                 const live =
-                    spec.sourceEl instanceof HTMLElement
+                    spec.sourceEl instanceof Element
                         ? spec.sourceEl
                             .getBoundingClientRect()
                         : liveBoxes(
@@ -4272,17 +4328,38 @@ export function gsapMorphToOrigin({
     const originRect =
         origin.getBoundingClientRect()
 
+    const dpr =
+        (typeof window !== 'undefined' && window.devicePixelRatio) || 1
+
+    const snappedOriginLeft =
+        Math.round(originRect.left * dpr) / dpr
+
+    const snappedOriginTop =
+        Math.round(originRect.top * dpr) / dpr
+
+    const snappedOriginWidth =
+        Math.round(originRect.width * dpr) / dpr
+
+    const snappedOriginHeight =
+        Math.round(originRect.height * dpr) / dpr
+
+    const snappedShellBaseLeft =
+        Math.round(shellBaseRect.left * dpr) / dpr
+
+    const snappedShellBaseTop =
+        Math.round(shellBaseRect.top * dpr) / dpr
+
     // Destino CAPTURADO del viaje, y ya no se re-apunta: si el trigger se mueve
     // con el scroll, ese desplazamiento no entra por aqui (los canales viajarian
     // detras de el) sino por `pageCorr`, que se suma a la lectura. Con el scroll
     // parado esto es exactamente donde tiene que aterrizar el shell.
     const toX =
-        originRect.left -
-        shellBaseRect.left
+        snappedOriginLeft -
+        snappedShellBaseLeft
 
     const toY =
-        originRect.top -
-        shellBaseRect.top
+        snappedOriginTop -
+        snappedShellBaseTop
 
 
     // -------------------------------------------------------------------------
@@ -4299,8 +4376,8 @@ export function gsapMorphToOrigin({
     const toRound =
         cornerRoundness(
             originComputed,
-            originRect.width,
-            originRect.height,
+            snappedOriginWidth,
+            snappedOriginHeight,
             originStyle?.borderRadius,
         )
 
@@ -4604,10 +4681,10 @@ export function gsapMorphToOrigin({
         y: toY,
 
         width:
-            originRect.width,
+            snappedOriginWidth,
 
         height:
-            originRect.height,
+            snappedOriginHeight,
 
         roundT: 1,
 
@@ -4733,10 +4810,10 @@ export function gsapMorphToOrigin({
 
                     boxEnd: {
                         left:
-                            originRect.left,
+                            snappedOriginLeft,
 
                         top:
-                            originRect.top,
+                            snappedOriginTop,
                     },
 
                     duration:
@@ -4854,7 +4931,7 @@ export function gsapMorphToOrigin({
             !controller.isCurrent() ||
             settled ||
             vanished ||
-            !(nextOrigin instanceof HTMLElement) ||
+            !(nextOrigin instanceof Element) ||
             !nextOrigin.isConnected
         ) {
             return
@@ -4863,28 +4940,22 @@ export function gsapMorphToOrigin({
         const next =
             nextOrigin.getBoundingClientRect()
 
-        // ── El destino se movio: se mide, no se persigue ─────────────────────
-        //
-        // Antes esto re-apuntaba los canales (`animate` + `spring` con
-        // `velocity: 0`) a la posicion VIVA del trigger, y ese es el defecto que
-        // se esta quitando: un resorte re-apuntado en cada tick del scroll es un
-        // filtro de primer orden que solo sigue ~27% del movimiento, el desfase
-        // se acumula y los canales no asientan nunca -- el vuelo se quedaba
-        // colgado hasta el remate de `closeMaxDuration`, que revelaba el trigger
-        // a mitad de persecucion.
-        //
-        // El desplazamiento entra por `pageCorr`, que se SUMA a la lectura de
-        // x/y (ver arriba): los canales siguen apuntando a la geometria
-        // capturada, que con el scroll quieta es exactamente donde tiene que
-        // aterrizar, y este desplazamiento es lo que hace que el shell y el
-        // texto viajen pegados a la pagina.
+        const dpr =
+            (typeof window !== 'undefined' && window.devicePixelRatio) || 1
+
+        const snappedNextLeft =
+            Math.round(next.left * dpr) / dpr
+
+        const snappedNextTop =
+            Math.round(next.top * dpr) / dpr
+
         pageCorr.x =
-            next.left -
-            originRect.left
+            snappedNextLeft -
+            snappedOriginLeft
 
         pageCorr.y =
-            next.top -
-            originRect.top
+            snappedNextTop -
+            snappedOriginTop
 
         pageCorr.scrollX =
             window.scrollX

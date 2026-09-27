@@ -44,7 +44,7 @@ export const MORPH_DEFAULTS = {
     closeSizeDamping: 26,
     closeVelocity: 1400,
     closeContentDuration: 0.16,
-    closeHandoffDuration: 0,
+    closeHandoffDuration: 0.05,
 
     // Lo que dura el apagon de una copia que se va sin viaje de vuelta (el
     // MISMO modal volviendo a abrirse encima). Ver `vanish` mas abajo.
@@ -193,8 +193,8 @@ function sizeSpring(config, { close = false, rest = null } = {}) {
         stiffness: config.sizeStiffness,
         damping: close ? (config.closeSizeDamping ?? config.closeDamping) : config.sizeDamping,
         velocity: 0,
-        restDelta: rest?.restDelta ?? 0.4,
-        restSpeed: rest?.restSpeed ?? 4,
+        restDelta: rest?.restDelta ?? (close ? (config.closeRestDelta ?? 0.04) : 0.4),
+        restSpeed: rest?.restSpeed ?? (close ? (config.closeRestSpeed ?? 0.5) : 4),
     })
 }
 
@@ -532,7 +532,7 @@ export function morphToOrigin({ dialogEl, shellEl, bodyEl, origin, originStyle, 
             return
         }
 
-        restoreOrigin(origin, { duration: handoffDuration * 1000 })
+        restoreOrigin(origin, { instant: true })
         shellStyle.transition = 'none'
         shellStyle.opacity = '1'
         void shellEl.offsetWidth

@@ -1008,7 +1008,7 @@ export function createModalHost({ store, options = {}, mountTo = 'body' } = {}) 
         }
 
         const handoffDuration = reverse
-            ? Math.max(0, Number(morphOptions.closeHandoffDuration) || 0)
+            ? Math.max(0, Number(morphOptions.closeHandoffDuration ?? MORPH_DEFAULTS.closeHandoffDuration) || 0)
             : 0
 
         // Restack immediately so the underlying modal smoothly scales back up.
